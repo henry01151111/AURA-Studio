@@ -124,6 +124,9 @@
 
     <canvas id="mainCanvas" class="canvas-layer"></canvas>
 
+    <!-- Visual Lightning Overlay (無音效閃電視覺層) -->
+    <div id="lightningOverlay" class="fixed inset-0 pointer-events-none z-[1] opacity-0 transition-opacity duration-100 mix-blend-screen bg-indigo-100/40"></div>
+
     <!-- Zen Mode Exit Notice Toast -->
     <div id="zenNotice" class="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-black/70 backdrop-blur-md border border-white/20 text-white/90 text-xs px-4 py-2 rounded-full pointer-events-none transition-all duration-500 opacity-0 transform -translate-y-4 shadow-xl">
         <i class="fa-solid fa-spa text-indigo-400 mr-2"></i>已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）
@@ -338,6 +341,9 @@
                 <button id="zenModeBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="Zen 沉浸專注模式">
                     <i class="fa-solid fa-spa text-xs"></i><span class="tooltip-text">Zen 模式</span>
                 </button>
+                <button id="thunderToggleBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="打雷視覺效果 (純視覺無音效)">
+                    <i id="thunderIcon" class="fa-solid fa-bolt text-xs text-white/50"></i><span class="tooltip-text">打雷效果</span>
+                </button>
                 <button id="openSettingsBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="進階設定">
                     <i class="fa-solid fa-sliders text-xs"></i><span class="tooltip-text">進階設定</span>
                 </button>
@@ -526,6 +532,7 @@
 
         const state = {
             lowPerformance: false,
+            thunderEnabled: false,
             speed: 1.0,
             density: 1.0,
             windAngle: -2.5,
@@ -562,6 +569,7 @@
             try {
                 const dataToSave = {
                     lowPerformance: state.lowPerformance,
+                    thunderEnabled: state.thunderEnabled,
                     speed: state.speed,
                     density: state.density,
                     clock24h: state.clock24h,
@@ -630,6 +638,21 @@
 
             // 格言
             document.getElementById('customQuoteInput').value = state.customQuoteText || '';
+
+            // 打雷效果按鈕狀態同步
+            const thunderBtn = document.getElementById('thunderToggleBtn');
+            const thunderIcon = document.getElementById('thunderIcon');
+            if (thunderBtn && thunderIcon) {
+                if (state.thunderEnabled) {
+                    thunderBtn.classList.add('bg-amber-500/20', 'border', 'border-amber-400/40');
+                    thunderIcon.className = "fa-solid fa-bolt text-xs text-amber-300 animate-pulse";
+                    scheduleNextLightning();
+                } else {
+                    thunderBtn.classList.remove('bg-amber-500/20', 'border', 'border-amber-400/40');
+                    thunderIcon.className = "fa-solid fa-bolt text-xs text-white/50";
+                    clearTimeout(lightningTimeout);
+                }
+            }
 
             // 時鐘字體與縮放
             setClockFont(state.clockFont, false);
@@ -1295,6 +1318,61 @@
 
         let isZenMode = false;
         const zenNotice = document.getElementById('zenNotice');
+
+        // 打雷視覺效果邏輯 (純視覺，無音效)
+        let lightningTimeout = null;
+
+        function triggerLightningFlash() {
+            if (!state.thunderEnabled) return;
+            const overlay = document.getElementById('lightningOverlay');
+            if (!overlay) return;
+
+            // 擬真雙重閃爍效果
+            overlay.style.opacity = (Math.random() * 0.35 + 0.25).toString();
+            
+            setTimeout(() => {
+                overlay.style.opacity = '0.05';
+                setTimeout(() => {
+                    overlay.style.opacity = (Math.random() * 0.5 + 0.3).toString();
+                    setTimeout(() => {
+                        overlay.style.opacity = '0';
+                    }, 120);
+                }, 60);
+            }, 80);
+
+            scheduleNextLightning();
+        }
+
+        function scheduleNextLightning() {
+            clearTimeout(lightningTimeout);
+            if (!state.thunderEnabled) return;
+            // 隨機每 7 到 18 秒閃爍一次
+            const delay = Math.random() * 11000 + 7000;
+            lightningTimeout = setTimeout(triggerLightningFlash, delay);
+        }
+
+        function toggleThunder(enable) {
+            state.thunderEnabled = enable !== undefined ? enable : !state.thunderEnabled;
+            const btn = document.getElementById('thunderToggleBtn');
+            const icon = document.getElementById('thunderIcon');
+            
+            if (state.thunderEnabled) {
+                if (btn) btn.classList.add('bg-amber-500/20', 'border', 'border-amber-400/40');
+                if (icon) icon.className = "fa-solid fa-bolt text-xs text-amber-300 animate-pulse";
+                triggerLightningFlash();
+            } else {
+                if (btn) btn.classList.remove('bg-amber-500/20', 'border', 'border-amber-400/40');
+                if (icon) icon.className = "fa-solid fa-bolt text-xs text-white/50";
+                clearTimeout(lightningTimeout);
+                const overlay = document.getElementById('lightningOverlay');
+                if (overlay) overlay.style.opacity = '0';
+            }
+            saveSettings();
+        }
+
+        document.getElementById('thunderToggleBtn')?.addEventListener('click', () => {
+            toggleThunder();
+        });
 
         function toggleZenMode(enable) {
             isZenMode = enable !== undefined ? enable : !isZenMode;
