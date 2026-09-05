@@ -1,0 +1,28 @@
+
+{
+  "name": "AURA-STUDIO : 螢幕保護程式和更多",
+  "short_name": "AURA-STUDIO",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "any",
+  "scope": "/",
+  "lang": "zh",
+  "description": "番茄鐘\n8種主題\n低性能模式\n和更多",
+  "categories": [
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

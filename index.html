@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA - 沉浸式學習專注螢幕保護程式 Studio</title>
+    
+    <!-- PWA Manifest & Theme Color -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#030712">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        serif: ['Playfair Display', 'serif']
+                    },
+                    colors: {
+                        glass: 'rgba(13, 17, 28, 0.65)',
+                        borderGlass: 'rgba(255, 255, 255, 0.12)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            box-sizing: border-box;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #030712;
+            color: #ffffff;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .canvas-layer {
+            z-index: 2;
+        }
+        .hud-element {
+            transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-panel {
+            background: rgba(13, 18, 30, 0.82);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+        }
+        .text-shadow-glow {
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.6), 0 0 60px rgba(99, 102, 241, 0.4);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+        }
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .drawer-slide {
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+        }
+        .tooltip {
+            position: relative;
+        }
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: max-content;
+            background-color: rgba(0, 0, 0, 0.88);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 4px 8px;
+            position: absolute;
+            z-index: 50;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.7rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+        }
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased overflow-hidden">
+
+    <canvas id="mainCanvas" class="canvas-layer"></canvas>
+
+    <!-- Zen Mode Exit Notice Toast -->
+    <div id="zenNotice" class="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-black/70 backdrop-blur-md border border-white/20 text-white/90 text-xs px-4 py-2 rounded-full pointer-events-none transition-all duration-500 opacity-0 transform -translate-y-4 shadow-xl">
+        <i class="fa-solid fa-spa text-indigo-400 mr-2"></i>已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）
+    </div>
+
+    <div id="clockContainer" class="absolute z-10 pointer-events-none transition-all duration-700 ease-out flex flex-col items-center justify-center p-6 text-center inset-0">
+        
+        <!-- Scalable Clock & Pomodoro Wrapper -->
+        <div id="clockScaleWrapper" class="relative flex items-center justify-center pointer-events-auto group transition-transform duration-500 ease-out origin-center">
+            <svg class="w-80 h-80 sm:w-[420px] sm:h-[420px]" viewBox="0 0 450 450">
+                <circle class="text-white/10" stroke-width="4" stroke="currentColor" fill="transparent" r="200" cx="225" cy="225"/>
+                <circle id="pomoProgressCircle" class="text-indigo-500 progress-ring-circle transition-all duration-500" stroke-width="6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="200" cx="225" cy="225" stroke-dasharray="1256.6" stroke-dashoffset="0"/>
+            </svg>
+
+            <div class="absolute inset-0 flex flex-col items-center justify-center p-4">
+                <div id="timeDisplay" class="font-sans font-light text-5xl sm:text-7xl tracking-tight text-shadow-glow text-white/95">
+                    00:00:00
+                </div>
+                
+                <div id="dateDisplay" class="font-mono text-xs sm:text-sm font-medium text-indigo-300/80 tracking-widest uppercase mt-2">
+                    2026年8月10日 星期一
+                </div>
+
+                <div id="pomoStatusBadge" class="mt-3 inline-flex items-center space-x-1.5 bg-indigo-500/20 border border-indigo-400/30 px-3 py-1 rounded-full text-xs font-medium text-indigo-300 cursor-pointer hover:bg-indigo-500/30 transition" title="點擊自訂倒數時間">
+                    <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
+                    <span id="pomoStatusText">學習專注階段 (25m)</span>
+                </div>
+            </div>
+        </div>
+        <!-- Inspirational Study Quote -->
+        <div id="quoteDisplay" class="font-serif italic text-xs sm:text-sm text-white/70 max-w-lg mt-6 px-6 leading-relaxed transition-opacity duration-700" style="display: none;">
+            「專注於眼前的小事，平靜是進入高效流道的鑰匙。」
+        </div>
+    </div>
+
+    <header id="topHud" class="hud-element absolute top-0 left-0 right-0 z-20 flex justify-between items-center p-4 sm:p-6 text-xs sm:text-sm">
+        <div class="flex items-center space-x-3">
+            
+            <!-- 低性能模式開關 -->
+            <button id="lowPerfToggleBtn" class="flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 text-white/90 transition shadow-lg tooltip">
+                <i id="lowPerfIcon" class="fa-solid fa-leaf text-green-400"></i>
+                <span id="lowPerfText" class="font-medium">性能: 標準</span>
+                <span class="tooltip-text" style="bottom: -150%; top: auto;">切換以減少特效負載</span>
+            </button>
+
+            <!-- 學習任務與草稿 -->
+            <button id="toggleTaskDrawerBtn" class="flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 text-white/90 transition shadow-lg">
+                <i class="fa-solid fa-list-check text-indigo-400"></i>
+                <span class="font-medium">學習任務與草稿</span>
+                <span id="taskCountBadge" class="bg-indigo-600 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">0</span>
+            </button>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <!-- PWA 安裝按鈕（符合條件時會自動顯示） -->
+            <button id="pwaInstallBtn" class="hidden flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-full border border-indigo-400/30 transition shadow-lg text-xs font-semibold">
+                <i class="fa-solid fa-download"></i>
+                <span>安裝 App</span>
+            </button>
+
+            <button id="toggleAudioMixerBtn" class="flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 text-white/90 transition shadow-lg">
+                <i class="fa-solid fa-headphones text-teal-400"></i>
+                <span class="font-medium">專注聲景混音</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Task Drawer (Left) -->
+    <div id="taskDrawer" class="drawer-slide fixed top-20 left-4 z-30 w-80 sm:w-96 glass-panel rounded-3xl p-5 border border-white/15 shadow-2xl opacity-0 pointer-events-none -translate-x-10">
+        <div class="flex justify-between items-center pb-3 border-b border-white/10 mb-4">
+            <div class="flex items-center space-x-2 text-indigo-300 font-semibold text-sm">
+                <i class="fa-solid fa-book-bookmark"></i>
+                <span>學習任務與隨手筆記</span>
+            </div>
+            <button id="closeTaskDrawerBtn" class="text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="flex items-center space-x-2 mb-4">
+            <input id="taskInput" type="text" placeholder="新增學習目標 (例如：完成微積分第三章)..." class="w-full bg-black/40 border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500 transition">
+            <button id="addTaskBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-2 rounded-xl shrink-0 font-medium transition">
+                新增
+            </button>
+        </div>
+
+        <div id="taskList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1 mb-4"></div>
+
+        <div class="pt-3 border-t border-white/10">
+            <label class="block text-[11px] text-white/50 uppercase font-semibold mb-1.5">專注草稿備忘錄 (自動儲存)</label>
+            <textarea id="memoInput" rows="4" class="w-full bg-black/40 border border-white/15 rounded-xl p-3 text-xs text-white placeholder-white/25 focus:outline-none focus:border-indigo-500 transition resize-none custom-scrollbar" placeholder="在此記錄臨時想法、解題算式或待查資料，免去切換視窗干擾..."></textarea>
+        </div>
+    </div>
+
+    <div id="audioMixerDrawer" class="drawer-slide fixed top-20 right-4 z-30 w-80 glass-panel rounded-3xl p-5 border border-white/15 shadow-2xl opacity-0 pointer-events-none translate-y-4">
+        <div class="flex justify-between items-center pb-3 border-b border-white/10 mb-4">
+            <div class="flex items-center space-x-2 text-teal-300 font-semibold text-sm">
+                <i class="fa-solid fa-sliders"></i>
+                <span>多軌專注聲景混音器</span>
+            </div>
+            <button id="closeAudioMixerBtn" class="text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="space-y-4 text-xs">
+            <div class="flex items-center justify-between bg-white/5 p-3 rounded-2xl">
+                <span class="text-white/80 font-medium">總聲音開關</span>
+                <button id="masterAudioToggle" class="bg-indigo-600 text-white px-3 py-1 rounded-xl font-semibold transition">
+                    已開啟
+                </button>
+            </div>
+
+            <div>
+                <div class="flex justify-between text-white/70 font-medium mb-1">
+                    <span><i class="fa-solid fa-cloud-rain text-blue-400 mr-1.5"></i>真實溫馨雨聲</span>
+                    <span id="rainVolVal" class="text-indigo-300">70%</span>
+                </div>
+                <input id="rainVolSlider" type="range" min="0" max="1" step="0.05" value="0.7" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
+            </div>
+
+            <div>
+                <div class="flex justify-between text-white/70 font-medium mb-1">
+                    <span><i class="fa-solid fa-brain text-purple-400 mr-1.5"></i>雙耳節律 (Binaural Focus)</span>
+                    <span id="alphaVolVal" class="text-indigo-300">30%</span>
+                </div>
+                <input id="alphaVolSlider" type="range" min="0" max="1" step="0.05" value="0.3" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
+            </div>
+
+            <!-- Binaural Frequency Selector directly inside Audio Mixer -->
+            <div class="pl-2 border-l-2 border-indigo-500/40 my-2">
+                <label class="block text-white/60 mb-1 font-medium">雙耳節律頻段：</label>
+                <select id="binauralSelect" class="w-full bg-black/50 border border-white/15 rounded-xl px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500 transition cursor-pointer">
+                    <option value="10">α 波 (10Hz) - 深層專注與平靜</option>
+                    <option value="18">β 波 (18Hz) - 高強度運算與邏輯</option>
+                    <option value="6">θ 波 (6Hz) - 靈感發想與冥想</option>
+                </select>
+            </div>
+
+            <div>
+                <div class="flex justify-between text-white/70 font-medium mb-1">
+                    <span><i class="fa-solid fa-fire text-amber-400 mr-1.5"></i>溫馨柴火噼啪聲</span>
+                    <span id="fireVolVal" class="text-indigo-300">20%</span>
+                </div>
+                <input id="fireVolSlider" type="range" min="0" max="1" step="0.05" value="0.2" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
+            </div>
+
+            <div>
+                <div class="flex justify-between text-white/70 font-medium mb-1">
+                    <span><i class="fa-solid fa-wind text-teal-300 mr-1.5"></i>微風與靜心磬音</span>
+                    <span id="chimeVolVal" class="text-indigo-300">40%</span>
+                </div>
+                <input id="chimeVolSlider" type="range" min="0" max="1" step="0.05" value="0.4" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
+            </div>
+        </div>
+    </div>
+
+    <!-- Dual-Row Bottom HUD Layout (Equal Width Panels) -->
+    <div id="bottomHud" class="hud-element absolute bottom-5 left-1/2 -translate-x-1/2 z-20 w-full max-w-[560px] px-4 flex flex-col items-center space-y-2.5">
+        
+        <!-- Top Row: Themes -->
+        <div class="glass-panel w-full px-4 py-2 rounded-2xl flex items-center justify-between shadow-2xl">
+            <button data-theme="night_library" class="theme-btn tooltip w-9 h-9 rounded-xl bg-amber-900/40 hover:bg-amber-900/60 border border-amber-500/20 text-amber-200 flex items-center justify-center transition shrink-0">
+                <i class="fa-solid fa-book-open text-xs"></i><span class="tooltip-text">深夜圖書館</span>
+            </button>
+            <button data-theme="cozy_cafe" class="theme-btn tooltip w-9 h-9 rounded-xl bg-purple-900/40 hover:bg-purple-900/60 border border-purple-500/20 text-purple-200 flex items-center justify-center transition shrink-0">
+                <i class="fa-solid fa-mug-hot text-xs"></i><span class="tooltip-text">雨夜咖啡館</span>
+            </button>
+            <button data-theme="deep_emerald" class="theme-btn tooltip w-9 h-9 rounded-xl bg-emerald-900/40 hover:bg-emerald-900/60 border border-emerald-500/20 text-emerald-200 flex items-center justify-center transition shrink-0">
+                <i class="fa-solid fa-tree text-xs"></i><span class="tooltip-text">靜謐森林</span>
+            </button>
+            <button data-theme="cyber_tokyo" class="theme-btn tooltip w-9 h-9 rounded-xl bg-cyan-900/40 hover:bg-cyan-900/60 border border-cyan-500/20 text-cyan-200 flex items-center justify-center transition shrink-0">
+                <i class="fa-solid fa-city text-xs"></i><span class="tooltip-text">賽博雨夜</span>
+            </button>
+            <button data-theme="midnight_ocean" class="theme-btn tooltip w-9 h-9 rounded-xl bg-blue-900/40 hover:bg-blue-900/60 border border-blue-500/20 text-blue-200 flex items-center justify-center transition shrink-0">
+                <i class="fa-solid fa-water text-xs"></i><span class="tooltip-text">深海月光</span>
+            </button>
+            <button data-theme="sunset_glow" class="theme-btn tooltip w-9 h-9 rounded-xl bg-rose-900/40 hover:bg-rose-900/60 border border-rose-500/20 text-rose-200 flex items-center justify-center transition shrink-0">
+                <i class="fa-solid fa-sun text-xs"></i><span class="tooltip-text">落日餘暉</span>
+            </button>
+            <button data-theme="nordic_aurora" class="theme-btn tooltip w-9 h-9 rounded-xl bg-teal-900/40 hover:bg-teal-900/60 border border-teal-500/20 text-teal-200 flex items-center justify-center transition shrink-0">
+                <i class="fa-solid fa-snowflake text-xs"></i><span class="tooltip-text">極光冰原</span>
+            </button>
+            <button data-theme="starlight_zen" class="theme-btn tooltip w-9 h-9 rounded-xl bg-indigo-900/40 hover:bg-indigo-900/60 border border-indigo-500/20 text-indigo-200 flex items-center justify-center transition shrink-0">
+                <i class="fa-solid fa-moon text-xs"></i><span class="tooltip-text">靜謐星空</span>
+            </button>
+        </div>
+
+        <!-- Bottom Row: Controls -->
+        <div class="glass-panel w-full px-4 py-2 rounded-2xl flex items-center justify-between shadow-2xl">
+            <!-- Pomodoro Main Controls -->
+            <div class="flex items-center space-x-2">
+                <button id="pomoMainBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3.5 py-1.5 rounded-xl transition flex items-center space-x-1.5 shadow-md shadow-indigo-600/30">
+                    <i class="fa-solid fa-play" id="pomoBtnIcon"></i>
+                    <span id="pomoBtnLabel">開始專注 (25m)</span>
+                </button>
+                <button id="pomoModeBtn" class="bg-white/5 hover:bg-white/15 text-white/80 text-xs px-2.5 py-1.5 rounded-xl transition" title="切換短休息/長休息">
+                    短休息 (5m)
+                </button>
+                <button id="pomoResetBtn" class="p-1.5 text-white/50 hover:text-white transition" title="重設番茄鐘">
+                    <i class="fa-solid fa-rotate-right text-xs"></i>
+                </button>
+            </div>
+
+            <div class="h-4 w-[1px] bg-white/15 mx-1 hidden sm:block"></div>
+
+            <!-- System Feature Actions -->
+            <div class="flex items-center space-x-1">
+                <button id="zenModeBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="Zen 沉浸專注模式">
+                    <i class="fa-solid fa-spa text-xs"></i><span class="tooltip-text">Zen 模式</span>
+                </button>
+                <button id="openSettingsBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="進階設定">
+                    <i class="fa-solid fa-sliders text-xs"></i><span class="tooltip-text">進階設定</span>
+                </button>
+                <button id="fullscreenBtn" class="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-md tooltip" title="全螢幕">
+                    <i class="fa-solid fa-expand text-xs" id="fsIcon"></i><span class="tooltip-text">全螢幕</span>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 p-4">
+        <div class="glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex justify-between items-center border-b border-white/10 pb-4 mb-5">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-sliders text-indigo-400 text-lg"></i>
+                    <h3 class="font-bold text-white text-base">學習與顯示進階設定</h3>
+                </div>
+                <button id="closeSettingsBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-5 text-xs">
+                <div>
+                    <div class="flex justify-between font-semibold mb-2">
+                        <span class="text-white/70">雨滴滑落速度</span>
+                        <span id="speedVal" class="text-indigo-400 font-mono">1.0x</span>
+                    </div>
+                    <input id="speedSlider" type="range" min="0.3" max="2.0" step="0.1" value="1.0" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
+                </div>
+
+                <div>
+                    <div class="flex justify-between font-semibold mb-2">
+                        <span class="text-white/70">玻璃水珠密度</span>
+                        <span id="densityVal" class="text-indigo-400 font-mono">標準</span>
+                    </div>
+                    <input id="densitySlider" type="range" min="0.5" max="2.0" step="0.25" value="1.0" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
+                </div>
+
+                <div>
+                    <label class="block text-white/70 font-semibold mb-2">時鐘字體風格</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="setClockFont('sans')" class="font-btn bg-white/20 py-2 rounded-xl text-center text-white font-semibold font-sans transition">無襯線 (Sans)</button>
+                        <button onclick="setClockFont('mono')" class="font-btn bg-white/5 hover:bg-white/20 py-2 rounded-xl text-center text-white/80 font-mono transition">單寬碼 (Mono)</button>
+                        <button onclick="setClockFont('serif')" class="font-btn bg-white/5 hover:bg-white/20 py-2 rounded-xl text-center text-white/80 font-serif transition">典雅 (Serif)</button>
+                    </div>
+                </div>
+
+                <!-- Clock & Ring Size Scaling Switcher -->
+                <div>
+                    <label class="block text-white/70 font-semibold mb-2">時鐘與進度圓環整體尺寸</label>
+                    <div class="grid grid-cols-4 gap-1.5">
+                        <button onclick="setClockScale(0.75)" class="size-btn bg-white/5 hover:bg-white/20 py-2 rounded-xl text-center text-white/80 transition text-[11px]">極簡 (0.75x)</button>
+                        <button onclick="setClockScale(1.0)" class="size-btn bg-white/20 py-2 rounded-xl text-center text-white font-semibold transition text-[11px]">標準 (1.0x)</button>
+                        <button onclick="setClockScale(1.25)" class="size-btn bg-white/5 hover:bg-white/20 py-2 rounded-xl text-center text-white/80 transition text-[11px]">沉浸 (1.25x)</button>
+                        <button onclick="setClockScale(1.5)" class="size-btn bg-white/5 hover:bg-white/20 py-2 rounded-xl text-center text-white/80 transition text-[11px]">特大 (1.5x)</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-white/70 font-semibold mb-1.5">自訂專注格言 / 座右銘</label>
+                    <input id="customQuoteInput" type="text" placeholder="輸入專屬激勵小語 (留空則自動輪播預設語錄)..." class="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 transition">
+                </div>
+
+                <div class="pt-3 border-t border-white/10 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/80">顯示 24 小時制時鐘</span>
+                        <input type="checkbox" id="format24Toggle" checked class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/80">顯示即時秒數</span>
+                        <input type="checkbox" id="showSecondsToggle" checked class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/80">顯示專注語錄</span>
+                        <input type="checkbox" id="showQuoteToggle" class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/80">番茄鐘階段自動連播</span>
+                        <input type="checkbox" id="autoPomoToggle" class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/80">倒數結束播放提醒聲音</span>
+                        <input type="checkbox" id="soundChimeToggle" checked class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Pomodoro Modal -->
+    <div id="pomoCustomModal" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 p-4">
+        <div class="glass-panel w-full max-w-sm rounded-3xl p-6 flex flex-col space-y-4">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                <h3 class="font-bold text-white text-sm">自訂專注倒數時間</h3>
+                <button id="closePomoModalBtn" class="text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-white/60 mb-1">設定分鐘數：</label>
+                    <input id="customMinutesInput" type="number" min="1" max="180" value="25" class="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="setQuickPomo(15)" class="flex-1 bg-white/5 hover:bg-white/15 py-1.5 rounded-xl transition">15m</button>
+                    <button onclick="setQuickPomo(25)" class="flex-1 bg-white/5 hover:bg-white/15 py-1.5 rounded-xl transition">25m</button>
+                    <button onclick="setQuickPomo(45)" class="flex-1 bg-white/5 hover:bg-white/15 py-1.5 rounded-xl transition">45m</button>
+                    <button onclick="setQuickPomo(60)" class="flex-1 bg-white/5 hover:bg-white/15 py-1.5 rounded-xl transition">60m</button>
+                </div>
+                <button id="saveCustomPomoBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-xl font-semibold transition mt-2">
+                    確認設定
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            lowPerformance: false,
+            speed: 1.0,
+            density: 1.0,
+            windAngle: -2.5,
+            clock24h: true,
+            showSeconds: true,
+            showQuote: false,
+            autoPomo: false,
+            soundChime: true,
+            customQuoteText: "",
+            clockFont: 'sans',
+            clockScale: 1.0,
+            theme: 'night_library',
+            
+            pomoMode: 'work',
+            pomoRunning: false,
+            pomoSecondsLeft: 25 * 60,
+            pomoTotalSeconds: 25 * 60,
+            pomoInterval: null,
+
+            masterAudioOn: true,
+            volumes: {
+                rain: 0.7,
+                alpha: 0.3,
+                fire: 0.2,
+                chime: 0.4
+            },
+
+            tasks: [
+                { id: 1, text: '閱讀專業課本 30 頁', done: false },
+                { id: 2, text: '整理核心筆記重點', done: false }
+            ]
+        };
+
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initRain();
+        });
+
+        let audioCtx = null;
+        let audioNodes = {
+            rainSource: null, rainGain: null,
+            alphaOscL: null, alphaOscR: null, alphaGain: null,
+            fireSource: null, fireGain: null
+        };
+
+        function initAudioEngine() {
+            if (audioCtx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+
+            const bufferSize = audioCtx.sampleRate * 2;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            let b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0;
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                b0 = 0.99886 * b0 + white * 0.0555179;
+                b1 = 0.99332 * b1 + white * 0.0750759;
+                b2 = 0.96900 * b2 + white * 0.1538520;
+                b3 = 0.86650 * b3 + white * 0.3104856;
+                b4 = 0.55000 * b4 + white * 0.5329522;
+                b5 = -0.7616 * b5 - white * 0.0168980;
+                output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.08;
+                b6 = white * 0.115926;
+            }
+            audioNodes.rainSource = audioCtx.createBufferSource();
+            audioNodes.rainSource.buffer = noiseBuffer;
+            audioNodes.rainSource.loop = true;
+            const rainFilter = audioCtx.createBiquadFilter();
+            rainFilter.type = 'lowpass';
+            rainFilter.frequency.value = 1100;
+            audioNodes.rainGain = audioCtx.createGain();
+            audioNodes.rainGain.gain.setValueAtTime(state.volumes.rain * 0.2, audioCtx.currentTime);
+            audioNodes.rainSource.connect(rainFilter);
+            rainFilter.connect(audioNodes.rainGain);
+            audioNodes.rainGain.connect(audioCtx.destination);
+            audioNodes.rainSource.start();
+
+            updateBinauralFrequencies(10);
+
+            const fireBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate, audioCtx.sampleRate);
+            const fireData = fireBuffer.getChannelData(0);
+            for (let i = 0; i < audioCtx.sampleRate; i++) {
+                fireData[i] = (Math.random() * 2 - 1) * (Math.random() > 0.985 ? 0.7 : 0.03);
+            }
+            audioNodes.fireSource = audioCtx.createBufferSource();
+            audioNodes.fireSource.buffer = fireBuffer;
+            audioNodes.fireSource.loop = true;
+            const fireFilter = audioCtx.createBiquadFilter();
+            fireFilter.type = 'bandpass';
+            fireFilter.frequency.value = 850;
+            audioNodes.fireGain = audioCtx.createGain();
+            audioNodes.fireGain.gain.setValueAtTime(state.volumes.fire * 0.1, audioCtx.currentTime);
+            audioNodes.fireSource.connect(fireFilter);
+            fireFilter.connect(audioNodes.fireGain);
+            audioNodes.fireGain.connect(audioCtx.destination);
+            audioNodes.fireSource.start();
+
+            scheduleChime();
+        }
+
+        function updateBinauralFrequencies(diffHz) {
+            if (!audioCtx) return;
+            if (audioNodes.alphaOscL && audioNodes.alphaOscR) {
+                try {
+                    audioNodes.alphaOscL.stop();
+                    audioNodes.alphaOscR.stop();
+                } catch(e){}
+            }
+            const merger = audioCtx.createChannelMerger(2);
+            audioNodes.alphaOscL = audioCtx.createOscillator();
+            audioNodes.alphaOscR = audioCtx.createOscillator();
+            audioNodes.alphaOscL.type = 'sine';
+            audioNodes.alphaOscR.type = 'sine';
+            audioNodes.alphaOscL.frequency.setValueAtTime(200, audioCtx.currentTime);
+            audioNodes.alphaOscR.frequency.setValueAtTime(200 + parseFloat(diffHz), audioCtx.currentTime);
+
+            audioNodes.alphaGain = audioCtx.createGain();
+            audioNodes.alphaGain.gain.setValueAtTime(state.volumes.alpha * 0.08, audioCtx.currentTime);
+
+            audioNodes.alphaOscL.connect(merger, 0, 0);
+            audioNodes.alphaOscR.connect(merger, 0, 1);
+            merger.connect(audioNodes.alphaGain);
+            audioNodes.alphaGain.connect(audioCtx.destination);
+            audioNodes.alphaOscL.start();
+            audioNodes.alphaOscR.start();
+        }
+
+        function scheduleChime() {
+            if (!audioCtx) return;
+            if (state.masterAudioOn && state.volumes.chime > 0) {
+                const notes = [261.63, 329.63, 392.00, 523.25];
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                const note = notes[Math.floor(Math.random() * notes.length)];
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(note, audioCtx.currentTime);
+
+                g.gain.setValueAtTime(0.001, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(state.volumes.chime * 0.12, audioCtx.currentTime + 0.15);
+                g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 6.0);
+
+                osc.connect(g);
+                g.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 6.1);
+            }
+            setTimeout(scheduleChime, 8000 + Math.random() * 6000);
+        }
+
+        function playCompletionChime() {
+            if (!audioCtx || !state.soundChime) return;
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.4);
+
+            g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 3.0);
+
+            osc.connect(g);
+            g.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 3.1);
+        }
+
+        function updateAudioVolumes() {
+            if (!audioCtx) return;
+            const m = state.masterAudioOn ? 1 : 0;
+            if (audioNodes.rainGain) audioNodes.rainGain.gain.setValueAtTime(state.volumes.rain * 0.2 * m, audioCtx.currentTime);
+            if (audioNodes.alphaGain) audioNodes.alphaGain.gain.setValueAtTime(state.volumes.alpha * 0.08 * m, audioCtx.currentTime);
+            if (audioNodes.fireGain) audioNodes.fireGain.gain.setValueAtTime(state.volumes.fire * 0.1 * m, audioCtx.currentTime);
+        }
+
+        let glassDrops = [];
+        let bgStreaks = [];
+        let microTrails = [];
+
+        class BackgroundStreak {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * (width + 300) - 150;
+                this.y = Math.random() * -height;
+                this.len = Math.random() * 35 + 20;
+                this.baseVy = Math.random() * 14 + 10;
+                this.opacity = Math.random() * 0.3 + 0.12;
+                this.thickness = Math.random() * 1.4 + 0.7;
+            }
+            update() {
+                this.y += this.baseVy * state.speed;
+                this.x += state.windAngle * state.speed;
+                if (this.y > height) this.reset();
+            }
+            draw() {
+                ctx.strokeStyle = `rgba(210, 230, 255, ${this.opacity})`;
+                ctx.lineWidth = this.thickness;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                const dx = this.len * (state.windAngle / this.baseVy);
+                ctx.lineTo(this.x + dx, this.y + this.len);
+                ctx.stroke();
+            }
+        }
+
+        class GlassDroplet {
+            constructor(isStatic = false) { this.reset(isStatic); }
+            reset(isStatic = false) {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.r = Math.random() * 3.5 + 1.5;
+                this.baseVy = 0;
+                this.isDripping = !isStatic && Math.random() < 0.25;
+                this.dripTimer = 0;
+                if (this.isDripping) {
+                    this.r = Math.random() * 3 + 3.0;
+                    this.baseVy = Math.random() * 1.5 + 1.0;
+                }
+            }
+            update() {
+                if (this.isDripping) {
+                    this.dripTimer++;
+                    if (Math.sin(this.dripTimer * 0.18) > -0.1) {
+                        this.y += this.baseVy * state.speed * (0.9 + Math.random() * 0.5);
+                        this.r -= 0.0025;
+                        
+                        if (Math.random() < 0.4 && this.r > 1.2 && !state.lowPerformance) {
+                            microTrails.push({
+                                x: this.x,
+                                y: this.y - this.r,
+                                r: Math.random() * 0.8 + 0.5,
+                                opacity: 0.65
+                            });
+                        }
+                    }
+
+                    for (let i = 0; i < glassDrops.length; i++) {
+                        const other = glassDrops[i];
+                        if (other !== this && other.r > 0) {
+                            const dx = other.x - this.x;
+                            const dy = other.y - this.y;
+                            if (Math.hypot(dx, dy) < this.r + other.r) {
+                                this.r = Math.min(8.0, Math.sqrt(this.r * this.r + other.r * other.r));
+                                this.baseVy = Math.min(5, this.baseVy + 0.3);
+                                other.reset(true);
+                                other.y = -50;
+                            }
+                        }
+                    }
+
+                    if (this.y > height + 20 || this.r < 0.8) {
+                        this.reset(Math.random() > 0.3);
+                        this.y = -10;
+                    }
+                } else {
+                    if (Math.random() < 0.0003 * state.speed) {
+                        this.isDripping = true;
+                        this.baseVy = Math.random() * 1.5 + 1.0;
+                    }
+                }
+            }
+            draw() {
+                if (this.r <= 0.5) return;
+                const x = this.x; const y = this.y; const r = this.r;
+                ctx.save();
+
+                const grad = ctx.createRadialGradient(x - r * 0.2, y - r * 0.3, r * 0.1, x + r * 0.1, y + r * 0.2, r);
+                grad.addColorStop(0, 'rgba(20, 30, 45, 0.75)');
+                grad.addColorStop(0.5, 'rgba(60, 90, 130, 0.25)');
+                grad.addColorStop(0.85, 'rgba(180, 220, 255, 0.6)');
+                grad.addColorStop(1, 'rgba(240, 250, 255, 0.9)');
+                
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.ellipse(x - r * 0.35, y - r * 0.35, r * 0.3, r * 0.2, -Math.PI / 4, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        function initRain() {
+            bgStreaks = []; glassDrops = []; microTrails = [];
+            const multiplier = state.lowPerformance ? 0.2 : 1.0; 
+            
+            const streakCount = Math.floor(120 * state.density * multiplier);
+            for (let i = 0; i < streakCount; i++) bgStreaks.push(new BackgroundStreak());
+            
+            const dropCount = Math.floor(130 * state.density * multiplier);
+            for (let i = 0; i < dropCount; i++) glassDrops.push(new GlassDroplet(i >= dropCount * 0.2));
+        }
+
+        function renderRain() {
+            const time = Date.now() * 0.0006 * state.speed;
+            const grad = ctx.createRadialGradient(width/2, height/2, 100, width/2, height/2, Math.max(width, height));
+            
+            if (state.theme === 'night_library') {
+                grad.addColorStop(0, '#1c130d'); grad.addColorStop(0.6, '#0d0908'); grad.addColorStop(1, '#030202');
+            } else if (state.theme === 'cozy_cafe') {
+                grad.addColorStop(0, '#1a1024'); grad.addColorStop(0.6, '#0b0814'); grad.addColorStop(1, '#030208');
+            } else if (state.theme === 'deep_emerald') {
+                grad.addColorStop(0, '#0a1a15'); grad.addColorStop(0.6, '#050d0b'); grad.addColorStop(1, '#020504');
+            } else if (state.theme === 'cyber_tokyo') {
+                grad.addColorStop(0, '#051024'); grad.addColorStop(0.6, '#030814'); grad.addColorStop(1, '#010205');
+            } else if (state.theme === 'midnight_ocean') {
+                grad.addColorStop(0, '#031026'); grad.addColorStop(0.6, '#020814'); grad.addColorStop(1, '#010205');
+            } else if (state.theme === 'sunset_glow') {
+                grad.addColorStop(0, '#260d10'); grad.addColorStop(0.6, '#140608'); grad.addColorStop(1, '#050102');
+            } else if (state.theme === 'nordic_aurora') {
+                grad.addColorStop(0, '#041c1c'); grad.addColorStop(0.6, '#020f0f'); grad.addColorStop(1, '#010505');
+            } else {
+                grad.addColorStop(0, '#10121c'); grad.addColorStop(0.6, '#08090f'); grad.addColorStop(1, '#020205');
+            }
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, width, height);
+
+            const bokehCount = state.lowPerformance ? 4 : 15;
+            for (let i = 0; i < bokehCount; i++) {
+                const bx = (Math.sin(i * 53 + time * 0.15) * 0.45 + 0.5) * width;
+                const by = (Math.cos(i * 37 + time * 0.2) * 0.4 + 0.55) * height;
+                const br = 50 + Math.sin(i * 3 + time * 0.8) * 20;
+                
+                const bokehGrad = ctx.createRadialGradient(bx, by, 0, bx, by, br * 2);
+                bokehGrad.addColorStop(0, 'rgba(251, 146, 60, 0.15)');
+                bokehGrad.addColorStop(1, 'rgba(251, 146, 60, 0)');
+                
+                ctx.fillStyle = bokehGrad;
+                ctx.beginPath();
+                ctx.arc(bx, by, br * 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            bgStreaks.forEach(s => { s.update(); s.draw(); });
+
+            ctx.fillStyle = 'rgba(10, 15, 25, 0.25)';
+            ctx.fillRect(0, 0, width, height);
+
+            for (let i = microTrails.length - 1; i >= 0; i--) {
+                const t = microTrails[i];
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(200, 230, 255, ${t.opacity})`;
+                ctx.fill();
+                t.opacity -= 0.0015;
+                if (t.opacity <= 0) microTrails.splice(i, 1);
+            }
+
+            glassDrops.forEach(d => { d.update(); d.draw(); });
+            requestAnimationFrame(renderRain);
+        }
+
+        const studyQuotes = [
+            "「專注於眼前的小事，平靜是進入高效流道的鑰匙。」",
+            "「大腦就像肌肉，每一次抗拒分心都是一次深層強化。」",
+            "「寧靜並非沒有噪音，而是心靈於風浪中的安定。」",
+            "「不積跬步，無以至千里;不積小流，無以成江海。」",
+            "「享受深層專注的當下，結果自然隨之而來。」"
+        ];
+        let quoteIndex = 0;
+
+        function updateClock() {
+            const now = new Date();
+            let h = now.getHours();
+            if (!state.clock24h) h = h % 12 || 12;
+            const hStr = String(h).padStart(2, '0');
+            const mStr = String(now.getMinutes()).padStart(2, '0');
+            const sStr = String(now.getSeconds()).padStart(2, '0');
+
+            document.getElementById('timeDisplay').textContent = state.showSeconds ? `${hStr}:${mStr}:${sStr}` : `${hStr}:${mStr}`;
+
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('dateDisplay').textContent = now.toLocaleDateString('zh-TW', options);
+
+            if (state.customQuoteText.trim()) {
+                document.getElementById('quoteDisplay').textContent = `「${state.customQuoteText}」`;
+            } else if (now.getSeconds() === 0 && now.getMinutes() % 5 === 0) {
+                quoteIndex = (quoteIndex + 1) % studyQuotes.length;
+                document.getElementById('quoteDisplay').textContent = studyQuotes[quoteIndex];
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        const pomoCircle = document.getElementById('pomoProgressCircle');
+        const circumference = 2 * Math.PI * 200;
+        pomoCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+
+        function setPomoProgress(percent) {
+            const offset = circumference - (percent / 100) * circumference;
+            pomoCircle.style.strokeDashoffset = offset;
+        }
+
+        function updatePomoDisplay() {
+            const m = String(Math.floor(state.pomoSecondsLeft / 60)).padStart(2, '0');
+            const s = String(state.pomoSecondsLeft % 60).padStart(2, '0');
+            const pct = ((state.pomoTotalSeconds - state.pomoSecondsLeft) / state.pomoTotalSeconds) * 100;
+            setPomoProgress(pct);
+
+            const modeLabels = { work: `學習專注 (${m}:${s})`, shortBreak: `短休息 (${m}:${s})`, longBreak: `長休息 (${m}:${s})` };
+            document.getElementById('pomoStatusText').textContent = modeLabels[state.pomoMode];
+        }
+
+        document.getElementById('pomoMainBtn').addEventListener('click', () => {
+            initAudioEngine();
+            if (state.pomoRunning) {
+                clearInterval(state.pomoInterval);
+                state.pomoRunning = false;
+                document.getElementById('pomoBtnIcon').className = "fa-solid fa-play";
+                document.getElementById('pomoBtnLabel').textContent = "繼續專注";
+            } else {
+                state.pomoRunning = true;
+                document.getElementById('pomoBtnIcon').className = "fa-solid fa-pause";
+                document.getElementById('pomoBtnLabel').textContent = "暫停倒數";
+
+                state.pomoInterval = setInterval(() => {
+                    state.pomoSecondsLeft--;
+                    updatePomoDisplay();
+
+                    if (state.pomoSecondsLeft <= 0) {
+                        clearInterval(state.pomoInterval);
+                        state.pomoRunning = false;
+                        playCompletionChime();
+
+                        if (state.autoPomo) {
+                            if (state.pomoMode === 'work') {
+                                state.pomoMode = 'shortBreak';
+                                state.pomoSecondsLeft = state.pomoTotalSeconds = 5 * 60;
+                            } else {
+                                state.pomoMode = 'work';
+                                state.pomoSecondsLeft = state.pomoTotalSeconds = 25 * 60;
+                            }
+                            document.getElementById('pomoMainBtn').click();
+                        } else {
+                            if (state.pomoMode === 'work') {
+                                state.pomoMode = 'shortBreak';
+                                state.pomoSecondsLeft = state.pomoTotalSeconds = 5 * 60;
+                                document.getElementById('pomoBtnLabel').textContent = "開始短休息 (5m)";
+                            } else {
+                                state.pomoMode = 'work';
+                                state.pomoSecondsLeft = state.pomoTotalSeconds = 25 * 60;
+                                document.getElementById('pomoBtnLabel').textContent = "開始專注 (25m)";
+                            }
+                            document.getElementById('pomoBtnIcon').className = "fa-solid fa-play";
+                        }
+                        updatePomoDisplay();
+                    }
+                }, 1000);
+            }
+        });
+
+        document.getElementById('pomoModeBtn').addEventListener('click', () => {
+            clearInterval(state.pomoInterval);
+            state.pomoRunning = false;
+            if (state.pomoMode === 'work') {
+                state.pomoMode = 'shortBreak';
+                state.pomoSecondsLeft = state.pomoTotalSeconds = 5 * 60;
+                document.getElementById('pomoModeBtn').textContent = "切換長休息 (15m)";
+                document.getElementById('pomoBtnLabel').textContent = "開始短休息 (5m)";
+            } else if (state.pomoMode === 'shortBreak') {
+                state.pomoMode = 'longBreak';
+                state.pomoSecondsLeft = state.pomoTotalSeconds = 15 * 60;
+                document.getElementById('pomoModeBtn').textContent = "切換學習 (25m)";
+                document.getElementById('pomoBtnLabel').textContent = "開始長休息 (15m)";
+            } else {
+                state.pomoMode = 'work';
+                state.pomoSecondsLeft = state.pomoTotalSeconds = 25 * 60;
+                document.getElementById('pomoModeBtn').textContent = "短休息 (5m)";
+                document.getElementById('pomoBtnLabel').textContent = "開始專注 (25m)";
+            }
+            document.getElementById('pomoBtnIcon').className = "fa-solid fa-play";
+            updatePomoDisplay();
+        });
+
+        document.getElementById('pomoResetBtn').addEventListener('click', () => {
+            clearInterval(state.pomoInterval);
+            state.pomoRunning = false;
+            state.pomoSecondsLeft = state.pomoTotalSeconds;
+            document.getElementById('pomoBtnIcon').className = "fa-solid fa-play";
+            document.getElementById('pomoBtnLabel').textContent = "開始專注";
+            updatePomoDisplay();
+        });
+
+        const pomoCustomModal = document.getElementById('pomoCustomModal');
+        document.getElementById('pomoStatusBadge').addEventListener('click', () => {
+            pomoCustomModal.classList.remove('opacity-0', 'pointer-events-none');
+        });
+        document.getElementById('closePomoModalBtn').addEventListener('click', () => {
+            pomoCustomModal.classList.add('opacity-0', 'pointer-events-none');
+        });
+        window.setQuickPomo = function(mins) {
+            document.getElementById('customMinutesInput').value = mins;
+        }
+        document.getElementById('saveCustomPomoBtn').addEventListener('click', () => {
+            const mins = parseInt(document.getElementById('customMinutesInput').value) || 25;
+            clearInterval(state.pomoInterval);
+            state.pomoRunning = false;
+            state.pomoSecondsLeft = state.pomoTotalSeconds = mins * 60;
+            document.getElementById('pomoBtnIcon').className = "fa-solid fa-play";
+            document.getElementById('pomoBtnLabel').textContent = `開始專注 (${mins}m)`;
+            updatePomoDisplay();
+            pomoCustomModal.classList.add('opacity-0', 'pointer-events-none');
+        });
+
+        function renderTasks() {
+            const listEl = document.getElementById('taskList');
+            listEl.innerHTML = '';
+            let uncompleted = 0;
+
+            state.tasks.forEach(t => {
+                if (!t.done) uncompleted++;
+                const item = document.createElement('div');
+                item.className = `flex items-center justify-between bg-black/30 p-2.5 rounded-xl border border-white/10 text-xs ${t.done ? 'opacity-50 line-through' : ''}`;
+                item.innerHTML = `
+                    <div class="flex items-center space-x-2 truncate">
+                        <button onclick="toggleTask(${t.id})" class="text-indigo-400 hover:text-indigo-300">
+                            <i class="fa-${t.done ? 'solid' : 'regular'} fa-circle-check"></i>
+                        </button>
+                        <span class="text-white/90 truncate">${t.text}</span>
+                    </div>
+                    <button onclick="deleteTask(${t.id})" class="text-white/30 hover:text-rose-400 text-xs"><i class="fa-solid fa-trash-can"></i></button>
+                `;
+                listEl.appendChild(item);
+            });
+            document.getElementById('taskCountBadge').textContent = uncompleted;
+        }
+
+        window.toggleTask = function(id) {
+            state.tasks = state.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
+            renderTasks();
+        };
+        window.deleteTask = function(id) {
+            state.tasks = state.tasks.filter(t => t.id !== id);
+            renderTasks();
+        };
+
+        document.getElementById('addTaskBtn').addEventListener('click', () => {
+            const input = document.getElementById('taskInput');
+            const val = input.value.trim();
+            if (val) {
+                state.tasks.push({ id: Date.now(), text: val, done: false });
+                input.value = '';
+                renderTasks();
+            }
+        });
+
+        const taskDrawer = document.getElementById('taskDrawer');
+        const audioMixerDrawer = document.getElementById('audioMixerDrawer');
+
+        document.getElementById('toggleTaskDrawerBtn').addEventListener('click', () => {
+            taskDrawer.classList.toggle('opacity-0');
+            taskDrawer.classList.toggle('pointer-events-none');
+            taskDrawer.classList.toggle('-translate-x-10');
+            audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+        });
+        document.getElementById('closeTaskDrawerBtn').addEventListener('click', () => {
+            taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-10');
+        });
+
+        document.getElementById('toggleAudioMixerBtn').addEventListener('click', () => {
+            initAudioEngine();
+            audioMixerDrawer.classList.toggle('opacity-0');
+            audioMixerDrawer.classList.toggle('pointer-events-none');
+            audioMixerDrawer.classList.toggle('translate-y-4');
+            taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-10');
+        });
+        document.getElementById('closeAudioMixerBtn').addEventListener('click', () => {
+            audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+        });
+
+        document.getElementById('lowPerfToggleBtn').addEventListener('click', () => {
+            state.lowPerformance = !state.lowPerformance;
+            
+            const btn = document.getElementById('lowPerfToggleBtn');
+            const icon = document.getElementById('lowPerfIcon');
+            const text = document.getElementById('lowPerfText');
+
+            if (state.lowPerformance) {
+                btn.classList.add('bg-green-900/40', 'border-green-500/50');
+                text.textContent = "性能: 節能";
+                icon.className = "fa-solid fa-leaf text-green-300";
+            } else {
+                btn.classList.remove('bg-green-900/40', 'border-green-500/50');
+                text.textContent = "性能: 標準";
+                icon.className = "fa-solid fa-leaf text-green-400";
+            }
+            
+            initRain();
+        });
+
+        document.getElementById('masterAudioToggle').addEventListener('click', () => {
+            initAudioEngine();
+            state.masterAudioOn = !state.masterAudioOn;
+            document.getElementById('masterAudioToggle').textContent = state.masterAudioOn ? "已開啟" : "已關閉";
+            document.getElementById('masterAudioToggle').className = state.masterAudioOn ? "bg-indigo-600 text-white px-3 py-1 rounded-xl font-semibold transition" : "bg-white/10 text-white/50 px-3 py-1 rounded-xl font-semibold transition";
+            updateAudioVolumes();
+        });
+
+        ['rain', 'alpha', 'fire', 'chime'].forEach(type => {
+            document.getElementById(`${type}VolSlider`).addEventListener('input', e => {
+                initAudioEngine();
+                const val = parseFloat(e.target.value);
+                state.volumes[type] = val;
+                document.getElementById(`${type}VolVal`).textContent = `${Math.round(val * 100)}%`;
+                updateAudioVolumes();
+            });
+        });
+
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('ring-2', 'ring-white', 'scale-110'));
+                const t = e.currentTarget;
+                t.classList.add('ring-2', 'ring-white', 'scale-110');
+                state.theme = t.dataset.theme;
+            });
+        });
+
+        let isZenMode = false;
+        const zenNotice = document.getElementById('zenNotice');
+
+        function toggleZenMode(enable) {
+            isZenMode = enable !== undefined ? enable : !isZenMode;
+            
+            if (isZenMode) {
+                document.getElementById('topHud').style.opacity = '0';
+                document.getElementById('bottomHud').style.opacity = '0';
+                document.getElementById('quoteDisplay').style.opacity = '0';
+                taskDrawer.classList.add('opacity-0', 'pointer-events-none');
+                audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none');
+                
+                if (zenNotice) {
+                    zenNotice.classList.remove('opacity-0', '-translate-y-4');
+                    setTimeout(() => {
+                        if (isZenMode && zenNotice) {
+                            zenNotice.classList.add('opacity-0', '-translate-y-4');
+                        }
+                    }, 3000);
+                }
+            } else {
+                document.getElementById('topHud').style.opacity = '1';
+                document.getElementById('bottomHud').style.opacity = '1';
+                document.getElementById('quoteDisplay').style.opacity = '1';
+                if (zenNotice) zenNotice.classList.add('opacity-0', '-translate-y-4');
+            }
+        }
+
+        document.getElementById('zenModeBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleZenMode(true);
+        });
+
+        window.addEventListener('click', () => {
+            if (isZenMode) toggleZenMode(false);
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isZenMode) toggleZenMode(false);
+        });
+
+        const settingsModal = document.getElementById('settingsModal');
+        document.getElementById('openSettingsBtn').addEventListener('click', () => settingsModal.classList.remove('opacity-0', 'pointer-events-none'));
+        document.getElementById('closeSettingsBtn').addEventListener('click', () => settingsModal.classList.add('opacity-0', 'pointer-events-none'));
+
+        document.getElementById('speedSlider').addEventListener('input', e => {
+            state.speed = parseFloat(e.target.value);
+            document.getElementById('speedVal').textContent = `${state.speed.toFixed(1)}x`;
+        });
+        document.getElementById('densitySlider').addEventListener('input', e => {
+            state.density = parseFloat(e.target.value);
+            document.getElementById('densityVal').textContent = state.density < 0.8 ? "極簡" : state.density > 1.2 ? "密集" : "標準";
+            initRain();
+        });
+
+        window.setClockFont = function(font) {
+            state.clockFont = font;
+            const tf = document.getElementById('timeDisplay');
+            tf.className = `font-${font} font-light text-5xl sm:text-7xl tracking-tight text-shadow-glow text-white/95`;
+            document.querySelectorAll('.font-btn').forEach(b => b.className = "font-btn bg-white/5 hover:bg-white/20 py-2 rounded-xl text-center text-white/80 transition");
+            event.currentTarget.className = "font-btn bg-white/20 py-2 rounded-xl text-center text-white font-semibold transition";
+        }
+
+        window.setClockScale = function(scale) {
+            state.clockScale = scale;
+            const wrapper = document.getElementById('clockScaleWrapper');
+            if (wrapper) {
+                wrapper.style.transform = `scale(${scale})`;
+            }
+            document.querySelectorAll('.size-btn').forEach(b => b.className = "size-btn bg-white/5 hover:bg-white/20 py-2 rounded-xl text-center text-white/80 transition text-[11px]");
+            if (window.event && window.event.currentTarget) {
+                window.event.currentTarget.className = "size-btn bg-white/20 py-2 rounded-xl text-center text-white font-semibold transition text-[11px]";
+            }
+        };
+
+        document.getElementById('customQuoteInput').addEventListener('input', e => {
+            state.customQuoteText = e.target.value;
+            updateClock();
+        });
+
+        document.getElementById('binauralSelect').addEventListener('change', e => {
+            updateBinauralFrequencies(e.target.value);
+        });
+
+        document.getElementById('format24Toggle').addEventListener('change', e => { state.clock24h = e.target.checked; updateClock(); });
+        document.getElementById('showSecondsToggle').addEventListener('change', e => { state.showSeconds = e.target.checked; updateClock(); });
+        document.getElementById('showQuoteToggle').addEventListener('change', e => { state.showQuote = e.target.checked; document.getElementById('quoteDisplay').style.display = state.showQuote ? 'block' : 'none'; });
+        document.getElementById('autoPomoToggle').addEventListener('change', e => { state.autoPomo = e.target.checked; });
+        document.getElementById('soundChimeToggle').addEventListener('change', e => { state.soundChime = e.target.checked; });
+
+        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                document.getElementById('fsIcon').className = "fa-solid fa-compress text-sm";
+            } else {
+                document.exitFullscreen();
+                document.getElementById('fsIcon').className = "fa-solid fa-expand text-sm";
+            }
+        });
+
+        // PWA 註冊與觸發 logic
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW 註冊成功:', reg))
+                    .catch(err => console.error('SW 註冊失敗:', err));
+            });
+        }
+
+        let deferredPrompt;
+        const pwaBtn = document.getElementById('pwaInstallBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+
+            if (pwaBtn) {
+                pwaBtn.classList.remove('hidden');
+
+                pwaBtn.addEventListener('click', () => {
+                    pwaBtn.classList.add('hidden');
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('使用者接受安裝 PWA');
+                        }
+                        deferredPrompt = null;
+                    });
+                });
+            }
+        });
+
+        window.onload = () => {
+            initRain();
+            renderRain();
+            renderTasks();
+            updatePomoDisplay();
+            document.getElementById('quoteDisplay').style.display = state.showQuote ? 'block' : 'none';
+            document.querySelector(`[data-theme="${state.theme}"]`).classList.add('ring-2', 'ring-white', 'scale-110');
+        };
+    </script>
+</body>
+</html>
