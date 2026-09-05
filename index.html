@@ -118,6 +118,14 @@
             visibility: visible;
             opacity: 1;
         }
+        /* 新功能彈窗底部向上滑動動畫與平滑減速曲線 */
+        .whats-new-card {
+            transform: translateY(100vh);
+            transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #whatsNewModal:not(.opacity-0) .whats-new-card {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body class="font-sans antialiased overflow-hidden">
@@ -404,6 +412,10 @@
 
                 <div class="pt-3 border-t border-white/10 space-y-3">
                     <div class="flex items-center justify-between">
+                        <span class="text-white/80">無操作 5 秒後自動隱藏介面</span>
+                        <input type="checkbox" id="autoHideToggle" class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
+                    </div>
+                    <div class="flex items-center justify-between">
                         <span class="text-white/80">顯示 24 小時制時鐘</span>
                         <input type="checkbox" id="format24Toggle" checked class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
                     </div>
@@ -454,8 +466,8 @@
     </div>
 
     <!-- What's New / Feature Announcement Modal -->
-    <div id="whatsNewModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 p-4">
-        <div class="glass-panel w-full max-w-md rounded-3xl p-6 sm:p-7 flex flex-col space-y-5 transform scale-95 transition-all duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar border border-indigo-500/30 shadow-2xl">
+    <div id="whatsNewModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-4 overflow-hidden">
+        <div class="whats-new-card glass-panel w-full max-w-md rounded-3xl p-6 sm:p-7 flex flex-col space-y-5 max-h-[90vh] overflow-y-auto custom-scrollbar border border-indigo-500/30 shadow-2xl">
             <div class="flex justify-between items-center border-b border-white/10 pb-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-9 h-9 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-base border border-indigo-500/30 shadow-lg shadow-indigo-500/10">
@@ -525,6 +537,7 @@
         const state = {
             lowPerformance: false,
             thunderEnabled: false,
+            autoHideUI: false,
             speed: 1.0,
             density: 1.0,
             windAngle: -2.5,
@@ -562,6 +575,7 @@
                 const dataToSave = {
                     lowPerformance: state.lowPerformance,
                     thunderEnabled: state.thunderEnabled,
+                    autoHideUI: state.autoHideUI,
                     speed: state.speed,
                     density: state.density,
                     clock24h: state.clock24h,
@@ -622,6 +636,7 @@
             document.getElementById('densityVal').textContent = state.density < 0.8 ? "極簡" : state.density > 1.2 ? "密集" : "標準";
 
             // 設定選項 Checkboxes
+            document.getElementById('autoHideToggle').checked = state.autoHideUI;
             document.getElementById('format24Toggle').checked = state.clock24h;
             document.getElementById('showSecondsToggle').checked = state.showSeconds;
             document.getElementById('showQuoteToggle').checked = state.showQuote;
@@ -1311,6 +1326,57 @@
         let isZenMode = false;
         const zenNotice = document.getElementById('zenNotice');
 
+        let autoHideTimer = null;
+        let isUIHiddenByIdle = false;
+
+        function hideUI() {
+            const topHud = document.getElementById('topHud');
+            const bottomHud = document.getElementById('bottomHud');
+            const quoteDisplay = document.getElementById('quoteDisplay');
+            if (topHud) { topHud.style.opacity = '0'; topHud.style.pointerEvents = 'none'; }
+            if (bottomHud) { bottomHud.style.opacity = '0'; bottomHud.style.pointerEvents = 'none'; }
+            if (quoteDisplay && state.showQuote) { quoteDisplay.style.opacity = '0'; }
+        }
+
+        function showUI() {
+            const topHud = document.getElementById('topHud');
+            const bottomHud = document.getElementById('bottomHud');
+            const quoteDisplay = document.getElementById('quoteDisplay');
+            if (topHud) { topHud.style.opacity = '1'; topHud.style.pointerEvents = 'auto'; }
+            if (bottomHud) { bottomHud.style.opacity = '1'; bottomHud.style.pointerEvents = 'auto'; }
+            if (quoteDisplay && state.showQuote) { quoteDisplay.style.opacity = '1'; }
+        }
+
+        function resetAutoHideTimer() {
+            clearTimeout(autoHideTimer);
+            
+            if (isUIHiddenByIdle && !isZenMode) {
+                showUI();
+                isUIHiddenByIdle = false;
+            }
+
+            if (!state.autoHideUI || isZenMode) return;
+
+            autoHideTimer = setTimeout(() => {
+                const isDrawerOpen = (taskDrawer && !taskDrawer.classList.contains('opacity-0')) || 
+                                     (audioMixerDrawer && !audioMixerDrawer.classList.contains('opacity-0'));
+                const isModalOpen = (settingsModal && !settingsModal.classList.contains('opacity-0')) || 
+                                    (whatsNewModal && !whatsNewModal.classList.contains('opacity-0')) || 
+                                    (pomoCustomModal && !pomoCustomModal.classList.contains('opacity-0'));
+
+                if (!isDrawerOpen && !isModalOpen && state.autoHideUI && !isZenMode) {
+                    hideUI();
+                    isUIHiddenByIdle = true;
+                }
+            }, 5000);
+        }
+
+        ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+            window.addEventListener(evt, () => {
+                resetAutoHideTimer();
+            }, { passive: true });
+        });
+
         // 打雷視覺效果邏輯 (純視覺，無音效)
         let lightningTimeout = null;
         const lightningCanvas = document.getElementById('lightningCanvas');
@@ -1448,9 +1514,7 @@
             isZenMode = enable !== undefined ? enable : !isZenMode;
             
             if (isZenMode) {
-                document.getElementById('topHud').style.opacity = '0';
-                document.getElementById('bottomHud').style.opacity = '0';
-                document.getElementById('quoteDisplay').style.opacity = '0';
+                hideUI();
                 taskDrawer.classList.add('opacity-0', 'pointer-events-none');
                 audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none');
                 
@@ -1463,10 +1527,10 @@
                     }, 3000);
                 }
             } else {
-                document.getElementById('topHud').style.opacity = '1';
-                document.getElementById('bottomHud').style.opacity = '1';
-                document.getElementById('quoteDisplay').style.opacity = '1';
+                showUI();
+                isUIHiddenByIdle = false;
                 if (zenNotice) zenNotice.classList.add('opacity-0', '-translate-y-4');
+                resetAutoHideTimer();
             }
         }
 
@@ -1541,6 +1605,11 @@
             saveSettings();
         });
 
+        document.getElementById('autoHideToggle').addEventListener('change', e => { 
+            state.autoHideUI = e.target.checked; 
+            resetAutoHideTimer(); 
+            saveSettings(); 
+        });
         document.getElementById('format24Toggle').addEventListener('change', e => { state.clock24h = e.target.checked; updateClock(); saveSettings(); });
         document.getElementById('showSecondsToggle').addEventListener('change', e => { state.showSeconds = e.target.checked; updateClock(); saveSettings(); });
         document.getElementById('showQuoteToggle').addEventListener('change', e => { state.showQuote = e.target.checked; document.getElementById('quoteDisplay').style.display = state.showQuote ? 'block' : 'none'; saveSettings(); });
@@ -1598,6 +1667,8 @@
             renderTasks();
             updatePomoDisplay();
             document.getElementById('quoteDisplay').style.display = state.showQuote ? 'block' : 'none';
+
+            resetAutoHideTimer();
 
             // 檢查是否需要自動跳出新功能提示彈窗
             if (!localStorage.getItem(WHATS_NEW_KEY)) {
