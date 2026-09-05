@@ -177,7 +177,7 @@
                 </div>
                 
                 <div id="dateDisplay" class="font-mono text-xs sm:text-sm font-medium text-indigo-300/80 tracking-widest uppercase mt-2">
-                    2026年8月10日 星期一
+                    2026年9月5日 星期六
                 </div>
 
                 <div id="pomoStatusBadge" class="mt-3 inline-flex items-center space-x-1.5 bg-indigo-500/20 border border-indigo-400/30 px-3 py-1 rounded-full text-xs font-medium text-indigo-300 cursor-pointer hover:bg-indigo-500/30 transition" title="點擊自訂倒數時間">
@@ -203,7 +203,7 @@
         </div>
 
         <div class="flex items-center space-x-3">
-            <!-- PWA 安裝按鈕（符合條件時會自動顯示） -->
+            <!-- PWA 安裝按鈕 -->
             <button id="pwaInstallBtn" class="hidden flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-full border border-indigo-400/30 transition shadow-lg text-xs font-semibold">
                 <i class="fa-solid fa-download"></i>
                 <span>安裝 App</span>
@@ -237,11 +237,11 @@
 
         <div class="pt-3 border-t border-white/10">
             <label class="block text-[11px] text-white/50 uppercase font-semibold mb-1.5">專注草稿備忘錄 (自動儲存)</label>
-            <textarea id="memoInput" rows="4" class="w-full bg-black/40 border border-white/15 rounded-xl p-3 text-xs text-white placeholder-white/25 focus:outline-none focus:border-indigo-500 transition resize-none custom-scrollbar" placeholder="在此記錄臨時想法、解題算式或待查資料，免去切換視窗干擾..."></textarea>
+            <textarea id="memoInput" rows="4" class="w-full bg-black/40 border border-white/15 rounded-xl p-3 text-xs text-white placeholder-white/25 focus:outline-none focus:border-indigo-500 transition resize-none custom-scrollbar" placeholder="在此記錄臨時想法、解題算式或待查資料..."></textarea>
         </div>
     </div>
 
-    <!-- Audio Mixer Drawer (Right -> Slides Right to Left) -->
+    <!-- Audio Mixer Drawer -->
     <div id="audioMixerDrawer" class="drawer-slide fixed top-20 right-4 z-30 w-80 glass-panel rounded-3xl p-5 border border-white/15 shadow-2xl opacity-0 pointer-events-none translate-x-full">
         <div class="flex justify-between items-center pb-3 border-b border-white/10 mb-4">
             <div class="flex items-center space-x-2 text-teal-300 font-semibold text-sm">
@@ -275,7 +275,6 @@
                 <input id="alphaVolSlider" type="range" min="0" max="1" step="0.05" value="0.3" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
             </div>
 
-            <!-- Binaural Frequency Selector directly inside Audio Mixer -->
             <div class="pl-2 border-l-2 border-indigo-500/40 my-2">
                 <label class="block text-white/60 mb-1 font-medium">雙耳節律頻段：</label>
                 <select id="binauralSelect" class="w-full bg-black/50 border border-white/15 rounded-xl px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500 transition cursor-pointer">
@@ -303,9 +302,8 @@
         </div>
     </div>
 
-    <!-- Dual-Row Bottom HUD Layout (Equal Width Panels) -->
+    <!-- Dual-Row Bottom HUD Layout -->
     <div id="bottomHud" class="hud-element absolute bottom-5 left-1/2 -translate-x-1/2 z-20 w-full max-w-[560px] px-4 flex flex-col items-center space-y-2.5">
-        
         <!-- Top Row: Themes -->
         <div class="glass-panel w-full px-4 py-2 rounded-2xl flex items-center justify-between shadow-2xl">
             <button data-theme="night_library" class="theme-btn tooltip w-9 h-9 rounded-xl bg-amber-900/40 hover:bg-amber-900/60 border border-amber-500/20 text-amber-200 flex items-center justify-center transition shrink-0">
@@ -336,7 +334,6 @@
 
         <!-- Bottom Row: Controls -->
         <div class="glass-panel w-full px-4 py-2 rounded-2xl flex items-center justify-between shadow-2xl">
-            <!-- Pomodoro Main Controls -->
             <div class="flex items-center space-x-2">
                 <button id="pomoMainBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3.5 py-1.5 rounded-xl transition flex items-center space-x-1.5 shadow-md shadow-indigo-600/30">
                     <i class="fa-solid fa-play" id="pomoBtnIcon"></i>
@@ -352,7 +349,6 @@
 
             <div class="h-4 w-[1px] bg-white/15 mx-1 hidden sm:block"></div>
 
-            <!-- System Feature Actions -->
             <div class="flex items-center space-x-1">
                 <button id="openWhatsNewBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="檢視最新升級特色">
                     <i class="fa-solid fa-wand-magic-sparkles text-xs text-amber-300"></i><span class="tooltip-text">新功能</span>
@@ -374,10 +370,9 @@
                 </button>
             </div>
         </div>
-
     </div>
 
-    <!-- Settings Modal (Slides Bottom to Top) -->
+    <!-- Settings Modal -->
     <div id="settingsModal" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-4 overflow-hidden">
         <div class="modal-slide-up glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto custom-scrollbar border border-white/15 shadow-2xl">
             <div class="flex justify-between items-center border-b border-white/10 pb-4 mb-5">
@@ -416,7 +411,6 @@
                     </div>
                 </div>
 
-                <!-- Clock & Ring Size Scaling Switcher -->
                 <div>
                     <label class="block text-white/70 font-semibold mb-2">時鐘與進度圓環整體尺寸</label>
                     <div class="grid grid-cols-4 gap-1.5">
@@ -466,11 +460,40 @@
                         <input type="checkbox" id="soundChimeToggle" checked class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
                     </div>
                 </div>
+
+                <!-- 重設與還原出廠設定區塊 -->
+                <div class="pt-4 border-t border-white/10">
+                    <div class="flex items-center justify-between p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20">
+                        <div>
+                            <div class="text-rose-200 font-semibold">還原出廠預設值</div>
+                            <div class="text-[11px] text-white/50">清除所有本機紀錄並重新載入網頁</div>
+                        </div>
+                        <button id="resetAndReloadBtn" type="button" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold transition shadow-md shadow-rose-600/30 flex items-center space-x-1.5 active:scale-95">
+                            <i class="fa-solid fa-rotate-left text-xs"></i>
+                            <span>重設並重新載入</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Custom Pomodoro Modal (Slides Bottom to Top) -->
+    <!-- 二次確認重設彈窗 (符合無 Native Alert/Confirm 規範) -->
+    <div id="resetConfirmModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 p-4">
+        <div class="glass-panel w-full max-w-xs rounded-2xl p-5 text-center space-y-3 border border-rose-500/30 shadow-2xl">
+            <div class="w-10 h-10 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto text-base">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h4 class="font-bold text-white text-sm">確定要重設並重新載入嗎？</h4>
+            <p class="text-white/60 text-xs leading-relaxed">這將會清空儲存在瀏覽器內的所有設定、任務與草稿，並刷新重新載入網頁。</p>
+            <div class="flex items-center space-x-2 pt-1">
+                <button id="cancelResetBtn" type="button" class="flex-1 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-xl transition">取消</button>
+                <button id="confirmResetBtn" type="button" class="flex-1 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl transition shadow-lg shadow-rose-600/30">確定重設</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Pomodoro Modal -->
     <div id="pomoCustomModal" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-4 overflow-hidden">
         <div class="modal-slide-up glass-panel w-full max-w-sm rounded-3xl p-6 flex flex-col space-y-4 border border-white/15 shadow-2xl">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
@@ -495,7 +518,7 @@
         </div>
     </div>
 
-    <!-- What's New / Feature Announcement Modal -->
+    <!-- What's New Modal -->
     <div id="whatsNewModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-4 overflow-hidden">
         <div class="modal-slide-up glass-panel w-full max-w-md rounded-3xl p-6 sm:p-7 flex flex-col space-y-5 max-h-[90vh] overflow-y-auto custom-scrollbar border border-indigo-500/30 shadow-2xl">
             <div class="flex justify-between items-center border-b border-white/10 pb-4">
@@ -520,7 +543,7 @@
                     </div>
                     <div>
                         <h4 class="font-semibold text-white/90 mb-0.5">1. 擬真打雷視覺效果</h4>
-                        <p class="text-white/60 leading-relaxed text-[11px]">新增純視覺打雷分枝與雲層閃爍效果（無打雷聲音，不打擾專注），可隨時點擊底部閃電圖示切換開啟。</p>
+                        <p class="text-white/60 leading-relaxed text-[11px]">新增純視覺打雷分枝與雲層閃爍效果，可隨時點擊底部閃電圖示切換開啟。</p>
                     </div>
                 </div>
 
@@ -530,7 +553,7 @@
                     </div>
                     <div>
                         <h4 class="font-semibold text-white/90 mb-0.5">2. 自動儲存到瀏覽器</h4>
-                        <p class="text-white/60 leading-relaxed text-[11px]">您的主題配色、混音音量、番茄鐘時長、任務清單與備忘草稿，均會全自動記憶儲存在您的瀏覽器中。</p>
+                        <p class="text-white/60 leading-relaxed text-[11px]">您的主題配色、混音音量、番茄鐘時長、任務清單與備忘草稿均自動記憶儲存。</p>
                     </div>
                 </div>
 
@@ -539,8 +562,8 @@
                         <i class="fa-solid fa-sliders text-xs"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-white/90 mb-0.5">3. 設定中有更多功能</h4>
-                        <p class="text-white/60 leading-relaxed text-[11px]">新增 5 秒無操作自動隱藏介面、即時 FPS 影格率監測、時鐘與進度環尺寸縮放、字體風格切換等多項設定。</p>
+                        <h4 class="font-semibold text-white/90 mb-0.5">3. 設定中新增重設選項</h4>
+                        <p class="text-white/60 leading-relaxed text-[11px]">包含介面隱藏、FPS 監測、時鐘縮放，並新增「重設並重新載入」功能。</p>
                     </div>
                 </div>
             </div>
@@ -649,7 +672,6 @@
         }
 
         function syncUIFromState() {
-            // 低性能模式按鈕與 body class 同步
             const lowPerfBtn = document.getElementById('lowPerfToggleBtn');
             const lowPerfIcon = document.getElementById('lowPerfIcon');
             const lowPerfText = document.getElementById('lowPerfText');
@@ -665,13 +687,11 @@
                 lowPerfIcon.className = "fa-solid fa-leaf text-green-400";
             }
 
-            // 雨滴速度與密度滑桿
             document.getElementById('speedSlider').value = state.speed;
             document.getElementById('speedVal').textContent = `${state.speed.toFixed(1)}x`;
             document.getElementById('densitySlider').value = state.density;
             document.getElementById('densityVal').textContent = state.density < 0.8 ? "極簡" : state.density > 1.2 ? "密集" : "標準";
 
-            // 設定選項 Checkboxes
             document.getElementById('showFpsToggle').checked = state.showFps;
             document.getElementById('autoHideToggle').checked = state.autoHideUI;
             document.getElementById('glassInteractionToggle').checked = state.glassInteraction;
@@ -681,13 +701,9 @@
             document.getElementById('autoPomoToggle').checked = state.autoPomo;
             document.getElementById('soundChimeToggle').checked = state.soundChime;
 
-            // 更新 FPS 徽章顯示狀態
             toggleFpsDisplay(state.showFps);
-
-            // 格言
             document.getElementById('customQuoteInput').value = state.customQuoteText || '';
 
-            // 打雷效果按鈕狀態同步
             const thunderBtn = document.getElementById('thunderToggleBtn');
             const thunderIcon = document.getElementById('thunderIcon');
             if (thunderBtn && thunderIcon) {
@@ -702,11 +718,9 @@
                 }
             }
 
-            // 時鐘字體與縮放
             setClockFont(state.clockFont, false);
             setClockScale(state.clockScale, false);
 
-            // 總聲音開關與各音軌滑桿
             const masterBtn = document.getElementById('masterAudioToggle');
             masterBtn.textContent = state.masterAudioOn ? "已開啟" : "已關閉";
             masterBtn.className = state.masterAudioOn ? "bg-indigo-600 text-white px-3 py-1 rounded-xl font-semibold transition" : "bg-white/10 text-white/50 px-3 py-1 rounded-xl font-semibold transition";
@@ -720,14 +734,12 @@
                 }
             });
 
-            // 載入備忘錄文字
             const savedMemo = localStorage.getItem(MEMO_STORAGE_KEY);
             const memoEl = document.getElementById('memoInput');
             if (savedMemo !== null && memoEl) {
                 memoEl.value = savedMemo;
             }
 
-            // 主題按鈕高亮
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('ring-2', 'ring-white', 'scale-110'));
             const activeThemeBtn = document.querySelector(`[data-theme="${state.theme}"]`);
             if (activeThemeBtn) {
@@ -897,7 +909,6 @@
         let bgStreaks = [];
         let microTrails = [];
 
-        // 滑鼠與觸控互動位置紀錄
         let mousePos = { x: -1000, y: -1000, active: false };
         let mouseParticles = [];
 
@@ -967,7 +978,6 @@
                 }
             }
             update() {
-                // 滑鼠/觸控互動：靠近的水珠會受到推擠或觸發下滑
                 if (state.glassInteraction && mousePos.active) {
                     const dx = this.x - mousePos.x;
                     const dy = this.y - mousePos.y;
@@ -1067,7 +1077,7 @@
             fpsFrameCount++;
             const delta = now - lastFpsTime;
 
-            if (delta >= 500) { // 每 0.5 秒更新一次 FPS
+            if (delta >= 500) {
                 currentFps = Math.round((fpsFrameCount * 1000) / delta);
                 fpsFrameCount = 0;
                 lastFpsTime = now;
@@ -1078,7 +1088,6 @@
                     if (fpsValEl) {
                         fpsValEl.textContent = `${currentFps} FPS`;
                         
-                        // 根據影格率高低調整顯示顏色
                         if (currentFps >= 45) {
                             fpsValEl.className = "text-emerald-300 font-semibold tracking-wider";
                             if (fpsDotEl) fpsDotEl.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
@@ -1142,7 +1151,6 @@
             ctx.fillStyle = 'rgba(10, 15, 25, 0.25)';
             ctx.fillRect(0, 0, width, height);
 
-            // 繪製滑鼠/觸控劃過的水痕粒子
             if (state.glassInteraction && !state.lowPerformance) {
                 for (let i = mouseParticles.length - 1; i >= 0; i--) {
                     const p = mouseParticles[i];
@@ -1323,7 +1331,6 @@
             pomoCustomModal.classList.add('opacity-0', 'pointer-events-none');
         });
 
-        // 新功能提示彈窗控制邏輯
         const whatsNewModal = document.getElementById('whatsNewModal');
         const WHATS_NEW_KEY = 'aura_whats_new_seen_v1';
 
@@ -1527,7 +1534,6 @@
             }, { passive: true });
         });
 
-        // 打雷視覺效果邏輯 (純視覺，無音效)
         let lightningTimeout = null;
         const lightningCanvas = document.getElementById('lightningCanvas');
         const lCtx = lightningCanvas ? lightningCanvas.getContext('2d') : null;
@@ -1541,7 +1547,6 @@
         window.addEventListener('resize', resizeLightningCanvas);
         resizeLightningCanvas();
 
-        // 繪製擬真分枝閃電軌跡
         function drawLightningBolt(x1, y1, x2, y2, displacement) {
             if (!lCtx) return;
             lCtx.save();
@@ -1559,7 +1564,6 @@
                 createBranch(startX, startY, midX, midY, disp / 2, depth - 1);
                 createBranch(midX, midY, endX, endY, disp / 2, depth - 1);
 
-                // 隨機產生次要分枝
                 if (Math.random() < 0.35 && depth > 2) {
                     const branchEndX = midX + (Math.random() - 0.5) * disp * 2;
                     const branchEndY = midY + Math.random() * disp * 1.5;
@@ -1569,14 +1573,12 @@
 
             createBranch(x1, y1, x2, y2, displacement, 5);
 
-            // 閃電外圍發光光暈
             lCtx.strokeStyle = 'rgba(186, 230, 253, 0.85)';
             lCtx.lineWidth = 4;
             lCtx.shadowBlur = 25;
             lCtx.shadowColor = '#38bdf8';
             lCtx.stroke();
 
-            // 閃電核心白光
             lCtx.strokeStyle = '#ffffff';
             lCtx.lineWidth = 2;
             lCtx.shadowBlur = 10;
@@ -1591,10 +1593,8 @@
             const overlay = document.getElementById('lightningOverlay');
             if (!overlay || !lCtx || !lightningCanvas) return;
 
-            // 清除上一道閃電
             lCtx.clearRect(0, 0, lightningCanvas.width, lightningCanvas.height);
 
-            // 隨機繪製 1~2 道主閃電
             const boltCount = Math.floor(Math.random() * 2) + 1;
             for (let i = 0; i < boltCount; i++) {
                 const startX = Math.random() * (lightningCanvas.width * 0.8) + (lightningCanvas.width * 0.1);
@@ -1604,7 +1604,6 @@
                 drawLightningBolt(startX, startY, endX, endY, 110);
             }
 
-            // 雙重擬真閃光效果
             const maxOpacity = isImmediate ? 0.75 : (Math.random() * 0.45 + 0.35);
             overlay.style.opacity = maxOpacity.toString();
             
@@ -1629,7 +1628,6 @@
         function scheduleNextLightning() {
             clearTimeout(lightningTimeout);
             if (!state.thunderEnabled) return;
-            // 隨機每 6 到 15 秒閃爍一次
             const delay = Math.random() * 9000 + 6000;
             lightningTimeout = setTimeout(triggerLightningFlash, delay);
         }
@@ -1642,7 +1640,7 @@
             if (state.thunderEnabled) {
                 if (btn) btn.classList.add('bg-amber-500/20', 'border', 'border-amber-400/40');
                 if (icon) icon.className = "fa-solid fa-bolt text-xs text-amber-300 animate-pulse";
-                triggerLightningFlash(true); // 開啟時立即觸發一次強烈閃電
+                triggerLightningFlash(true);
             } else {
                 if (btn) btn.classList.remove('bg-amber-500/20', 'border', 'border-amber-400/40');
                 if (icon) icon.className = "fa-solid fa-bolt text-xs text-white/50";
@@ -1760,20 +1758,34 @@
             toggleFpsDisplay(state.showFps);
             saveSettings();
         });
-        document.getElementById('autoHideToggle').addEventListener('change', e => { 
-            state.autoHideUI = e.target.checked; 
-            resetAutoHideTimer(); 
-            saveSettings(); 
-        });
-        document.getElementById('glassInteractionToggle').addEventListener('change', e => {
-            state.glassInteraction = e.target.checked;
-            saveSettings();
-        });
+        document.getElementById('autoHideToggle').addEventListener('change', e => { state.autoHideUI = e.target.checked; resetAutoHideTimer(); saveSettings(); });
+        document.getElementById('glassInteractionToggle').addEventListener('change', e => { state.glassInteraction = e.target.checked; saveSettings(); });
         document.getElementById('format24Toggle').addEventListener('change', e => { state.clock24h = e.target.checked; updateClock(); saveSettings(); });
         document.getElementById('showSecondsToggle').addEventListener('change', e => { state.showSeconds = e.target.checked; updateClock(); saveSettings(); });
         document.getElementById('showQuoteToggle').addEventListener('change', e => { state.showQuote = e.target.checked; document.getElementById('quoteDisplay').style.display = state.showQuote ? 'block' : 'none'; saveSettings(); });
         document.getElementById('autoPomoToggle').addEventListener('change', e => { state.autoPomo = e.target.checked; saveSettings(); });
         document.getElementById('soundChimeToggle').addEventListener('change', e => { state.soundChime = e.target.checked; saveSettings(); });
+
+        // 重設並重新載入核心邏輯
+        const resetAndReloadBtn = document.getElementById('resetAndReloadBtn');
+        const resetConfirmModal = document.getElementById('resetConfirmModal');
+        const cancelResetBtn = document.getElementById('cancelResetBtn');
+        const confirmResetBtn = document.getElementById('confirmResetBtn');
+
+        if (resetAndReloadBtn && resetConfirmModal) {
+            resetAndReloadBtn.addEventListener('click', () => {
+                resetConfirmModal.classList.remove('opacity-0', 'pointer-events-none');
+            });
+            cancelResetBtn?.addEventListener('click', () => {
+                resetConfirmModal.classList.add('opacity-0', 'pointer-events-none');
+            });
+            confirmResetBtn?.addEventListener('click', () => {
+                try {
+                    localStorage.clear();
+                } catch(e) {}
+                window.location.reload();
+            });
+        }
 
         document.getElementById('fullscreenBtn').addEventListener('click', () => {
             if (!document.fullscreenElement) {
@@ -1785,12 +1797,9 @@
             }
         });
 
-        // PWA 註冊與觸發 logic
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('SW 註冊成功:', reg))
-                    .catch(err => console.error('SW 註冊失敗:', err));
+                navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW 註冊失敗:', err));
             });
         }
 
@@ -1808,9 +1817,6 @@
                     pwaBtn.classList.add('hidden');
                     deferredPrompt.prompt();
                     deferredPrompt.userChoice.then((choiceResult) => {
-                        if (choiceResult.outcome === 'accepted') {
-                            console.log('使用者接受安裝 PWA');
-                        }
                         deferredPrompt = null;
                     });
                 });
@@ -1829,7 +1835,6 @@
 
             resetAutoHideTimer();
 
-            // 檢查是否需要自動跳出新功能提示彈窗
             if (!localStorage.getItem(WHATS_NEW_KEY)) {
                 setTimeout(showWhatsNewModal, 500);
             }
