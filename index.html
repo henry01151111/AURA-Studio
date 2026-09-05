@@ -162,6 +162,13 @@
     <header id="topHud" class="hud-element absolute top-0 left-0 right-0 z-20 flex justify-between items-center p-4 sm:p-6 text-xs sm:text-sm">
         <div class="flex items-center space-x-3">
             
+            <!-- 新功能提示按鈕 -->
+            <button id="openWhatsNewBtn" class="flex items-center space-x-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/15 text-white/90 transition shadow-lg text-xs tooltip">
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+                <span class="font-medium hidden sm:inline">新功能</span>
+                <span class="tooltip-text" style="bottom: -150%; top: auto;">檢視最新升級特色</span>
+            </button>
+
             <!-- 低性能模式開關 -->
             <button id="lowPerfToggleBtn" class="flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 text-white/90 transition shadow-lg tooltip">
                 <i id="lowPerfIcon" class="fa-solid fa-leaf text-green-400"></i>
@@ -444,6 +451,71 @@
                 <button id="saveCustomPomoBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-xl font-semibold transition mt-2">
                     確認設定
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- What's New / Feature Announcement Modal -->
+    <div id="whatsNewModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 p-4">
+        <div class="glass-panel w-full max-w-md rounded-3xl p-6 sm:p-7 flex flex-col space-y-5 transform scale-95 transition-all duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar border border-indigo-500/30 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-white/10 pb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-base border border-indigo-500/30 shadow-lg shadow-indigo-500/10">
+                        <i class="fa-solid fa-sparkles"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-white text-base">AURA 新功能特色</h3>
+                        <p class="text-[10px] text-indigo-300/80 font-mono uppercase tracking-wider">Release Notes & Updates</p>
+                    </div>
+                </div>
+                <button id="closeWhatsNewModalBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
+                    <div class="w-7 h-7 rounded-xl bg-indigo-600/30 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="fa-solid fa-floppy-disk text-xs"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-white/90 mb-0.5">全自動瀏覽器偏好記憶</h4>
+                        <p class="text-white/60 leading-relaxed text-[11px]">您的主題風格、混音音量、番茄鐘時長、學習任務與草稿備忘，均會自動儲存於您的瀏覽器中。</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
+                    <div class="w-7 h-7 rounded-xl bg-teal-600/30 text-teal-300 flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="fa-solid fa-headphones text-xs"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-white/90 mb-0.5">多軌專注聲景與雙耳節律</h4>
+                        <p class="text-white/60 leading-relaxed text-[11px]">整合窗外雨聲、柴火聲、微風磬音與可切換 α / β / θ 頻段的雙耳波聲景，協助快速進入深層心流。</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
+                    <div class="w-7 h-7 rounded-xl bg-amber-600/30 text-amber-300 flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="fa-solid fa-spa text-xs"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-white/90 mb-0.5">Zen 沉浸屏保與 8 款質感主題</h4>
+                        <p class="text-white/60 leading-relaxed text-[11px]">點擊 Zen 模式一鍵隱藏介面，隨心切換深夜圖書館、賽博雨夜、極光冰原等 8 種專注氛圍。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-1 flex flex-col space-y-2.5">
+                <button id="startFocusBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 active:scale-95">
+                    <i class="fa-solid fa-circle-play"></i>
+                    <span>我知道了，開始專注</span>
+                </button>
+                <div class="flex items-center justify-between px-1 text-[11px]">
+                    <label class="flex items-center space-x-2 text-white/50 cursor-pointer hover:text-white/80 transition">
+                        <input type="checkbox" id="dontShowWhatsNewAgain" class="w-3.5 h-3.5 accent-indigo-500 rounded cursor-pointer">
+                        <span>下次開啟時不再自動提示</span>
+                    </label>
+                </div>
             </div>
         </div>
     </div>
@@ -1073,6 +1145,30 @@
             pomoCustomModal.classList.add('opacity-0', 'pointer-events-none');
         });
 
+        // 新功能提示彈窗控制邏輯
+        const whatsNewModal = document.getElementById('whatsNewModal');
+        const WHATS_NEW_KEY = 'aura_whats_new_seen_v1';
+
+        function showWhatsNewModal() {
+            if (whatsNewModal) {
+                whatsNewModal.classList.remove('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function hideWhatsNewModal() {
+            if (whatsNewModal) {
+                whatsNewModal.classList.add('opacity-0', 'pointer-events-none');
+            }
+            const dontShow = document.getElementById('dontShowWhatsNewAgain');
+            if (dontShow && dontShow.checked) {
+                localStorage.setItem(WHATS_NEW_KEY, 'true');
+            }
+        }
+
+        document.getElementById('openWhatsNewBtn')?.addEventListener('click', showWhatsNewModal);
+        document.getElementById('closeWhatsNewModalBtn')?.addEventListener('click', hideWhatsNewModal);
+        document.getElementById('startFocusBtn')?.addEventListener('click', hideWhatsNewModal);
+
         function renderTasks() {
             const listEl = document.getElementById('taskList');
             listEl.innerHTML = '';
@@ -1354,6 +1450,11 @@
             renderTasks();
             updatePomoDisplay();
             document.getElementById('quoteDisplay').style.display = state.showQuote ? 'block' : 'none';
+
+            // 檢查是否需要自動跳出新功能提示彈窗
+            if (!localStorage.getItem(WHATS_NEW_KEY)) {
+                setTimeout(showWhatsNewModal, 500);
+            }
         };
     </script>
 </body>
