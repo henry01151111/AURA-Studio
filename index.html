@@ -129,6 +129,18 @@
         #pomoCustomModal:not(.opacity-0) .modal-slide-up {
             transform: translateY(0);
         }
+
+        /* 節能模式：關閉所有視窗與抽屜的開啟關閉動畫以節省效能 */
+        body.low-performance .drawer-slide,
+        body.low-performance .modal-slide-up,
+        body.low-performance #whatsNewModal,
+        body.low-performance #settingsModal,
+        body.low-performance #pomoCustomModal,
+        body.low-performance #taskDrawer,
+        body.low-performance #audioMixerDrawer,
+        body.low-performance .hud-element {
+            transition: none !important;
+        }
     </style>
 </head>
 <body class="font-sans antialiased overflow-hidden">
@@ -619,15 +631,17 @@
         }
 
         function syncUIFromState() {
-            // 低性能模式按鈕
+            // 低性能模式按鈕與 body class 同步
             const lowPerfBtn = document.getElementById('lowPerfToggleBtn');
             const lowPerfIcon = document.getElementById('lowPerfIcon');
             const lowPerfText = document.getElementById('lowPerfText');
             if (state.lowPerformance) {
+                document.body.classList.add('low-performance');
                 lowPerfBtn.classList.add('bg-green-900/40', 'border-green-500/50');
                 lowPerfText.textContent = "性能: 節能";
                 lowPerfIcon.className = "fa-solid fa-leaf text-green-300";
             } else {
+                document.body.classList.remove('low-performance');
                 lowPerfBtn.classList.remove('bg-green-900/40', 'border-green-500/50');
                 lowPerfText.textContent = "性能: 標準";
                 lowPerfIcon.className = "fa-solid fa-leaf text-green-400";
@@ -1284,10 +1298,12 @@
             const text = document.getElementById('lowPerfText');
 
             if (state.lowPerformance) {
+                document.body.classList.add('low-performance');
                 btn.classList.add('bg-green-900/40', 'border-green-500/50');
                 if (text) text.textContent = "性能: 節能";
                 if (icon) icon.className = "fa-solid fa-leaf text-xs text-green-300";
             } else {
+                document.body.classList.remove('low-performance');
                 btn.classList.remove('bg-green-900/40', 'border-green-500/50');
                 if (text) text.textContent = "性能: 標準";
                 if (icon) icon.className = "fa-solid fa-leaf text-xs text-green-400";
