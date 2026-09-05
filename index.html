@@ -165,21 +165,6 @@
 
     <header id="topHud" class="hud-element absolute top-0 left-0 right-0 z-20 flex justify-between items-center p-4 sm:p-6 text-xs sm:text-sm">
         <div class="flex items-center space-x-3">
-            
-            <!-- 新功能提示按鈕 -->
-            <button id="openWhatsNewBtn" class="flex items-center space-x-1.5 bg-black/50 hover:bg-black/70 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/15 text-white/90 transition shadow-lg text-xs tooltip">
-                <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
-                <span class="font-medium hidden sm:inline">新功能</span>
-                <span class="tooltip-text" style="bottom: -150%; top: auto;">檢視最新升級特色</span>
-            </button>
-
-            <!-- 低性能模式開關 -->
-            <button id="lowPerfToggleBtn" class="flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 text-white/90 transition shadow-lg tooltip">
-                <i id="lowPerfIcon" class="fa-solid fa-leaf text-green-400"></i>
-                <span id="lowPerfText" class="font-medium">性能: 標準</span>
-                <span class="tooltip-text" style="bottom: -150%; top: auto;">切換以減少特效負載</span>
-            </button>
-
             <!-- 學習任務與草稿 -->
             <button id="toggleTaskDrawerBtn" class="flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 text-white/90 transition shadow-lg">
                 <i class="fa-solid fa-list-check text-indigo-400"></i>
@@ -339,6 +324,12 @@
 
             <!-- System Feature Actions -->
             <div class="flex items-center space-x-1">
+                <button id="openWhatsNewBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="檢視最新升級特色">
+                    <i class="fa-solid fa-wand-magic-sparkles text-xs text-amber-300"></i><span class="tooltip-text">新功能</span>
+                </button>
+                <button id="lowPerfToggleBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="切換性能模式">
+                    <i id="lowPerfIcon" class="fa-solid fa-leaf text-xs text-green-400"></i><span id="lowPerfText" class="tooltip-text">性能: 標準</span>
+                </button>
                 <button id="zenModeBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="Zen 沉浸專注模式">
                     <i class="fa-solid fa-spa text-xs"></i><span class="tooltip-text">Zen 模式</span>
                 </button>
@@ -1275,12 +1266,12 @@
 
             if (state.lowPerformance) {
                 btn.classList.add('bg-green-900/40', 'border-green-500/50');
-                text.textContent = "性能: 節能";
-                icon.className = "fa-solid fa-leaf text-green-300";
+                if (text) text.textContent = "性能: 節能";
+                if (icon) icon.className = "fa-solid fa-leaf text-xs text-green-300";
             } else {
                 btn.classList.remove('bg-green-900/40', 'border-green-500/50');
-                text.textContent = "性能: 標準";
-                icon.className = "fa-solid fa-leaf text-green-400";
+                if (text) text.textContent = "性能: 標準";
+                if (icon) icon.className = "fa-solid fa-leaf text-xs text-green-400";
             }
             
             initRain();
