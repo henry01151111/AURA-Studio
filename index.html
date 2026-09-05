@@ -151,6 +151,12 @@
     <div id="lightningOverlay" class="fixed inset-0 pointer-events-none z-[3] opacity-0 transition-opacity duration-75 mix-blend-screen bg-indigo-100/70"></div>
     <canvas id="lightningCanvas" class="fixed inset-0 pointer-events-none z-[3]"></canvas>
 
+    <!-- Real-time FPS Monitor Badge (即時 FPS 顯示徽章) -->
+    <div id="fpsBadge" class="hud-element fixed top-4 left-4 z-30 flex items-center space-x-1.5 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 text-[11px] font-mono shadow-lg transition-all duration-300 opacity-0 pointer-events-none">
+        <span id="fpsDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="fpsValDisplay" class="text-emerald-300 font-semibold tracking-wider">60 FPS</span>
+    </div>
+
     <!-- Zen Mode Exit Notice Toast -->
     <div id="zenNotice" class="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-black/70 backdrop-blur-md border border-white/20 text-white/90 text-xs px-4 py-2 rounded-full pointer-events-none transition-all duration-500 opacity-0 transform -translate-y-4 shadow-xl">
         <i class="fa-solid fa-spa text-indigo-400 mr-2"></i>已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）
@@ -371,11 +377,6 @@
 
     </div>
 
-    <!-- 右下角常駐即時 FPS 顯示面板 -->
-    <div id="fpsDisplay" class="fixed bottom-3 right-4 z-30 font-mono text-[11px] text-indigo-300/80 bg-black/50 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded-xl pointer-events-none transition-opacity duration-300 opacity-0 shadow-lg">
-        60 FPS
-    </div>
-
     <!-- Settings Modal (Slides Bottom to Top) -->
     <div id="settingsModal" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-4 overflow-hidden">
         <div class="modal-slide-up glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto custom-scrollbar border border-white/15 shadow-2xl">
@@ -433,16 +434,16 @@
 
                 <div class="pt-3 border-t border-white/10 space-y-3">
                     <div class="flex items-center justify-between">
+                        <span class="text-white/80">顯示即時 FPS 影格率</span>
+                        <input type="checkbox" id="showFpsToggle" class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
+                    </div>
+                    <div class="flex items-center justify-between">
                         <span class="text-white/80">無操作 5 秒後自動隱藏介面</span>
                         <input type="checkbox" id="autoHideToggle" class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-white/80">滑鼠/觸控與雨滴玻璃互動</span>
                         <input type="checkbox" id="glassInteractionToggle" class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-white/80">顯示即時幀數 (FPS)</span>
-                        <input type="checkbox" id="showFPSToggle" class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-white/80">顯示 24 小時制時鐘</span>
@@ -539,7 +540,7 @@
                     </div>
                     <div>
                         <h4 class="font-semibold text-white/90 mb-0.5">3. 設定中有更多功能</h4>
-                        <p class="text-white/60 leading-relaxed text-[11px]">新增 5 秒無操作自動隱藏介面、時鐘與進度環尺寸縮放、字體風格切換以及自訂專注格言等多項實用設定。</p>
+                        <p class="text-white/60 leading-relaxed text-[11px]">新增 5 秒無操作自動隱藏介面、即時 FPS 影格率監測、時鐘與進度環尺寸縮放、字體風格切換等多項設定。</p>
                     </div>
                 </div>
             </div>
@@ -568,7 +569,7 @@
             thunderEnabled: false,
             autoHideUI: false,
             glassInteraction: false,
-            showFPS: false,
+            showFps: false,
             speed: 1.0,
             density: 1.0,
             windAngle: -2.5,
@@ -608,7 +609,7 @@
                     thunderEnabled: state.thunderEnabled,
                     autoHideUI: state.autoHideUI,
                     glassInteraction: state.glassInteraction,
-                    showFPS: state.showFPS,
+                    showFps: state.showFps,
                     speed: state.speed,
                     density: state.density,
                     clock24h: state.clock24h,
@@ -671,17 +672,17 @@
             document.getElementById('densityVal').textContent = state.density < 0.8 ? "極簡" : state.density > 1.2 ? "密集" : "標準";
 
             // 設定選項 Checkboxes
+            document.getElementById('showFpsToggle').checked = state.showFps;
             document.getElementById('autoHideToggle').checked = state.autoHideUI;
             document.getElementById('glassInteractionToggle').checked = state.glassInteraction;
-            const fpsCheckbox = document.getElementById('showFPSToggle');
-            if (fpsCheckbox) fpsCheckbox.checked = state.showFPS;
-            toggleFPSDisplay(state.showFPS);
-
             document.getElementById('format24Toggle').checked = state.clock24h;
             document.getElementById('showSecondsToggle').checked = state.showSeconds;
             document.getElementById('showQuoteToggle').checked = state.showQuote;
             document.getElementById('autoPomoToggle').checked = state.autoPomo;
             document.getElementById('soundChimeToggle').checked = state.soundChime;
+
+            // 更新 FPS 徽章顯示狀態
+            toggleFpsDisplay(state.showFps);
 
             // 格言
             document.getElementById('customQuoteInput').value = state.customQuoteText || '';
@@ -731,6 +732,16 @@
             const activeThemeBtn = document.querySelector(`[data-theme="${state.theme}"]`);
             if (activeThemeBtn) {
                 activeThemeBtn.classList.add('ring-2', 'ring-white', 'scale-110');
+            }
+        }
+
+        function toggleFpsDisplay(visible) {
+            const badge = document.getElementById('fpsBadge');
+            if (!badge) return;
+            if (visible) {
+                badge.classList.remove('opacity-0', 'pointer-events-none');
+            } else {
+                badge.classList.add('opacity-0', 'pointer-events-none');
             }
         }
 
@@ -1023,32 +1034,69 @@
                 grad.addColorStop(0.85, 'rgba(180, 220, 255, 0.6)');
                 grad.addColorStop(1, 'rgba(240, 250, 255, 0.9)');
                 
-        let fpsFrameCount = 0;
-        let fpsLastTime = performance.now();
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fillStyle = grad;
+                ctx.fill();
 
-        function toggleFPSDisplay(show) {
-            const fpsEl = document.getElementById('fpsDisplay');
-            if (!fpsEl) return;
-            if (show) {
-                fpsEl.classList.remove('opacity-0');
-            } else {
-                fpsEl.classList.add('opacity-0');
+                ctx.beginPath();
+                ctx.ellipse(x - r * 0.35, y - r * 0.35, r * 0.3, r * 0.2, -Math.PI / 4, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        function initRain() {
+            bgStreaks = []; glassDrops = []; microTrails = [];
+            const multiplier = state.lowPerformance ? 0.2 : 1.0; 
+            
+            const streakCount = Math.floor(120 * state.density * multiplier);
+            for (let i = 0; i < streakCount; i++) bgStreaks.push(new BackgroundStreak());
+            
+            const dropCount = Math.floor(130 * state.density * multiplier);
+            for (let i = 0; i < dropCount; i++) glassDrops.push(new GlassDroplet(i >= dropCount * 0.2));
+        }
+
+        let fpsFrameCount = 0;
+        let lastFpsTime = performance.now();
+        let currentFps = 60;
+
+        function updateFpsCounter(now) {
+            fpsFrameCount++;
+            const delta = now - lastFpsTime;
+
+            if (delta >= 500) { // 每 0.5 秒更新一次 FPS
+                currentFps = Math.round((fpsFrameCount * 1000) / delta);
+                fpsFrameCount = 0;
+                lastFpsTime = now;
+
+                if (state.showFps) {
+                    const fpsValEl = document.getElementById('fpsValDisplay');
+                    const fpsDotEl = document.getElementById('fpsDot');
+                    if (fpsValEl) {
+                        fpsValEl.textContent = `${currentFps} FPS`;
+                        
+                        // 根據影格率高低調整顯示顏色
+                        if (currentFps >= 45) {
+                            fpsValEl.className = "text-emerald-300 font-semibold tracking-wider";
+                            if (fpsDotEl) fpsDotEl.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                        } else if (currentFps >= 25) {
+                            fpsValEl.className = "text-amber-300 font-semibold tracking-wider";
+                            if (fpsDotEl) fpsDotEl.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+                        } else {
+                            fpsValEl.className = "text-rose-400 font-semibold tracking-wider";
+                            if (fpsDotEl) fpsDotEl.className = "w-2 h-2 rounded-full bg-rose-500 animate-ping";
+                        }
+                    }
+                }
             }
         }
 
         function renderRain() {
-            // 計算與更新即時 FPS 幀數
-            if (state.showFPS) {
-                fpsFrameCount++;
-                const now = performance.now();
-                if (now - fpsLastTime >= 500) {
-                    const currentFps = Math.round((fpsFrameCount * 1000) / (now - fpsLastTime));
-                    fpsFrameCount = 0;
-                    fpsLastTime = now;
-                    const fpsEl = document.getElementById('fpsDisplay');
-                    if (fpsEl) fpsEl.textContent = `${currentFps} FPS`;
-                }
-            }
+            const nowTime = performance.now();
+            updateFpsCounter(nowTime);
 
             const time = Date.now() * 0.0006 * state.speed;
             const grad = ctx.createRadialGradient(width/2, height/2, 100, width/2, height/2, Math.max(width, height));
@@ -1707,6 +1755,11 @@
             saveSettings();
         });
 
+        document.getElementById('showFpsToggle').addEventListener('change', e => {
+            state.showFps = e.target.checked;
+            toggleFpsDisplay(state.showFps);
+            saveSettings();
+        });
         document.getElementById('autoHideToggle').addEventListener('change', e => { 
             state.autoHideUI = e.target.checked; 
             resetAutoHideTimer(); 
@@ -1714,11 +1767,6 @@
         });
         document.getElementById('glassInteractionToggle').addEventListener('change', e => {
             state.glassInteraction = e.target.checked;
-            saveSettings();
-        });
-        document.getElementById('showFPSToggle')?.addEventListener('change', e => {
-            state.showFPS = e.target.checked;
-            toggleFPSDisplay(state.showFPS);
             saveSettings();
         });
         document.getElementById('format24Toggle').addEventListener('change', e => { state.clock24h = e.target.checked; updateClock(); saveSettings(); });
