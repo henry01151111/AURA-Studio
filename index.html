@@ -124,8 +124,9 @@
 
     <canvas id="mainCanvas" class="canvas-layer"></canvas>
 
-    <!-- Visual Lightning Overlay (無音效閃電視覺層) -->
-    <div id="lightningOverlay" class="fixed inset-0 pointer-events-none z-[1] opacity-0 transition-opacity duration-100 mix-blend-screen bg-indigo-100/40"></div>
+    <!-- Visual Lightning Overlay & Canvas (純視覺無音效閃電層，z-[3] 置於背景 Canvas 之上) -->
+    <div id="lightningOverlay" class="fixed inset-0 pointer-events-none z-[3] opacity-0 transition-opacity duration-75 mix-blend-screen bg-indigo-100/70"></div>
+    <canvas id="lightningCanvas" class="fixed inset-0 pointer-events-none z-[3]"></canvas>
 
     <!-- Zen Mode Exit Notice Toast -->
     <div id="zenNotice" class="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-black/70 backdrop-blur-md border border-white/20 text-white/90 text-xs px-4 py-2 rounded-full pointer-events-none transition-all duration-500 opacity-0 transform -translate-y-4 shadow-xl">
@@ -1321,24 +1322,99 @@
 
         // 打雷視覺效果邏輯 (純視覺，無音效)
         let lightningTimeout = null;
+        const lightningCanvas = document.getElementById('lightningCanvas');
+        const lCtx = lightningCanvas ? lightningCanvas.getContext('2d') : null;
 
-        function triggerLightningFlash() {
+        function resizeLightningCanvas() {
+            if (lightningCanvas) {
+                lightningCanvas.width = window.innerWidth;
+                lightningCanvas.height = window.innerHeight;
+            }
+        }
+        window.addEventListener('resize', resizeLightningCanvas);
+        resizeLightningCanvas();
+
+        // 繪製擬真分枝閃電軌跡
+        function drawLightningBolt(x1, y1, x2, y2, displacement) {
+            if (!lCtx) return;
+            lCtx.save();
+            lCtx.beginPath();
+            lCtx.moveTo(x1, y1);
+
+            function createBranch(startX, startY, endX, endY, disp, depth) {
+                if (depth <= 0) {
+                    lCtx.lineTo(endX, endY);
+                    return;
+                }
+                const midX = (startX + endX) / 2 + (Math.random() - 0.5) * disp;
+                const midY = (startY + endY) / 2 + (Math.random() - 0.5) * disp;
+
+                createBranch(startX, startY, midX, midY, disp / 2, depth - 1);
+                createBranch(midX, midY, endX, endY, disp / 2, depth - 1);
+
+                // 隨機產生次要分枝
+                if (Math.random() < 0.35 && depth > 2) {
+                    const branchEndX = midX + (Math.random() - 0.5) * disp * 2;
+                    const branchEndY = midY + Math.random() * disp * 1.5;
+                    createBranch(midX, midY, branchEndX, branchEndY, disp / 2, depth - 2);
+                }
+            }
+
+            createBranch(x1, y1, x2, y2, displacement, 5);
+
+            // 閃電外圍發光光暈
+            lCtx.strokeStyle = 'rgba(186, 230, 253, 0.85)';
+            lCtx.lineWidth = 4;
+            lCtx.shadowBlur = 25;
+            lCtx.shadowColor = '#38bdf8';
+            lCtx.stroke();
+
+            // 閃電核心白光
+            lCtx.strokeStyle = '#ffffff';
+            lCtx.lineWidth = 2;
+            lCtx.shadowBlur = 10;
+            lCtx.shadowColor = '#ffffff';
+            lCtx.stroke();
+
+            lCtx.restore();
+        }
+
+        function triggerLightningFlash(isImmediate = false) {
             if (!state.thunderEnabled) return;
             const overlay = document.getElementById('lightningOverlay');
-            if (!overlay) return;
+            if (!overlay || !lCtx || !lightningCanvas) return;
 
-            // 擬真雙重閃爍效果
-            overlay.style.opacity = (Math.random() * 0.35 + 0.25).toString();
+            // 清除上一道閃電
+            lCtx.clearRect(0, 0, lightningCanvas.width, lightningCanvas.height);
+
+            // 隨機繪製 1~2 道主閃電
+            const boltCount = Math.floor(Math.random() * 2) + 1;
+            for (let i = 0; i < boltCount; i++) {
+                const startX = Math.random() * (lightningCanvas.width * 0.8) + (lightningCanvas.width * 0.1);
+                const startY = 0;
+                const endX = startX + (Math.random() - 0.5) * 350;
+                const endY = lightningCanvas.height * (0.55 + Math.random() * 0.35);
+                drawLightningBolt(startX, startY, endX, endY, 110);
+            }
+
+            // 雙重擬真閃光效果
+            const maxOpacity = isImmediate ? 0.75 : (Math.random() * 0.45 + 0.35);
+            overlay.style.opacity = maxOpacity.toString();
             
             setTimeout(() => {
-                overlay.style.opacity = '0.05';
+                overlay.style.opacity = '0.08';
                 setTimeout(() => {
-                    overlay.style.opacity = (Math.random() * 0.5 + 0.3).toString();
+                    overlay.style.opacity = (maxOpacity * 0.8).toString();
                     setTimeout(() => {
                         overlay.style.opacity = '0';
-                    }, 120);
-                }, 60);
-            }, 80);
+                        setTimeout(() => {
+                            if (lCtx && lightningCanvas) {
+                                lCtx.clearRect(0, 0, lightningCanvas.width, lightningCanvas.height);
+                            }
+                        }, 120);
+                    }, 100);
+                }, 50);
+            }, 90);
 
             scheduleNextLightning();
         }
@@ -1346,8 +1422,8 @@
         function scheduleNextLightning() {
             clearTimeout(lightningTimeout);
             if (!state.thunderEnabled) return;
-            // 隨機每 7 到 18 秒閃爍一次
-            const delay = Math.random() * 11000 + 7000;
+            // 隨機每 6 到 15 秒閃爍一次
+            const delay = Math.random() * 9000 + 6000;
             lightningTimeout = setTimeout(triggerLightningFlash, delay);
         }
 
@@ -1359,13 +1435,16 @@
             if (state.thunderEnabled) {
                 if (btn) btn.classList.add('bg-amber-500/20', 'border', 'border-amber-400/40');
                 if (icon) icon.className = "fa-solid fa-bolt text-xs text-amber-300 animate-pulse";
-                triggerLightningFlash();
+                triggerLightningFlash(true); // 開啟時立即觸發一次強烈閃電
             } else {
                 if (btn) btn.classList.remove('bg-amber-500/20', 'border', 'border-amber-400/40');
                 if (icon) icon.className = "fa-solid fa-bolt text-xs text-white/50";
                 clearTimeout(lightningTimeout);
                 const overlay = document.getElementById('lightningOverlay');
                 if (overlay) overlay.style.opacity = '0';
+                if (lCtx && lightningCanvas) {
+                    lCtx.clearRect(0, 0, lightningCanvas.width, lightningCanvas.height);
+                }
             }
             saveSettings();
         }
