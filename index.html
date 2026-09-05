@@ -371,6 +371,11 @@
 
     </div>
 
+    <!-- 右下角常駐即時 FPS 顯示面板 -->
+    <div id="fpsDisplay" class="fixed bottom-3 right-4 z-30 font-mono text-[11px] text-indigo-300/80 bg-black/50 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded-xl pointer-events-none transition-opacity duration-300 opacity-0 shadow-lg">
+        60 FPS
+    </div>
+
     <!-- Settings Modal (Slides Bottom to Top) -->
     <div id="settingsModal" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-4 overflow-hidden">
         <div class="modal-slide-up glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-8 max-h-[90vh] overflow-y-auto custom-scrollbar border border-white/15 shadow-2xl">
@@ -434,6 +439,10 @@
                     <div class="flex items-center justify-between">
                         <span class="text-white/80">滑鼠/觸控與雨滴玻璃互動</span>
                         <input type="checkbox" id="glassInteractionToggle" class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/80">顯示即時幀數 (FPS)</span>
+                        <input type="checkbox" id="showFPSToggle" class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-white/80">顯示 24 小時制時鐘</span>
@@ -559,6 +568,7 @@
             thunderEnabled: false,
             autoHideUI: false,
             glassInteraction: false,
+            showFPS: false,
             speed: 1.0,
             density: 1.0,
             windAngle: -2.5,
@@ -598,6 +608,7 @@
                     thunderEnabled: state.thunderEnabled,
                     autoHideUI: state.autoHideUI,
                     glassInteraction: state.glassInteraction,
+                    showFPS: state.showFPS,
                     speed: state.speed,
                     density: state.density,
                     clock24h: state.clock24h,
@@ -662,6 +673,10 @@
             // 設定選項 Checkboxes
             document.getElementById('autoHideToggle').checked = state.autoHideUI;
             document.getElementById('glassInteractionToggle').checked = state.glassInteraction;
+            const fpsCheckbox = document.getElementById('showFPSToggle');
+            if (fpsCheckbox) fpsCheckbox.checked = state.showFPS;
+            toggleFPSDisplay(state.showFPS);
+
             document.getElementById('format24Toggle').checked = state.clock24h;
             document.getElementById('showSecondsToggle').checked = state.showSeconds;
             document.getElementById('showQuoteToggle').checked = state.showQuote;
@@ -1008,32 +1023,33 @@
                 grad.addColorStop(0.85, 'rgba(180, 220, 255, 0.6)');
                 grad.addColorStop(1, 'rgba(240, 250, 255, 0.9)');
                 
-                ctx.beginPath();
-                ctx.arc(x, y, r, 0, Math.PI * 2);
-                ctx.fillStyle = grad;
-                ctx.fill();
+        let fpsFrameCount = 0;
+        let fpsLastTime = performance.now();
 
-                ctx.beginPath();
-                ctx.ellipse(x - r * 0.35, y - r * 0.35, r * 0.3, r * 0.2, -Math.PI / 4, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-                ctx.fill();
-
-                ctx.restore();
+        function toggleFPSDisplay(show) {
+            const fpsEl = document.getElementById('fpsDisplay');
+            if (!fpsEl) return;
+            if (show) {
+                fpsEl.classList.remove('opacity-0');
+            } else {
+                fpsEl.classList.add('opacity-0');
             }
         }
 
-        function initRain() {
-            bgStreaks = []; glassDrops = []; microTrails = [];
-            const multiplier = state.lowPerformance ? 0.2 : 1.0; 
-            
-            const streakCount = Math.floor(120 * state.density * multiplier);
-            for (let i = 0; i < streakCount; i++) bgStreaks.push(new BackgroundStreak());
-            
-            const dropCount = Math.floor(130 * state.density * multiplier);
-            for (let i = 0; i < dropCount; i++) glassDrops.push(new GlassDroplet(i >= dropCount * 0.2));
-        }
-
         function renderRain() {
+            // 計算與更新即時 FPS 幀數
+            if (state.showFPS) {
+                fpsFrameCount++;
+                const now = performance.now();
+                if (now - fpsLastTime >= 500) {
+                    const currentFps = Math.round((fpsFrameCount * 1000) / (now - fpsLastTime));
+                    fpsFrameCount = 0;
+                    fpsLastTime = now;
+                    const fpsEl = document.getElementById('fpsDisplay');
+                    if (fpsEl) fpsEl.textContent = `${currentFps} FPS`;
+                }
+            }
+
             const time = Date.now() * 0.0006 * state.speed;
             const grad = ctx.createRadialGradient(width/2, height/2, 100, width/2, height/2, Math.max(width, height));
             
@@ -1698,6 +1714,11 @@
         });
         document.getElementById('glassInteractionToggle').addEventListener('change', e => {
             state.glassInteraction = e.target.checked;
+            saveSettings();
+        });
+        document.getElementById('showFPSToggle')?.addEventListener('change', e => {
+            state.showFPS = e.target.checked;
+            toggleFPSDisplay(state.showFPS);
             saveSettings();
         });
         document.getElementById('format24Toggle').addEventListener('change', e => { state.clock24h = e.target.checked; updateClock(); saveSettings(); });
