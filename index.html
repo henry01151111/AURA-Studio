@@ -449,6 +449,9 @@
     </div>
 
     <script>
+        const STORAGE_KEY = 'aura_focus_studio_settings';
+        const MEMO_STORAGE_KEY = 'aura_focus_studio_memo';
+
         const state = {
             lowPerformance: false,
             speed: 1.0,
@@ -483,6 +486,112 @@
                 { id: 2, text: '整理核心筆記重點', done: false }
             ]
         };
+
+        function saveSettings() {
+            try {
+                const dataToSave = {
+                    lowPerformance: state.lowPerformance,
+                    speed: state.speed,
+                    density: state.density,
+                    clock24h: state.clock24h,
+                    showSeconds: state.showSeconds,
+                    showQuote: state.showQuote,
+                    autoPomo: state.autoPomo,
+                    soundChime: state.soundChime,
+                    customQuoteText: state.customQuoteText,
+                    clockFont: state.clockFont,
+                    clockScale: state.clockScale,
+                    theme: state.theme,
+                    masterAudioOn: state.masterAudioOn,
+                    volumes: state.volumes,
+                    tasks: state.tasks
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+                
+                const memoEl = document.getElementById('memoInput');
+                if (memoEl) {
+                    localStorage.setItem(MEMO_STORAGE_KEY, memoEl.value);
+                }
+            } catch(e) {
+                console.warn('本地儲存失敗:', e);
+            }
+        }
+
+        function loadSettings() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    Object.assign(state, parsed);
+                }
+            } catch(e) {
+                console.warn('本地設定載入失敗:', e);
+            }
+        }
+
+        function syncUIFromState() {
+            // 低性能模式按鈕
+            const lowPerfBtn = document.getElementById('lowPerfToggleBtn');
+            const lowPerfIcon = document.getElementById('lowPerfIcon');
+            const lowPerfText = document.getElementById('lowPerfText');
+            if (state.lowPerformance) {
+                lowPerfBtn.classList.add('bg-green-900/40', 'border-green-500/50');
+                lowPerfText.textContent = "性能: 節能";
+                lowPerfIcon.className = "fa-solid fa-leaf text-green-300";
+            } else {
+                lowPerfBtn.classList.remove('bg-green-900/40', 'border-green-500/50');
+                lowPerfText.textContent = "性能: 標準";
+                lowPerfIcon.className = "fa-solid fa-leaf text-green-400";
+            }
+
+            // 雨滴速度與密度滑桿
+            document.getElementById('speedSlider').value = state.speed;
+            document.getElementById('speedVal').textContent = `${state.speed.toFixed(1)}x`;
+            document.getElementById('densitySlider').value = state.density;
+            document.getElementById('densityVal').textContent = state.density < 0.8 ? "極簡" : state.density > 1.2 ? "密集" : "標準";
+
+            // 設定選項 Checkboxes
+            document.getElementById('format24Toggle').checked = state.clock24h;
+            document.getElementById('showSecondsToggle').checked = state.showSeconds;
+            document.getElementById('showQuoteToggle').checked = state.showQuote;
+            document.getElementById('autoPomoToggle').checked = state.autoPomo;
+            document.getElementById('soundChimeToggle').checked = state.soundChime;
+
+            // 格言
+            document.getElementById('customQuoteInput').value = state.customQuoteText || '';
+
+            // 時鐘字體與縮放
+            setClockFont(state.clockFont, false);
+            setClockScale(state.clockScale, false);
+
+            // 總聲音開關與各音軌滑桿
+            const masterBtn = document.getElementById('masterAudioToggle');
+            masterBtn.textContent = state.masterAudioOn ? "已開啟" : "已關閉";
+            masterBtn.className = state.masterAudioOn ? "bg-indigo-600 text-white px-3 py-1 rounded-xl font-semibold transition" : "bg-white/10 text-white/50 px-3 py-1 rounded-xl font-semibold transition";
+
+            ['rain', 'alpha', 'fire', 'chime'].forEach(type => {
+                const slider = document.getElementById(`${type}VolSlider`);
+                const valLabel = document.getElementById(`${type}VolVal`);
+                if (slider && valLabel && state.volumes[type] !== undefined) {
+                    slider.value = state.volumes[type];
+                    valLabel.textContent = `${Math.round(state.volumes[type] * 100)}%`;
+                }
+            });
+
+            // 載入備忘錄文字
+            const savedMemo = localStorage.getItem(MEMO_STORAGE_KEY);
+            const memoEl = document.getElementById('memoInput');
+            if (savedMemo !== null && memoEl) {
+                memoEl.value = savedMemo;
+            }
+
+            // 主題按鈕高亮
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('ring-2', 'ring-white', 'scale-110'));
+            const activeThemeBtn = document.querySelector(`[data-theme="${state.theme}"]`);
+            if (activeThemeBtn) {
+                activeThemeBtn.classList.add('ring-2', 'ring-white', 'scale-110');
+            }
+        }
 
         const canvas = document.getElementById('mainCanvas');
         const ctx = canvas.getContext('2d');
@@ -991,10 +1100,12 @@
         window.toggleTask = function(id) {
             state.tasks = state.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
             renderTasks();
+            saveSettings();
         };
         window.deleteTask = function(id) {
             state.tasks = state.tasks.filter(t => t.id !== id);
             renderTasks();
+            saveSettings();
         };
 
         document.getElementById('addTaskBtn').addEventListener('click', () => {
@@ -1004,7 +1115,12 @@
                 state.tasks.push({ id: Date.now(), text: val, done: false });
                 input.value = '';
                 renderTasks();
+                saveSettings();
             }
+        });
+
+        document.getElementById('memoInput').addEventListener('input', () => {
+            saveSettings();
         });
 
         const taskDrawer = document.getElementById('taskDrawer');
@@ -1049,6 +1165,7 @@
             }
             
             initRain();
+            saveSettings();
         });
 
         document.getElementById('masterAudioToggle').addEventListener('click', () => {
@@ -1057,6 +1174,7 @@
             document.getElementById('masterAudioToggle').textContent = state.masterAudioOn ? "已開啟" : "已關閉";
             document.getElementById('masterAudioToggle').className = state.masterAudioOn ? "bg-indigo-600 text-white px-3 py-1 rounded-xl font-semibold transition" : "bg-white/10 text-white/50 px-3 py-1 rounded-xl font-semibold transition";
             updateAudioVolumes();
+            saveSettings();
         });
 
         ['rain', 'alpha', 'fire', 'chime'].forEach(type => {
@@ -1066,6 +1184,7 @@
                 state.volumes[type] = val;
                 document.getElementById(`${type}VolVal`).textContent = `${Math.round(val * 100)}%`;
                 updateAudioVolumes();
+                saveSettings();
             });
         });
 
@@ -1075,6 +1194,7 @@
                 const t = e.currentTarget;
                 t.classList.add('ring-2', 'ring-white', 'scale-110');
                 state.theme = t.dataset.theme;
+                saveSettings();
             });
         });
 
@@ -1127,47 +1247,62 @@
         document.getElementById('speedSlider').addEventListener('input', e => {
             state.speed = parseFloat(e.target.value);
             document.getElementById('speedVal').textContent = `${state.speed.toFixed(1)}x`;
+            saveSettings();
         });
         document.getElementById('densitySlider').addEventListener('input', e => {
             state.density = parseFloat(e.target.value);
             document.getElementById('densityVal').textContent = state.density < 0.8 ? "極簡" : state.density > 1.2 ? "密集" : "標準";
             initRain();
+            saveSettings();
         });
 
-        window.setClockFont = function(font) {
+        window.setClockFont = function(font, autoSave = true) {
             state.clockFont = font;
             const tf = document.getElementById('timeDisplay');
             tf.className = `font-${font} font-light text-5xl sm:text-7xl tracking-tight text-shadow-glow text-white/95`;
             document.querySelectorAll('.font-btn').forEach(b => b.className = "font-btn bg-white/5 hover:bg-white/20 py-2 rounded-xl text-center text-white/80 transition");
-            event.currentTarget.className = "font-btn bg-white/20 py-2 rounded-xl text-center text-white font-semibold transition";
+            
+            const btns = document.querySelectorAll('.font-btn');
+            if (font === 'sans' && btns[0]) btns[0].className = "font-btn bg-white/20 py-2 rounded-xl text-center text-white font-semibold transition";
+            if (font === 'mono' && btns[1]) btns[1].className = "font-btn bg-white/20 py-2 rounded-xl text-center text-white font-semibold transition";
+            if (font === 'serif' && btns[2]) btns[2].className = "font-btn bg-white/20 py-2 rounded-xl text-center text-white font-semibold transition";
+
+            if (autoSave) saveSettings();
         }
 
-        window.setClockScale = function(scale) {
+        window.setClockScale = function(scale, autoSave = true) {
             state.clockScale = scale;
             const wrapper = document.getElementById('clockScaleWrapper');
             if (wrapper) {
                 wrapper.style.transform = `scale(${scale})`;
             }
             document.querySelectorAll('.size-btn').forEach(b => b.className = "size-btn bg-white/5 hover:bg-white/20 py-2 rounded-xl text-center text-white/80 transition text-[11px]");
-            if (window.event && window.event.currentTarget) {
-                window.event.currentTarget.className = "size-btn bg-white/20 py-2 rounded-xl text-center text-white font-semibold transition text-[11px]";
-            }
+            
+            const btns = document.querySelectorAll('.size-btn');
+            if (scale === 0.75 && btns[0]) btns[0].className = "size-btn bg-white/20 py-2 rounded-xl text-center text-white font-semibold transition text-[11px]";
+            if (scale === 1.0 && btns[1]) btns[1].className = "size-btn bg-white/20 py-2 rounded-xl text-center text-white font-semibold transition text-[11px]";
+            if (scale === 1.25 && btns[2]) btns[2].className = "size-btn bg-white/20 py-2 rounded-xl text-center text-white font-semibold transition text-[11px]";
+            if (scale === 1.5 && btns[3]) btns[3].className = "size-btn bg-white/20 py-2 rounded-xl text-center text-white font-semibold transition text-[11px]";
+
+            if (autoSave) saveSettings();
         };
 
         document.getElementById('customQuoteInput').addEventListener('input', e => {
             state.customQuoteText = e.target.value;
             updateClock();
+            saveSettings();
         });
 
         document.getElementById('binauralSelect').addEventListener('change', e => {
             updateBinauralFrequencies(e.target.value);
+            saveSettings();
         });
 
-        document.getElementById('format24Toggle').addEventListener('change', e => { state.clock24h = e.target.checked; updateClock(); });
-        document.getElementById('showSecondsToggle').addEventListener('change', e => { state.showSeconds = e.target.checked; updateClock(); });
-        document.getElementById('showQuoteToggle').addEventListener('change', e => { state.showQuote = e.target.checked; document.getElementById('quoteDisplay').style.display = state.showQuote ? 'block' : 'none'; });
-        document.getElementById('autoPomoToggle').addEventListener('change', e => { state.autoPomo = e.target.checked; });
-        document.getElementById('soundChimeToggle').addEventListener('change', e => { state.soundChime = e.target.checked; });
+        document.getElementById('format24Toggle').addEventListener('change', e => { state.clock24h = e.target.checked; updateClock(); saveSettings(); });
+        document.getElementById('showSecondsToggle').addEventListener('change', e => { state.showSeconds = e.target.checked; updateClock(); saveSettings(); });
+        document.getElementById('showQuoteToggle').addEventListener('change', e => { state.showQuote = e.target.checked; document.getElementById('quoteDisplay').style.display = state.showQuote ? 'block' : 'none'; saveSettings(); });
+        document.getElementById('autoPomoToggle').addEventListener('change', e => { state.autoPomo = e.target.checked; saveSettings(); });
+        document.getElementById('soundChimeToggle').addEventListener('change', e => { state.soundChime = e.target.checked; saveSettings(); });
 
         document.getElementById('fullscreenBtn').addEventListener('click', () => {
             if (!document.fullscreenElement) {
@@ -1212,12 +1347,14 @@
         });
 
         window.onload = () => {
+            loadSettings();
+            syncUIFromState();
+
             initRain();
             renderRain();
             renderTasks();
             updatePomoDisplay();
             document.getElementById('quoteDisplay').style.display = state.showQuote ? 'block' : 'none';
-            document.querySelector(`[data-theme="${state.theme}"]`).classList.add('ring-2', 'ring-white', 'scale-110');
         };
     </script>
 </body>
