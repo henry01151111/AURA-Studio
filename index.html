@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AURA - 沉浸式學習專注螢幕保護程式 Studio</title>
+    <title>AURA Studio</title>
     
     <!-- PWA Manifest & Theme Color -->
     <link rel="manifest" href="/manifest.json">
@@ -360,9 +360,6 @@
                 <button id="thunderToggleBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="打雷視覺效果 (純視覺無音效)">
                     <i id="thunderIcon" class="fa-solid fa-bolt text-xs text-white/50"></i><span class="tooltip-text">打雷效果</span>
                 </button>
-                <button id="interactionToggleBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="滑鼠/觸控雨滴玻璃擦拭與水珠互動">
-                    <i id="interactionIcon" class="fa-solid fa-hand-pointer text-xs text-white/50"></i><span id="interactionTooltip" class="tooltip-text">玻璃互動</span>
-                </button>
                 <button id="openSettingsBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="進階設定">
                     <i class="fa-solid fa-sliders text-xs"></i><span class="tooltip-text">進階設定</span>
                 </button>
@@ -436,7 +433,7 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-white/80">滑鼠/觸控與雨滴玻璃互動</span>
-                        <input type="checkbox" id="glassInteractionToggle" checked class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
+                        <input type="checkbox" id="glassInteractionToggle" class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-white/80">顯示 24 小時制時鐘</span>
@@ -561,7 +558,7 @@
             lowPerformance: false,
             thunderEnabled: false,
             autoHideUI: false,
-            glassInteraction: true,
+            glassInteraction: false,
             speed: 1.0,
             density: 1.0,
             windAngle: -2.5,
@@ -670,9 +667,6 @@
             document.getElementById('showQuoteToggle').checked = state.showQuote;
             document.getElementById('autoPomoToggle').checked = state.autoPomo;
             document.getElementById('soundChimeToggle').checked = state.soundChime;
-
-            // 同步底部玻璃互動按鈕狀態
-            updateInteractionBtnUI();
 
             // 格言
             document.getElementById('customQuoteInput').value = state.customQuoteText || '';
@@ -1602,31 +1596,6 @@
             toggleThunder();
         });
 
-        // 玻璃互動按鈕UI同步與切換
-        function updateInteractionBtnUI() {
-            const btn = document.getElementById('interactionToggleBtn');
-            const icon = document.getElementById('interactionIcon');
-            const tooltip = document.getElementById('interactionTooltip');
-            if (btn && icon) {
-                if (state.glassInteraction) {
-                    btn.classList.add('bg-cyan-500/20', 'border', 'border-cyan-400/40');
-                    icon.className = "fa-solid fa-hand-pointer text-xs text-cyan-300";
-                    if (tooltip) tooltip.textContent = "玻璃互動: 開";
-                } else {
-                    btn.classList.remove('bg-cyan-500/20', 'border', 'border-cyan-400/40');
-                    icon.className = "fa-solid fa-hand-pointer text-xs text-white/50";
-                    if (tooltip) tooltip.textContent = "玻璃互動: 關";
-                }
-            }
-        }
-
-        document.getElementById('interactionToggleBtn')?.addEventListener('click', () => {
-            state.glassInteraction = !state.glassInteraction;
-            document.getElementById('glassInteractionToggle').checked = state.glassInteraction;
-            updateInteractionBtnUI();
-            saveSettings();
-        });
-
         function toggleZenMode(enable) {
             isZenMode = enable !== undefined ? enable : !isZenMode;
             
@@ -1729,7 +1698,6 @@
         });
         document.getElementById('glassInteractionToggle').addEventListener('change', e => {
             state.glassInteraction = e.target.checked;
-            updateInteractionBtnUI();
             saveSettings();
         });
         document.getElementById('format24Toggle').addEventListener('change', e => { state.clock24h = e.target.checked; updateClock(); saveSettings(); });
