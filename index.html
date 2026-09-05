@@ -360,6 +360,9 @@
                 <button id="thunderToggleBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="打雷視覺效果 (純視覺無音效)">
                     <i id="thunderIcon" class="fa-solid fa-bolt text-xs text-white/50"></i><span class="tooltip-text">打雷效果</span>
                 </button>
+                <button id="interactionToggleBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="滑鼠/觸控雨滴玻璃擦拭與水珠互動">
+                    <i id="interactionIcon" class="fa-solid fa-hand-pointer text-xs text-white/50"></i><span id="interactionTooltip" class="tooltip-text">玻璃互動</span>
+                </button>
                 <button id="openSettingsBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="進階設定">
                     <i class="fa-solid fa-sliders text-xs"></i><span class="tooltip-text">進階設定</span>
                 </button>
@@ -430,6 +433,10 @@
                     <div class="flex items-center justify-between">
                         <span class="text-white/80">無操作 5 秒後自動隱藏介面</span>
                         <input type="checkbox" id="autoHideToggle" class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-white/80">滑鼠/觸控與雨滴玻璃互動</span>
+                        <input type="checkbox" id="glassInteractionToggle" checked class="w-4 h-4 accent-indigo-500 rounded cursor-pointer">
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-white/80">顯示 24 小時制時鐘</span>
@@ -554,6 +561,7 @@
             lowPerformance: false,
             thunderEnabled: false,
             autoHideUI: false,
+            glassInteraction: true,
             speed: 1.0,
             density: 1.0,
             windAngle: -2.5,
@@ -592,6 +600,7 @@
                     lowPerformance: state.lowPerformance,
                     thunderEnabled: state.thunderEnabled,
                     autoHideUI: state.autoHideUI,
+                    glassInteraction: state.glassInteraction,
                     speed: state.speed,
                     density: state.density,
                     clock24h: state.clock24h,
@@ -655,11 +664,15 @@
 
             // 設定選項 Checkboxes
             document.getElementById('autoHideToggle').checked = state.autoHideUI;
+            document.getElementById('glassInteractionToggle').checked = state.glassInteraction;
             document.getElementById('format24Toggle').checked = state.clock24h;
             document.getElementById('showSecondsToggle').checked = state.showSeconds;
             document.getElementById('showQuoteToggle').checked = state.showQuote;
             document.getElementById('autoPomoToggle').checked = state.autoPomo;
             document.getElementById('soundChimeToggle').checked = state.soundChime;
+
+            // 同步底部玻璃互動按鈕狀態
+            updateInteractionBtnUI();
 
             // 格言
             document.getElementById('customQuoteInput').value = state.customQuoteText || '';
@@ -864,6 +877,35 @@
         let bgStreaks = [];
         let microTrails = [];
 
+        // 滑鼠與觸控互動位置紀錄
+        let mousePos = { x: -1000, y: -1000, active: false };
+        let mouseParticles = [];
+
+        function handlePointerMove(e) {
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            mousePos.x = x;
+            mousePos.y = y;
+            mousePos.active = true;
+
+            if (state.glassInteraction && !state.lowPerformance) {
+                if (Math.random() < 0.6) {
+                    mouseParticles.push({
+                        x: x + (Math.random() - 0.5) * 12,
+                        y: y + (Math.random() - 0.5) * 12,
+                        r: Math.random() * 4 + 2,
+                        opacity: 0.6
+                    });
+                }
+            }
+        }
+
+        window.addEventListener('mousemove', handlePointerMove, { passive: true });
+        window.addEventListener('touchmove', handlePointerMove, { passive: true });
+        window.addEventListener('mouseleave', () => { mousePos.active = false; });
+        window.addEventListener('touchend', () => { mousePos.active = false; });
+
         class BackgroundStreak {
             constructor() { this.reset(); }
             reset() {
@@ -905,6 +947,21 @@
                 }
             }
             update() {
+                // 滑鼠/觸控互動：靠近的水珠會受到推擠或觸發下滑
+                if (state.glassInteraction && mousePos.active) {
+                    const dx = this.x - mousePos.x;
+                    const dy = this.y - mousePos.y;
+                    const dist = Math.hypot(dx, dy);
+                    
+                    if (dist < 45 && dist > 0) {
+                        if (!this.isDripping) {
+                            this.isDripping = true;
+                            this.baseVy = Math.random() * 2.0 + 1.5;
+                        }
+                        this.x += (dx / dist) * 1.8;
+                    }
+                }
+
                 if (this.isDripping) {
                     this.dripTimer++;
                     if (Math.sin(this.dripTimer * 0.18) > -0.1) {
@@ -1026,6 +1083,21 @@
 
             ctx.fillStyle = 'rgba(10, 15, 25, 0.25)';
             ctx.fillRect(0, 0, width, height);
+
+            // 繪製滑鼠/觸控劃過的水痕粒子
+            if (state.glassInteraction && !state.lowPerformance) {
+                for (let i = mouseParticles.length - 1; i >= 0; i--) {
+                    const p = mouseParticles[i];
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(220, 240, 255, ${p.opacity * 0.35})`;
+                    ctx.fill();
+
+                    p.r += 0.25;
+                    p.opacity -= 0.015;
+                    if (p.opacity <= 0) mouseParticles.splice(i, 1);
+                }
+            }
 
             for (let i = microTrails.length - 1; i >= 0; i--) {
                 const t = microTrails[i];
@@ -1530,6 +1602,31 @@
             toggleThunder();
         });
 
+        // 玻璃互動按鈕UI同步與切換
+        function updateInteractionBtnUI() {
+            const btn = document.getElementById('interactionToggleBtn');
+            const icon = document.getElementById('interactionIcon');
+            const tooltip = document.getElementById('interactionTooltip');
+            if (btn && icon) {
+                if (state.glassInteraction) {
+                    btn.classList.add('bg-cyan-500/20', 'border', 'border-cyan-400/40');
+                    icon.className = "fa-solid fa-hand-pointer text-xs text-cyan-300";
+                    if (tooltip) tooltip.textContent = "玻璃互動: 開";
+                } else {
+                    btn.classList.remove('bg-cyan-500/20', 'border', 'border-cyan-400/40');
+                    icon.className = "fa-solid fa-hand-pointer text-xs text-white/50";
+                    if (tooltip) tooltip.textContent = "玻璃互動: 關";
+                }
+            }
+        }
+
+        document.getElementById('interactionToggleBtn')?.addEventListener('click', () => {
+            state.glassInteraction = !state.glassInteraction;
+            document.getElementById('glassInteractionToggle').checked = state.glassInteraction;
+            updateInteractionBtnUI();
+            saveSettings();
+        });
+
         function toggleZenMode(enable) {
             isZenMode = enable !== undefined ? enable : !isZenMode;
             
@@ -1629,6 +1726,11 @@
             state.autoHideUI = e.target.checked; 
             resetAutoHideTimer(); 
             saveSettings(); 
+        });
+        document.getElementById('glassInteractionToggle').addEventListener('change', e => {
+            state.glassInteraction = e.target.checked;
+            updateInteractionBtnUI();
+            saveSettings();
         });
         document.getElementById('format24Toggle').addEventListener('change', e => { state.clock24h = e.target.checked; updateClock(); saveSettings(); });
         document.getElementById('showSecondsToggle').addEventListener('change', e => { state.showSeconds = e.target.checked; updateClock(); saveSettings(); });
