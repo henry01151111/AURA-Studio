@@ -89,8 +89,9 @@
             transform: rotate(-90deg);
             transform-origin: 50% 50%;
         }
+        /* 抽屜與彈窗的平滑減速滑動動畫 */
         .drawer-slide {
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+            transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s ease;
         }
         .tooltip {
             position: relative;
@@ -118,12 +119,14 @@
             visibility: visible;
             opacity: 1;
         }
-        /* 新功能彈窗底部向上滑動動畫與平滑減速曲線 */
-        .whats-new-card {
+        /* 由下往上平移彈窗動畫與平滑減速曲線 */
+        .modal-slide-up {
             transform: translateY(100vh);
             transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        #whatsNewModal:not(.opacity-0) .whats-new-card {
+        #whatsNewModal:not(.opacity-0) .modal-slide-up,
+        #settingsModal:not(.opacity-0) .modal-slide-up,
+        #pomoCustomModal:not(.opacity-0) .modal-slide-up {
             transform: translateY(0);
         }
     </style>
@@ -195,8 +198,8 @@
         </div>
     </header>
 
-    <!-- Task Drawer (Left) -->
-    <div id="taskDrawer" class="drawer-slide fixed top-20 left-4 z-30 w-80 sm:w-96 glass-panel rounded-3xl p-5 border border-white/15 shadow-2xl opacity-0 pointer-events-none -translate-x-10">
+    <!-- Task Drawer (Left -> Slides Left to Right) -->
+    <div id="taskDrawer" class="drawer-slide fixed top-20 left-4 z-30 w-80 sm:w-96 glass-panel rounded-3xl p-5 border border-white/15 shadow-2xl opacity-0 pointer-events-none -translate-x-full">
         <div class="flex justify-between items-center pb-3 border-b border-white/10 mb-4">
             <div class="flex items-center space-x-2 text-indigo-300 font-semibold text-sm">
                 <i class="fa-solid fa-book-bookmark"></i>
@@ -220,7 +223,8 @@
         </div>
     </div>
 
-    <div id="audioMixerDrawer" class="drawer-slide fixed top-20 right-4 z-30 w-80 glass-panel rounded-3xl p-5 border border-white/15 shadow-2xl opacity-0 pointer-events-none translate-y-4">
+    <!-- Audio Mixer Drawer (Right -> Slides Right to Left) -->
+    <div id="audioMixerDrawer" class="drawer-slide fixed top-20 right-4 z-30 w-80 glass-panel rounded-3xl p-5 border border-white/15 shadow-2xl opacity-0 pointer-events-none translate-x-full">
         <div class="flex justify-between items-center pb-3 border-b border-white/10 mb-4">
             <div class="flex items-center space-x-2 text-teal-300 font-semibold text-sm">
                 <i class="fa-solid fa-sliders"></i>
@@ -355,9 +359,9 @@
 
     </div>
 
-    <!-- Settings Modal -->
+    <!-- Settings Modal (Slides Bottom to Top) -->
     <div id="settingsModal" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 p-4">
-        <div class="glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <div class="modal-slide-up glass-panel w-full max-w-lg rounded-3xl p-6 sm:p-8 transition-transform duration-500 max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div class="flex justify-between items-center border-b border-white/10 pb-4 mb-5">
                 <div class="flex items-center space-x-3">
                     <i class="fa-solid fa-sliders text-indigo-400 text-lg"></i>
@@ -440,9 +444,9 @@
         </div>
     </div>
 
-    <!-- Custom Pomodoro Modal -->
+    <!-- Custom Pomodoro Modal (Slides Bottom to Top) -->
     <div id="pomoCustomModal" class="fixed inset-0 z-40 bg-black/70 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 p-4">
-        <div class="glass-panel w-full max-w-sm rounded-3xl p-6 flex flex-col space-y-4">
+        <div class="modal-slide-up glass-panel w-full max-w-sm rounded-3xl p-6 flex flex-col space-y-4 transition-transform duration-500">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
                 <h3 class="font-bold text-white text-sm">自訂專注倒數時間</h3>
                 <button id="closePomoModalBtn" class="text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
@@ -467,7 +471,7 @@
 
     <!-- What's New / Feature Announcement Modal -->
     <div id="whatsNewModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-4 overflow-hidden">
-        <div class="whats-new-card glass-panel w-full max-w-md rounded-3xl p-6 sm:p-7 flex flex-col space-y-5 max-h-[90vh] overflow-y-auto custom-scrollbar border border-indigo-500/30 shadow-2xl">
+        <div class="modal-slide-up glass-panel w-full max-w-md rounded-3xl p-6 sm:p-7 flex flex-col space-y-5 max-h-[90vh] overflow-y-auto custom-scrollbar border border-indigo-500/30 shadow-2xl">
             <div class="flex justify-between items-center border-b border-white/10 pb-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-9 h-9 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-base border border-indigo-500/30 shadow-lg shadow-indigo-500/10">
@@ -485,32 +489,32 @@
 
             <div class="space-y-3 text-xs">
                 <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
+                    <div class="w-7 h-7 rounded-xl bg-amber-600/30 text-amber-300 flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="fa-solid fa-bolt text-xs"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-white/90 mb-0.5">1. 擬真打雷視覺效果</h4>
+                        <p class="text-white/60 leading-relaxed text-[11px]">新增純視覺打雷分枝與雲層閃爍效果（無打雷聲音，不打擾專注），可隨時點擊底部閃電圖示切換開啟。</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
                     <div class="w-7 h-7 rounded-xl bg-indigo-600/30 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5">
                         <i class="fa-solid fa-floppy-disk text-xs"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-white/90 mb-0.5">全自動瀏覽器偏好記憶</h4>
-                        <p class="text-white/60 leading-relaxed text-[11px]">您的主題風格、混音音量、番茄鐘時長、學習任務與草稿備忘，均會自動儲存於您的瀏覽器中。</p>
+                        <h4 class="font-semibold text-white/90 mb-0.5">2. 自動儲存到瀏覽器</h4>
+                        <p class="text-white/60 leading-relaxed text-[11px]">您的主題配色、混音音量、番茄鐘時長、任務清單與備忘草稿，均會全自動記憶儲存在您的瀏覽器中。</p>
                     </div>
                 </div>
 
                 <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
                     <div class="w-7 h-7 rounded-xl bg-teal-600/30 text-teal-300 flex items-center justify-center shrink-0 mt-0.5">
-                        <i class="fa-solid fa-headphones text-xs"></i>
+                        <i class="fa-solid fa-sliders text-xs"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-white/90 mb-0.5">多軌專注聲景與雙耳節律</h4>
-                        <p class="text-white/60 leading-relaxed text-[11px]">整合窗外雨聲、柴火聲、微風磬音與可切換 α / β / θ 頻段的雙耳波聲景，協助快速進入深層心流。</p>
-                    </div>
-                </div>
-
-                <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                    <div class="w-7 h-7 rounded-xl bg-amber-600/30 text-amber-300 flex items-center justify-center shrink-0 mt-0.5">
-                        <i class="fa-solid fa-spa text-xs"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-white/90 mb-0.5">Zen 沉浸屏保與 8 款質感主題</h4>
-                        <p class="text-white/60 leading-relaxed text-[11px]">點擊 Zen 模式一鍵隱藏介面，隨心切換深夜圖書館、賽博雨夜、極光冰原等 8 種專注氛圍。</p>
+                        <h4 class="font-semibold text-white/90 mb-0.5">3. 設定中有更多功能</h4>
+                        <p class="text-white/60 leading-relaxed text-[11px]">新增 5 秒無操作自動隱藏介面、時鐘與進度環尺寸縮放、字體風格切換以及自訂專注格言等多項實用設定。</p>
                     </div>
                 </div>
             </div>
@@ -1254,22 +1258,22 @@
         document.getElementById('toggleTaskDrawerBtn').addEventListener('click', () => {
             taskDrawer.classList.toggle('opacity-0');
             taskDrawer.classList.toggle('pointer-events-none');
-            taskDrawer.classList.toggle('-translate-x-10');
-            audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+            taskDrawer.classList.toggle('-translate-x-full');
+            audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full');
         });
         document.getElementById('closeTaskDrawerBtn').addEventListener('click', () => {
-            taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-10');
+            taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full');
         });
 
         document.getElementById('toggleAudioMixerBtn').addEventListener('click', () => {
             initAudioEngine();
             audioMixerDrawer.classList.toggle('opacity-0');
             audioMixerDrawer.classList.toggle('pointer-events-none');
-            audioMixerDrawer.classList.toggle('translate-y-4');
-            taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-10');
+            audioMixerDrawer.classList.toggle('translate-x-full');
+            taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full');
         });
         document.getElementById('closeAudioMixerBtn').addEventListener('click', () => {
-            audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+            audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full');
         });
 
         document.getElementById('lowPerfToggleBtn').addEventListener('click', () => {
@@ -1515,8 +1519,8 @@
             
             if (isZenMode) {
                 hideUI();
-                taskDrawer.classList.add('opacity-0', 'pointer-events-none');
-                audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none');
+                taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full');
+                audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full');
                 
                 if (zenNotice) {
                     zenNotice.classList.remove('opacity-0', '-translate-y-4');
