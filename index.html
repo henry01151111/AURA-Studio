@@ -220,7 +220,7 @@
 
             <button id="toggleAudioMixerBtn" class="flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 text-white/90 transition shadow-lg">
                 <i class="fa-solid fa-headphones text-teal-400"></i>
-                <span class="font-medium">專注聲景混音</span>
+                <span class="font-medium">專注音效</span>
             </button>
         </div>
     </header>
@@ -255,7 +255,7 @@
         <div class="flex justify-between items-center pb-3 border-b border-white/10 mb-4">
             <div class="flex items-center space-x-2 text-teal-300 font-semibold text-sm">
                 <i class="fa-solid fa-sliders"></i>
-                <span>多軌專注聲景混音器</span>
+                <span>多軌專注音效混音器</span>
             </div>
             <button id="closeAudioMixerBtn" class="text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
         </div>
@@ -597,7 +597,7 @@
                                 <kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">T</kbd>
                             </div>
                             <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between">
-                                <span class="text-white/80">專注聲景混音</span>
+                                <span class="text-white/80">專注音效</span>
                                 <kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">A</kbd>
                             </div>
                             <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between">
@@ -746,7 +746,7 @@
             pomoTotalSeconds: 25 * 60,
             pomoInterval: null,
 
-            masterAudioOn: true,
+            masterAudioOn: false,
             volumes: { rain: 0.7, alpha: 0.3, fire: 0.2, chime: 0.4 },
             tasks: [{ id: 1, text: '範例事項', done: false }],
 
@@ -1001,7 +1001,7 @@
             rainFilter.type = 'lowpass';
             rainFilter.frequency.value = 1100;
             audioNodes.rainGain = audioCtx.createGain();
-            audioNodes.rainGain.gain.setValueAtTime(state.volumes.rain * 0.2, audioCtx.currentTime);
+            audioNodes.rainGain.gain.setValueAtTime(state.volumes.rain * 0.2 * (state.masterAudioOn ? 1 : 0), audioCtx.currentTime);
             audioNodes.rainSource.connect(rainFilter);
             rainFilter.connect(audioNodes.rainGain);
             audioNodes.rainGain.connect(audioCtx.destination);
@@ -1021,7 +1021,7 @@
             fireFilter.type = 'bandpass';
             fireFilter.frequency.value = 850;
             audioNodes.fireGain = audioCtx.createGain();
-            audioNodes.fireGain.gain.setValueAtTime(state.volumes.fire * 0.1, audioCtx.currentTime);
+            audioNodes.fireGain.gain.setValueAtTime(state.volumes.fire * 0.1 * (state.masterAudioOn ? 1 : 0), audioCtx.currentTime);
             audioNodes.fireSource.connect(fireFilter);
             fireFilter.connect(audioNodes.fireGain);
             audioNodes.fireGain.connect(audioCtx.destination);
@@ -1618,7 +1618,6 @@
         document.getElementById('closeTaskDrawerBtn').addEventListener('click', () => taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full'));
 
         document.getElementById('toggleAudioMixerBtn').addEventListener('click', () => {
-            initAudioEngine();
             audioMixerDrawer.classList.toggle('opacity-0');
             audioMixerDrawer.classList.toggle('pointer-events-none');
             audioMixerDrawer.classList.toggle('translate-x-full');
@@ -2024,6 +2023,40 @@
                 setTimeout(showWhatsNewModal, 500);
             }
         };
+
+        // PWA Service Worker 註冊與安裝按鈕事件處理
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('SW 註冊成功:', reg))
+                    .catch(err => console.error('SW 註冊失敗:', err));
+            });
+        }
+
+        let deferredPrompt;
+        const pwaBtn = document.getElementById('pwaInstallBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+
+            if (pwaBtn) {
+                pwaBtn.classList.remove('hidden');
+
+                pwaBtn.addEventListener('click', () => {
+                    pwaBtn.classList.add('hidden');
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        deferredPrompt.userChoice.then((choiceResult) => {
+                            if (choiceResult.outcome === 'accepted') {
+                                console.log('使用者接受安裝 PWA');
+                            }
+                            deferredPrompt = null;
+                        });
+                    }
+                });
+            }
+        });
 
         // Factory Reset
         document.getElementById('factoryResetBtn')?.addEventListener('click', () => {
