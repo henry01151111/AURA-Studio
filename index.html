@@ -323,13 +323,6 @@
                     </button>
                 </div>
 
-                <!-- 快速選擇頻道 -->
-                <div class="flex items-center gap-1.5 mb-2 overflow-x-auto custom-scrollbar pb-1">
-                    <button onclick="loadYtPreset('jfKfPfyJRdk')" class="text-[10px] bg-white/5 hover:bg-red-500/20 hover:text-red-300 text-white/60 px-2 py-1 rounded-lg shrink-0 transition border border-white/5">☕ Lofi Girl</button>
-                    <button onclick="loadYtPreset('5qap5aO4i9A')" class="text-[10px] bg-white/5 hover:bg-red-500/20 hover:text-red-300 text-white/60 px-2 py-1 rounded-lg shrink-0 transition border border-white/5">🎹 Lofi HipHop</button>
-                    <button onclick="loadYtPreset('TURbeWK2wwg')" class="text-[10px] bg-white/5 hover:bg-red-500/20 hover:text-red-300 text-white/60 px-2 py-1 rounded-lg shrink-0 transition border border-white/5">🌧️ 雨聲爵士</button>
-                </div>
-
                 <!-- 影片 Player Container -->
                 <div id="ytPlayerContainer" class="hidden relative w-full aspect-video rounded-xl overflow-hidden border border-white/10 bg-black/60 shadow-lg group mt-2">
                     <iframe id="ytIframe" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
@@ -932,11 +925,6 @@
                 alert('請輸入有效的 YouTube 影片或直播連結！');
             }
         }
-
-        window.loadYtPreset = function(id) {
-            document.getElementById('ytUrlInput').value = `https://youtu.be/${id}`;
-            loadYouTubeVideo(id, true);
-        };
 
         document.getElementById('ytLoadBtn')?.addEventListener('click', () => {
             const val = document.getElementById('ytUrlInput').value.trim();
