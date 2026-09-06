@@ -8,6 +8,7 @@
     <!-- PWA Manifest & Theme Color -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#030712">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -249,8 +250,8 @@
         </div>
     </div>
 
-    <!-- Audio Mixer Drawer -->
-    <div id="audioMixerDrawer" class="drawer-slide fixed top-20 right-4 z-30 w-80 glass-panel rounded-3xl p-5 border border-white/15 shadow-2xl opacity-0 pointer-events-none translate-x-full">
+    <!-- Audio Mixer Drawer (內含嵌入 YouTube 音樂播放器) -->
+    <div id="audioMixerDrawer" class="drawer-slide fixed top-20 right-4 z-30 w-80 glass-panel rounded-3xl p-5 border border-white/15 shadow-2xl opacity-0 pointer-events-none translate-x-full max-h-[85vh] overflow-y-auto custom-scrollbar">
         <div class="flex justify-between items-center pb-3 border-b border-white/10 mb-4">
             <div class="flex items-center space-x-2 text-teal-300 font-semibold text-sm">
                 <i class="fa-solid fa-sliders"></i>
@@ -306,6 +307,36 @@
                     <span id="chimeVolVal" class="text-indigo-300">40%</span>
                 </div>
                 <input id="chimeVolSlider" type="range" min="0" max="1" step="0.05" value="0.4" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
+            </div>
+
+            <!-- YouTube 專注音樂播放區塊 -->
+            <div class="pt-3 border-t border-white/10 mt-3">
+                <div class="flex items-center justify-between text-white/80 font-medium mb-1.5">
+                    <span><i class="fa-brands fa-youtube text-red-500 mr-1.5"></i>YouTube 專注音樂</span>
+                    <span id="ytStatusBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-white/40">未載入</span>
+                </div>
+                
+                <div class="flex items-center space-x-1.5 mb-2">
+                    <input id="ytUrlInput" type="text" placeholder="貼上影片或直播網址..." class="w-full bg-black/40 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-red-500 transition">
+                    <button id="ytLoadBtn" class="bg-red-600 hover:bg-red-500 text-white text-xs px-2.5 py-1.5 rounded-xl shrink-0 font-medium transition shadow-md shadow-red-600/20 active:scale-95">
+                        載入
+                    </button>
+                </div>
+
+                <!-- 快速選擇頻道 -->
+                <div class="flex items-center gap-1.5 mb-2 overflow-x-auto custom-scrollbar pb-1">
+                    <button onclick="loadYtPreset('jfKfPfyJRdk')" class="text-[10px] bg-white/5 hover:bg-red-500/20 hover:text-red-300 text-white/60 px-2 py-1 rounded-lg shrink-0 transition border border-white/5">☕ Lofi Girl</button>
+                    <button onclick="loadYtPreset('5qap5aO4i9A')" class="text-[10px] bg-white/5 hover:bg-red-500/20 hover:text-red-300 text-white/60 px-2 py-1 rounded-lg shrink-0 transition border border-white/5">🎹 Lofi HipHop</button>
+                    <button onclick="loadYtPreset('TURbeWK2wwg')" class="text-[10px] bg-white/5 hover:bg-red-500/20 hover:text-red-300 text-white/60 px-2 py-1 rounded-lg shrink-0 transition border border-white/5">🌧️ 雨聲爵士</button>
+                </div>
+
+                <!-- 影片 Player Container -->
+                <div id="ytPlayerContainer" class="hidden relative w-full aspect-video rounded-xl overflow-hidden border border-white/10 bg-black/60 shadow-lg group mt-2">
+                    <iframe id="ytIframe" class="w-full h-full border-0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                    <button id="ytClearBtn" class="absolute top-1.5 right-1.5 bg-black/80 hover:bg-red-600 text-white/80 hover:text-white p-1 rounded-lg text-[10px] backdrop-blur-md transition opacity-0 group-hover:opacity-100" title="移除音樂">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -366,7 +397,7 @@
 
             <div class="h-4 w-[1px] bg-white/15 mx-1 hidden sm:block"></div>
 
-            <!-- System Actions (6 Core Actions) -->
+            <!-- System Actions -->
             <div class="flex items-center space-x-1">
                 <button id="pipBtn" class="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="懸浮時鐘 (Alt + P)">
                     <i class="fa-solid fa-arrow-up-right-from-square text-xs text-indigo-300"></i><span class="tooltip-text">子母畫面</span>
@@ -633,12 +664,22 @@
 
             <div class="space-y-3 text-xs">
                 <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
+                    <div class="w-7 h-7 rounded-xl bg-red-600/30 text-red-300 flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="fa-brands fa-youtube text-xs"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-white/90 mb-0.5">1. YouTube 音樂嵌入</h4>
+                        <p class="text-white/60 leading-relaxed text-[11px]">在混音器抽屜中貼上任意 YouTube 專注音樂或直播網址即可背景持續播放，音樂不中斷。</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
                     <div class="w-7 h-7 rounded-xl bg-indigo-600/30 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5">
                         <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-white/90 mb-0.5">1. 圓形時鐘子母畫面 (PiP)</h4>
-                        <p class="text-white/60 leading-relaxed text-[11px]">支援 Chrome 原生 Document PiP 與 Canvas 備用雙軌。倒數時間、雨夜視覺與字體風格同步懸浮在螢幕上方。</p>
+                        <h4 class="font-semibold text-white/90 mb-0.5">2. 圓形時鐘子母畫面 (PiP)</h4>
+                        <p class="text-white/60 leading-relaxed text-[11px]">支援 Chrome 原生 Document PiP 與 Canvas 備用雙軌，倒數時間與雨夜視覺同步懸浮上方。</p>
                     </div>
                 </div>
 
@@ -647,18 +688,8 @@
                         <i class="fa-solid fa-bolt text-xs"></i>
                     </div>
                     <div>
-                        <h4 class="font-semibold text-white/90 mb-0.5">2. 擬真打雷視覺效果</h4>
-                        <p class="text-white/60 leading-relaxed text-[11px]">新增純視覺打雷分枝與雲層閃爍效果（無聲，不打擾專注），可點擊底部閃電圖示切換。</p>
-                    </div>
-                </div>
-
-                <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                    <div class="w-7 h-7 rounded-xl bg-teal-600/30 text-teal-300 flex items-center justify-center shrink-0 mt-0.5">
-                        <i class="fa-solid fa-keyboard text-xs"></i>
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-white/90 mb-0.5">3. 鍵盤快捷鍵支援</h4>
-                        <p class="text-white/60 leading-relaxed text-[11px]">按 <kbd class="px-1 bg-black/40 rounded">Space</kbd> 倒數、<kbd class="px-1 bg-black/40 rounded">Alt+P</kbd> 子母畫面、<kbd class="px-1 bg-black/40 rounded">C</kbd> 收納按鈕、<kbd class="px-1 bg-black/40 rounded">?</kbd> 查看快捷鍵。</p>
+                        <h4 class="font-semibold text-white/90 mb-0.5">3. 擬真打雷視覺與鍵盤快捷鍵</h4>
+                        <p class="text-white/60 leading-relaxed text-[11px]">純視覺打雷分枝與雲層閃爍，支援 <kbd class="px-1 bg-black/40 rounded">Space</kbd> 倒數、<kbd class="px-1 bg-black/40 rounded">Alt+P</kbd> 子母畫面等全套快捷鍵。</p>
                     </div>
                 </div>
             </div>
@@ -714,6 +745,7 @@
             clockScale: 1.0,
             ringStyle: 'simple',
             theme: 'night_library',
+            youtubeVideoId: '',
             
             pomoMode: 'work',
             pomoRunning: false,
@@ -762,7 +794,8 @@
                     theme: state.theme,
                     masterAudioOn: state.masterAudioOn,
                     volumes: state.volumes,
-                    tasks: state.tasks
+                    tasks: state.tasks,
+                    youtubeVideoId: state.youtubeVideoId
                 };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
                 const memoEl = document.getElementById('memoInput');
@@ -855,7 +888,80 @@
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('ring-2', 'ring-white', 'scale-110'));
             const activeThemeBtn = document.querySelector(`[data-theme="${state.theme}"]`);
             if (activeThemeBtn) activeThemeBtn.classList.add('ring-2', 'ring-white', 'scale-110');
+
+            if (state.youtubeVideoId) {
+                loadYouTubeVideo(state.youtubeVideoId, false);
+            }
         }
+
+        // YouTube Embed Helper
+        function extractYouTubeId(url) {
+            if (!url) return '';
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|live\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : (url.length === 11 ? url : '');
+        }
+
+        function loadYouTubeVideo(videoUrlOrId, autoPlay = true) {
+            const videoId = extractYouTubeId(videoUrlOrId);
+            const playerContainer = document.getElementById('ytPlayerContainer');
+            const iframe = document.getElementById('ytIframe');
+            const badge = document.getElementById('ytStatusBadge');
+
+            if (videoId) {
+                state.youtubeVideoId = videoId;
+                
+                // 動態取得 Origin 網域參數，解決 YouTube 嵌入權限問題
+                const currentOrigin = (window.location.origin && window.location.origin !== 'null' && window.location.protocol !== 'file:') 
+                    ? encodeURIComponent(window.location.origin) 
+                    : '';
+                const originParam = currentOrigin ? `&origin=${currentOrigin}` : '';
+
+                iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=${autoPlay ? 1 : 0}&enablejsapi=1${originParam}`;
+                playerContainer.classList.remove('hidden');
+                badge.textContent = '播放中';
+                badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 font-medium';
+                
+                // 當使用者以 file:// 本地直接開啟時，提示使用本地伺服器
+                if (window.location.protocol === 'file:' && typeof showToast === 'function') {
+                    showToast('⚠️ 本地 file:// 協定無 HTTP 來源，YouTube 會回傳 Error 153。請使用 Live Server 或 HTTP 伺服器開啟！', 'fa-triangle-exclamation');
+                }
+
+                saveSettings();
+            } else {
+                alert('請輸入有效的 YouTube 影片或直播連結！');
+            }
+        }
+
+        window.loadYtPreset = function(id) {
+            document.getElementById('ytUrlInput').value = `https://youtu.be/${id}`;
+            loadYouTubeVideo(id, true);
+        };
+
+        document.getElementById('ytLoadBtn')?.addEventListener('click', () => {
+            const val = document.getElementById('ytUrlInput').value.trim();
+            if (val) loadYouTubeVideo(val, true);
+        });
+
+        document.getElementById('ytUrlInput')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('ytLoadBtn').click();
+            }
+        });
+
+        document.getElementById('ytClearBtn')?.addEventListener('click', () => {
+            const playerContainer = document.getElementById('ytPlayerContainer');
+            const iframe = document.getElementById('ytIframe');
+            const badge = document.getElementById('ytStatusBadge');
+            iframe.src = '';
+            playerContainer.classList.add('hidden');
+            badge.textContent = '未載入';
+            badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-white/40';
+            state.youtubeVideoId = '';
+            document.getElementById('ytUrlInput').value = '';
+            saveSettings();
+        });
 
         function toggleFpsDisplay(visible) {
             const badge = document.getElementById('fpsBadge');
@@ -1405,7 +1511,6 @@
                     state.pipWindow = pipWin;
                     state.isPipActive = true;
 
-                    // Clone CSS to PiP Window
                     document.querySelectorAll('link[rel="stylesheet"]').forEach(l => pipWin.document.head.appendChild(l.cloneNode(true)));
                     [...document.styleSheets].forEach(s => {
                         try {
@@ -1417,7 +1522,6 @@
                         } catch(e){}
                     });
 
-                    // Add Custom CSS for PiP
                     const pipStyle = pipWin.document.createElement('style');
                     pipStyle.textContent = `
                         body { background-color: #030712 !important; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
@@ -1425,11 +1529,9 @@
                     `;
                     pipWin.document.head.appendChild(pipStyle);
 
-                    // Move Clock Element into PiP window
                     const clockWrapper = document.getElementById('clockScaleWrapper');
                     pipWin.document.body.appendChild(clockWrapper);
 
-                    // Restore on closing PiP
                     pipWin.addEventListener('pagehide', () => {
                         document.getElementById('clockContainer').appendChild(clockWrapper);
                         state.pipWindow = null;
@@ -1935,7 +2037,7 @@
             }
         };
 
-        // Factory Reset (Clears ALL keys so WhatsNew modal shows up on reload)
+        // Factory Reset
         document.getElementById('factoryResetBtn')?.addEventListener('click', () => {
             const btn = document.getElementById('factoryResetBtn');
             if (btn.dataset.confirm === 'true') {
@@ -1961,3 +2063,4 @@
     </script>
 </body>
 </html>
+```
