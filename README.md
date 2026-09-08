@@ -2,8 +2,8 @@
 ## 從這裡打開Open Here:
 
 # https://aura.henry0115.dpdns.org/
-或 https://aura-studio-8yn.pages.dev/
-
+OR https://aura-studio-8yn.pages.dev/
+下載來離線使用Download for offline use：index.html
 
 
 # !文章由AI生成，僅供參考
