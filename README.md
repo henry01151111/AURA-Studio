@@ -1,5 +1,12 @@
 # AURA-Studio
-!!文章由AI生成，僅供參考，因為我還在想怎麼寫
+## 從這裡打開:
+## Open Here:
+# https://aura.henry0115.dpdns.org/
+或 https://aura-studio-8yn.pages.dev/
+
+
+
+# !文章由AI生成，僅供參考，因為我還在想怎麼寫!
 AURA Studio | Immersive Rainy Night Focus Space 🌧️🎧
 
 An ultra-immersive, browser-based focus tool. Combining ambient white noise, binaural beats, a smart Pomodoro timer, and aesthetic dynamic visuals to help you instantly isolate external noise and enter a deep state of flow.
