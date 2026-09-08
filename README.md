@@ -1,4 +1,7 @@
 # AURA-Studio
+!!文章由AI生成，僅供參考，因為我還在想怎麼寫
+
+
 AURA Studio | 沉浸式雨夜專注空間 🌧️🎧
 
 一款基於瀏覽器的極致沉浸專注工具。結合環境白噪音、雙耳節律、番茄鐘與唯美的動態視覺，幫助你瞬間隔離外界喧囂，進入深度心流狀態。
@@ -148,4 +151,4 @@ L
 📜 授權條款 (License)
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-上文由AI生成，僅供參考，因為我還在想怎麼寫
+
