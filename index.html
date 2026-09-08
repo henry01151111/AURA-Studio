@@ -39,7 +39,7 @@
         .hud-element { transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         .glass-panel { background: rgba(13, 18, 30, 0.82); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65); }
         .text-shadow-glow { text-shadow: 0 0 30px rgba(255, 255, 255, 0.6), 0 0 60px rgba(99, 102, 241, 0.4); }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 8px; }
         .progress-ring-circle { transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%; }
@@ -53,14 +53,134 @@
         .font-sans { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important; }
         .font-mono { font-family: 'JetBrains Mono', monospace !important; }
         .font-serif { font-family: 'Playfair Display', serif !important; }
+        .ios-card-shadow { box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.95), 0 0 40px rgba(255, 255, 255, 0.08); }
+
+        /* Master Live Screen Stage */
+        #screenStage {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 20;
+            transform-origin: center center;
+            transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.65s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.65s ease, opacity 0.4s ease;
+            overflow: hidden;
+            pointer-events: auto;
+            opacity: 1;
+        }
+
+        /* Stage 1: Main screen scales down smoothly */
+        body.ios-edit-entering #screenStage {
+            transform: scale(0.62) translateY(-10px);
+            border-radius: 44px;
+            border: 2px solid rgba(255, 255, 255, 0.45);
+            box-shadow: 0 35px 90px -10px rgba(0, 0, 0, 0.95), 0 0 60px rgba(99, 102, 241, 0.35);
+            opacity: 1;
+        }
+
+        /* Stage 2: Handover to card carousel - main screen cleanly hides to avoid leakage */
+        body.ios-edit-active #screenStage {
+            transform: scale(0.62) translateY(-10px);
+            border-radius: 44px;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        /* Dark glass backdrop behind cards */
+        .ios-mode-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            background: radial-gradient(circle at center, rgba(15, 23, 42, 0.96) 0%, rgba(3, 7, 18, 0.99) 100%);
+            backdrop-filter: blur(35px);
+            -webkit-backdrop-filter: blur(35px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        body.ios-edit-entering .ios-mode-backdrop,
+        body.ios-edit-active .ios-mode-backdrop {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* iPadOS Exact 1:1 Proportion Cards */
+        .ios-adjacent-card {
+            width: 78vw;
+            height: 68vh;
+            transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease, opacity 0.5s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+            transform: scale(0.88) translateY(20px);
+            opacity: 0.4;
+            filter: brightness(0.45) contrast(0.95);
+            border-radius: 44px;
+            overflow: hidden !important; /* CRITICAL: Clips rain & canvas inside the card frame */
+        }
+
+        @media (min-width: 640px) {
+            .ios-adjacent-card {
+                width: 62vw;
+                height: 62vh;
+            }
+        }
+
+        body.ios-edit-active .ios-adjacent-card {
+            transform: scale(0.92) translateY(0);
+            opacity: 0.5;
+        }
+
+        body.ios-edit-active .ios-adjacent-card.is-centered {
+            transform: scale(1.0) translateY(0) !important;
+            opacity: 1 !important;
+            filter: brightness(1) contrast(1) !important;
+            border-color: rgba(255, 255, 255, 0.7) !important;
+            box-shadow: 0 35px 80px -10px rgba(0, 0, 0, 0.95), 0 0 50px rgba(99, 102, 241, 0.35) !important;
+        }
+
+        /* Card Canvas - strictly contained inside each card */
+        .card-bg-canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 42px;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="font-sans antialiased overflow-hidden">
 
-    <canvas id="mainCanvas" class="canvas-layer"></canvas>
+    <!-- iOS 16 Dark Backdrop Layer -->
+    <div id="iosBackdrop" class="ios-mode-backdrop"></div>
 
-    <div id="lightningOverlay" class="fixed inset-0 pointer-events-none z-[3] opacity-0 transition-opacity duration-75 mix-blend-screen bg-indigo-100/70"></div>
-    <canvas id="lightningCanvas" class="fixed inset-0 pointer-events-none z-[3]"></canvas>
+    <!-- Master Live Screen Stage -->
+    <div id="screenStage">
+        <canvas id="mainCanvas" class="canvas-layer"></canvas>
+
+        <div id="lightningOverlay" class="fixed inset-0 pointer-events-none z-[3] opacity-0 transition-opacity duration-75 mix-blend-screen bg-indigo-100/70"></div>
+        <canvas id="lightningCanvas" class="fixed inset-0 pointer-events-none z-[3]"></canvas>
+
+        <div id="clockContainer" class="absolute z-10 pointer-events-none transition-all duration-700 ease-out flex flex-col items-center justify-center p-6 text-center inset-0">
+            <div id="clockScaleWrapper" class="relative flex items-center justify-center pointer-events-auto group transition-transform duration-500 ease-out origin-center">
+                <div id="frostedGlassBg" class="absolute w-80 h-80 sm:w-[420px] sm:h-[420px] rounded-full bg-white/[0.02] backdrop-blur-md border border-white/5 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500 hidden"></div>
+                <svg class="relative z-10 w-80 h-80 sm:w-[420px] sm:h-[420px]" viewBox="0 0 450 450">
+                    <circle class="text-white/10" stroke-width="4" stroke="currentColor" fill="transparent" r="200" cx="225" cy="225"/>
+                    <circle id="pomoProgressCircle" class="text-indigo-500 progress-ring-circle transition-all duration-500" stroke-width="6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="200" cx="225" cy="225" stroke-dasharray="1256.6" stroke-dashoffset="0"/>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center p-4 z-20">
+                    <div id="timeDisplay" class="font-sans font-light text-5xl sm:text-7xl tracking-tight text-shadow-glow text-white/95">00:00:00</div>
+                    <div id="dateDisplay" class="font-mono text-xs sm:text-sm font-medium text-indigo-300/80 tracking-widest uppercase mt-2">2026年9月8日 星期二</div>
+                    <div id="pomoStatusBadge" class="mt-3 inline-flex items-center space-x-1.5 bg-indigo-500/20 border border-indigo-400/30 px-3 py-1 rounded-full text-xs font-medium text-indigo-300 cursor-pointer hover:bg-indigo-500/30 transition" title="點擊自訂倒數時間">
+                        <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
+                        <span id="pomoStatusText">專注階段 (25m)</span>
+                    </div>
+                </div>
+            </div>
+            <div id="quoteDisplay" class="font-serif italic text-xs sm:text-sm text-white/70 max-w-lg mt-6 px-6 leading-relaxed transition-opacity duration-700" style="display: none;">「專注於眼前的小事，平靜是進入高效流道的鑰匙。」</div>
+        </div>
+    </div>
 
     <div id="fpsBadge" class="hud-element fixed top-4 left-4 z-30 flex items-center space-x-1.5 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 text-[11px] font-mono shadow-lg transition-all duration-300 opacity-0 pointer-events-none">
         <span id="fpsDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -71,23 +191,8 @@
         <i class="fa-solid fa-spa text-indigo-400 mr-2"></i>已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）
     </div>
 
-    <div id="clockContainer" class="absolute z-10 pointer-events-none transition-all duration-700 ease-out flex flex-col items-center justify-center p-6 text-center inset-0">
-        <div id="clockScaleWrapper" class="relative flex items-center justify-center pointer-events-auto group transition-transform duration-500 ease-out origin-center">
-            <div id="frostedGlassBg" class="absolute w-80 h-80 sm:w-[420px] sm:h-[420px] rounded-full bg-white/[0.02] backdrop-blur-md border border-white/5 shadow-[0_8px_32px_rgba(0,0,0,0.3)] transition-all duration-500 hidden"></div>
-            <svg class="relative z-10 w-80 h-80 sm:w-[420px] sm:h-[420px]" viewBox="0 0 450 450">
-                <circle class="text-white/10" stroke-width="4" stroke="currentColor" fill="transparent" r="200" cx="225" cy="225"/>
-                <circle id="pomoProgressCircle" class="text-indigo-500 progress-ring-circle transition-all duration-500" stroke-width="6" stroke-linecap="round" stroke="currentColor" fill="transparent" r="200" cx="225" cy="225" stroke-dasharray="1256.6" stroke-dashoffset="0"/>
-            </svg>
-            <div class="absolute inset-0 flex flex-col items-center justify-center p-4 z-20">
-                <div id="timeDisplay" class="font-sans font-light text-5xl sm:text-7xl tracking-tight text-shadow-glow text-white/95">00:00:00</div>
-                <div id="dateDisplay" class="font-mono text-xs sm:text-sm font-medium text-indigo-300/80 tracking-widest uppercase mt-2">2026年9月6日 星期日</div>
-                <div id="pomoStatusBadge" class="mt-3 inline-flex items-center space-x-1.5 bg-indigo-500/20 border border-indigo-400/30 px-3 py-1 rounded-full text-xs font-medium text-indigo-300 cursor-pointer hover:bg-indigo-500/30 transition" title="點擊自訂倒數時間">
-                    <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
-                    <span id="pomoStatusText">專注階段 (25m)</span>
-                </div>
-            </div>
-        </div>
-        <div id="quoteDisplay" class="font-serif italic text-xs sm:text-sm text-white/70 max-w-lg mt-6 px-6 leading-relaxed transition-opacity duration-700" style="display: none;">「專注於眼前的小事，平靜是進入高效流道的鑰匙。」</div>
+    <div id="longPressHint" class="fixed top-5 left-1/2 -translate-x-1/2 z-20 bg-black/40 backdrop-blur-md border border-white/10 text-white/60 text-[11px] px-3.5 py-1.5 rounded-full pointer-events-none transition-all duration-500 opacity-0 transform -translate-y-2">
+        <i class="fa-solid fa-hand-pointer text-indigo-400 mr-1.5 animate-bounce"></i>長按背景可切換鎖定畫面主題
     </div>
 
     <header id="topHud" class="hud-element absolute top-0 left-0 right-0 z-20 flex justify-between items-center p-4 sm:p-6 text-xs sm:text-sm">
@@ -192,16 +297,10 @@
     </div>
 
     <div id="bottomHud" class="hud-element absolute bottom-5 left-1/2 -translate-x-1/2 z-20 w-full max-w-[520px] px-4 flex flex-col items-center space-y-2.5">
-        <div class="glass-panel w-full px-4 py-2 rounded-2xl flex items-center justify-between shadow-2xl">
-            <button data-theme="night_library" class="theme-btn tooltip w-9 h-9 rounded-xl bg-amber-900/40 hover:bg-amber-900/60 border border-amber-500/20 text-amber-200 flex items-center justify-center transition shrink-0"><i class="fa-solid fa-book-open text-xs"></i><span class="tooltip-text">深夜圖書館</span></button>
-            <button data-theme="cozy_cafe" class="theme-btn tooltip w-9 h-9 rounded-xl bg-purple-900/40 hover:bg-purple-900/60 border border-purple-500/20 text-purple-200 flex items-center justify-center transition shrink-0"><i class="fa-solid fa-mug-hot text-xs"></i><span class="tooltip-text">雨夜咖啡館</span></button>
-            <button data-theme="deep_emerald" class="theme-btn tooltip w-9 h-9 rounded-xl bg-emerald-900/40 hover:bg-emerald-900/60 border border-emerald-500/20 text-emerald-200 flex items-center justify-center transition shrink-0"><i class="fa-solid fa-tree text-xs"></i><span class="tooltip-text">靜謐森林</span></button>
-            <button data-theme="cyber_tokyo" class="theme-btn tooltip w-9 h-9 rounded-xl bg-cyan-900/40 hover:bg-cyan-900/60 border border-cyan-500/20 text-cyan-200 flex items-center justify-center transition shrink-0"><i class="fa-solid fa-city text-xs"></i><span class="tooltip-text">賽博雨夜</span></button>
-            <button data-theme="midnight_ocean" class="theme-btn tooltip w-9 h-9 rounded-xl bg-blue-900/40 hover:bg-blue-900/60 border border-blue-500/20 text-blue-200 flex items-center justify-center transition shrink-0"><i class="fa-solid fa-water text-xs"></i><span class="tooltip-text">深海月光</span></button>
-            <button data-theme="sunset_glow" class="theme-btn tooltip w-9 h-9 rounded-xl bg-rose-900/40 hover:bg-rose-900/60 border border-rose-500/20 text-rose-200 flex items-center justify-center transition shrink-0"><i class="fa-solid fa-sun text-xs"></i><span class="tooltip-text">落日餘暉</span></button>
-            <button data-theme="nordic_aurora" class="theme-btn tooltip w-9 h-9 rounded-xl bg-teal-900/40 hover:bg-teal-900/60 border border-teal-500/20 text-teal-200 flex items-center justify-center transition shrink-0"><i class="fa-solid fa-snowflake text-xs"></i><span class="tooltip-text">極光冰原</span></button>
-            <button data-theme="starlight_zen" class="theme-btn tooltip w-9 h-9 rounded-xl bg-indigo-900/40 hover:bg-indigo-900/60 border border-indigo-500/20 text-indigo-200 flex items-center justify-center transition shrink-0"><i class="fa-solid fa-moon text-xs"></i><span class="tooltip-text">靜謐星空</span></button>
-        </div>
+        <button id="quickThemeBtn" class="glass-panel px-3.5 py-1.5 rounded-full text-[11px] font-medium text-white/70 hover:text-white hover:bg-white/15 transition-all duration-300 flex items-center space-x-1.5 shadow-lg border border-white/10 active:scale-95 group">
+            <i class="fa-solid fa-wand-magic-sparkles text-indigo-400 group-hover:rotate-12 transition-transform duration-300"></i>
+            <span>長按背景來切換主題</span>
+        </button>
 
         <div class="glass-panel w-full px-4 py-2 rounded-2xl flex items-center justify-between shadow-2xl transition-all duration-300">
             <div class="flex items-center space-x-1.5">
@@ -325,6 +424,151 @@
         </div>
     </div>
 
+    <div id="iosThemeModal" class="fixed inset-0 z-30 flex flex-col justify-between items-center py-6 sm:py-8 opacity-0 pointer-events-none transition-all duration-500 select-none overflow-hidden">
+        
+        <div id="iosTopHeader" class="flex flex-col items-center justify-center space-y-1 transition-transform duration-500 transform -translate-y-8 opacity-0 z-50">
+            <span class="text-xs font-mono text-indigo-300 tracking-widest uppercase bg-indigo-500/20 border border-indigo-400/30 px-3.5 py-1 rounded-full backdrop-blur-md"><i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>鎖定畫面主題</span>
+            <span class="text-[11px] text-white/50">左右滑動切換專注主題氛圍（一頁一卡）</span>
+        </div>
+
+        <div id="iosCardsContainer" class="w-full flex items-center space-x-6 sm:space-x-12 overflow-x-auto px-[calc(50vw-39vw)] sm:px-[calc(50vw-31vw)] py-4 snap-x snap-mandatory custom-scrollbar my-auto z-40">
+            
+            <div data-ios-theme="night_library" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-black/80 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
+                <canvas class="card-bg-canvas"></canvas>
+                <div class="flex justify-between items-center text-amber-200/90 text-xs sm:text-sm font-semibold z-10">
+                    <span class="flex items-center"><i class="fa-solid fa-book-open mr-2"></i>深夜圖書館</span>
+                    <span class="active-badge hidden text-[10px] sm:text-xs bg-amber-500/30 text-amber-200 border border-amber-400/30 px-2.5 py-0.5 rounded-full">使用中</span>
+                </div>
+                <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
+                    <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                </div>
+                <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
+                    <div class="text-[11px] sm:text-xs text-amber-200/70 text-center font-serif italic">暖黃燈光，沉靜書香</div>
+                    <button class="card-select-badge bg-amber-500 text-slate-950 font-bold text-xs sm:text-sm px-5 py-2 rounded-full shadow-lg transition hover:scale-105">套用主題</button>
+                </div>
+            </div>
+
+            <div data-ios-theme="cozy_cafe" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-black/80 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
+                <canvas class="card-bg-canvas"></canvas>
+                <div class="flex justify-between items-center text-purple-200/90 text-xs sm:text-sm font-semibold z-10">
+                    <span class="flex items-center"><i class="fa-solid fa-mug-hot mr-2"></i>雨夜咖啡館</span>
+                    <span class="active-badge hidden text-[10px] sm:text-xs bg-purple-500/30 text-purple-200 border border-purple-400/30 px-2.5 py-0.5 rounded-full">使用中</span>
+                </div>
+                <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
+                    <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                </div>
+                <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
+                    <div class="text-[11px] sm:text-xs text-purple-200/70 text-center font-serif italic">爵士雨音，微醺咖啡</div>
+                    <button class="card-select-badge bg-purple-500 text-white font-bold text-xs sm:text-sm px-5 py-2 rounded-full shadow-lg transition hover:scale-105">套用主題</button>
+                </div>
+            </div>
+
+            <div data-ios-theme="deep_emerald" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-black/80 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
+                <canvas class="card-bg-canvas"></canvas>
+                <div class="flex justify-between items-center text-emerald-200/90 text-xs sm:text-sm font-semibold z-10">
+                    <span class="flex items-center"><i class="fa-solid fa-tree mr-2"></i>靜謐森林</span>
+                    <span class="active-badge hidden text-[10px] sm:text-xs bg-emerald-500/30 text-emerald-200 border border-emerald-400/30 px-2.5 py-0.5 rounded-full">使用中</span>
+                </div>
+                <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
+                    <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                </div>
+                <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
+                    <div class="text-[11px] sm:text-xs text-emerald-200/70 text-center font-serif italic">綠意盎然，深呼吸平靜</div>
+                    <button class="card-select-badge bg-emerald-500 text-slate-950 font-bold text-xs sm:text-sm px-5 py-2 rounded-full shadow-lg transition hover:scale-105">套用主題</button>
+                </div>
+            </div>
+
+            <div data-ios-theme="cyber_tokyo" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-black/80 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
+                <canvas class="card-bg-canvas"></canvas>
+                <div class="flex justify-between items-center text-cyan-200/90 text-xs sm:text-sm font-semibold z-10">
+                    <span class="flex items-center"><i class="fa-solid fa-city mr-2"></i>賽博雨夜</span>
+                    <span class="active-badge hidden text-[10px] sm:text-xs bg-cyan-500/30 text-cyan-200 border border-cyan-400/30 px-2.5 py-0.5 rounded-full">使用中</span>
+                </div>
+                <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
+                    <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                </div>
+                <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
+                    <div class="text-[11px] sm:text-xs text-cyan-200/70 text-center font-serif italic">霓虹閃爍，科幻專注</div>
+                    <button class="card-select-badge bg-cyan-400 text-slate-950 font-bold text-xs sm:text-sm px-5 py-2 rounded-full shadow-lg transition hover:scale-105">套用主題</button>
+                </div>
+            </div>
+
+            <div data-ios-theme="midnight_ocean" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-black/80 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
+                <canvas class="card-bg-canvas"></canvas>
+                <div class="flex justify-between items-center text-blue-200/90 text-xs sm:text-sm font-semibold z-10">
+                    <span class="flex items-center"><i class="fa-solid fa-water mr-2"></i>深海月光</span>
+                    <span class="active-badge hidden text-[10px] sm:text-xs bg-blue-500/30 text-blue-200 border border-blue-400/30 px-2.5 py-0.5 rounded-full">使用中</span>
+                </div>
+                <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
+                    <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                </div>
+                <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
+                    <div class="text-[11px] sm:text-xs text-blue-200/70 text-center font-serif italic">波光粼粼，深海沉靜</div>
+                    <button class="card-select-badge bg-blue-500 text-white font-bold text-xs sm:text-sm px-5 py-2 rounded-full shadow-lg transition hover:scale-105">套用主題</button>
+                </div>
+            </div>
+
+            <div data-ios-theme="sunset_glow" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-black/80 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
+                <canvas class="card-bg-canvas"></canvas>
+                <div class="flex justify-between items-center text-rose-200/90 text-xs sm:text-sm font-semibold z-10">
+                    <span class="flex items-center"><i class="fa-solid fa-sun mr-2"></i>落日餘暉</span>
+                    <span class="active-badge hidden text-[10px] sm:text-xs bg-rose-500/30 text-rose-200 border border-rose-400/30 px-2.5 py-0.5 rounded-full">使用中</span>
+                </div>
+                <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
+                    <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                </div>
+                <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
+                    <div class="text-[11px] sm:text-xs text-rose-200/70 text-center font-serif italic">黃昏暖陽，柔和晚霞</div>
+                    <button class="card-select-badge bg-rose-500 text-white font-bold text-xs sm:text-sm px-5 py-2 rounded-full shadow-lg transition hover:scale-105">套用主題</button>
+                </div>
+            </div>
+
+            <div data-ios-theme="nordic_aurora" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-black/80 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
+                <canvas class="card-bg-canvas"></canvas>
+                <div class="flex justify-between items-center text-teal-200/90 text-xs sm:text-sm font-semibold z-10">
+                    <span class="flex items-center"><i class="fa-solid fa-snowflake mr-2"></i>極光冰原</span>
+                    <span class="active-badge hidden text-[10px] sm:text-xs bg-teal-500/30 text-teal-200 border border-teal-400/30 px-2.5 py-0.5 rounded-full">使用中</span>
+                </div>
+                <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
+                    <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                </div>
+                <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
+                    <div class="text-[11px] sm:text-xs text-teal-200/70 text-center font-serif italic">冷冽極光，奇幻空靈</div>
+                    <button class="card-select-badge bg-teal-400 text-slate-950 font-bold text-xs sm:text-sm px-5 py-2 rounded-full shadow-lg transition hover:scale-105">套用主題</button>
+                </div>
+            </div>
+
+            <div data-ios-theme="starlight_zen" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-black/80 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
+                <canvas class="card-bg-canvas"></canvas>
+                <div class="flex justify-between items-center text-indigo-200/90 text-xs sm:text-sm font-semibold z-10">
+                    <span class="flex items-center"><i class="fa-solid fa-moon mr-2"></i>靜謐星空</span>
+                    <span class="active-badge hidden text-[10px] sm:text-xs bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 px-2.5 py-0.5 rounded-full">使用中</span>
+                </div>
+                <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
+                    <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                </div>
+                <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
+                    <div class="text-[11px] sm:text-xs text-indigo-200/70 text-center font-serif italic">繁星璀璨，宇宙浩瀚</div>
+                    <button class="card-select-badge bg-indigo-500 text-white font-bold text-xs sm:text-sm px-5 py-2 rounded-full shadow-lg transition hover:scale-105">套用主題</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="iosBottomFooter" class="flex items-center justify-center transition-transform duration-500 transform translate-y-8 opacity-0 z-50">
+            <button id="openSettingsFromIosModalBtn" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-8 py-2.5 rounded-full shadow-2xl backdrop-blur-md border border-white/20 transition text-xs sm:text-sm active:scale-95 flex items-center space-x-2 cursor-pointer">
+                <i class="fa-solid fa-sliders text-xs text-indigo-300"></i><span>開啟進階設定</span>
+            </button>
+        </div>
+    </div>
+
     <div id="pomoCustomModal" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-4 overflow-hidden">
         <div class="modal-slide-up glass-panel w-full max-w-sm rounded-3xl p-6 flex flex-col space-y-4 border border-white/15 shadow-2xl">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
@@ -364,7 +608,7 @@
                 </div>
                 <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
                     <div class="w-7 h-7 rounded-xl bg-amber-600/30 text-amber-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-bolt text-xs"></i></div>
-                    <div><h4 class="font-semibold text-white/90 mb-0.5">3. 擬真打雷視覺與鍵盤快捷鍵</h4><p class="text-white/60 leading-relaxed text-[11px]">純視覺打雷分枝與雲層閃爍，支援 <kbd class="px-1 bg-black/40 rounded">Space</kbd> 倒數、<kbd class="px-1 bg-black/40 rounded">Alt+P</kbd> 子母畫面等全套快捷鍵。</p></div>
+                    <div><h4 class="font-semibold text-white/90 mb-0.5">3. 鎖定畫面長按切換</h4><p class="text-white/60 leading-relaxed text-[11px]">按住背景即可喚起 1:1 質感主題卡片，畫面原地下壓且左右卡片延遲彈出。</p></div>
                 </div>
             </div>
             <div class="pt-2 border-t border-white/10 flex items-center gap-2">
@@ -396,6 +640,81 @@
             return (state.pipWindow && state.pipWindow.document) ? (state.pipWindow.document.getElementById(id) || document.getElementById(id)) : document.getElementById(id);
         }
 
+        function syncUIFromState() {
+            try {
+                const lowPerfBtn = document.getElementById('lowPerfToggleBtn'), lowPerfIcon = document.getElementById('lowPerfIcon'), lowPerfText = document.getElementById('lowPerfText');
+                if (state.lowPerformance) {
+                    document.body.classList.add('low-performance');
+                    if (lowPerfBtn) lowPerfBtn.classList.add('bg-green-900/40', 'border-green-500/50');
+                    if (lowPerfText) lowPerfText.textContent = "性能: 節能";
+                    if (lowPerfIcon) lowPerfIcon.className = "fa-solid fa-leaf text-green-300";
+                } else {
+                    document.body.classList.remove('low-performance');
+                    if (lowPerfBtn) lowPerfBtn.classList.remove('bg-green-900/40', 'border-green-500/50');
+                    if (lowPerfText) lowPerfText.textContent = "性能: 標準";
+                    if (lowPerfIcon) lowPerfIcon.className = "fa-solid fa-leaf text-green-400";
+                }
+
+                const speedSlider = document.getElementById('speedSlider'); if (speedSlider) speedSlider.value = state.speed;
+                const speedVal = document.getElementById('speedVal'); if (speedVal) speedVal.textContent = `${state.speed.toFixed(1)}x`;
+                const densitySlider = document.getElementById('densitySlider'); if (densitySlider) densitySlider.value = state.density;
+                const densityVal = document.getElementById('densityVal'); if (densityVal) densityVal.textContent = state.density < 0.8 ? "極簡" : state.density > 1.2 ? "密集" : "標準";
+                const showFpsToggle = document.getElementById('showFpsToggle'); if (showFpsToggle) showFpsToggle.checked = state.showFps;
+                const autoHideToggle = document.getElementById('autoHideToggle'); if (autoHideToggle) autoHideToggle.checked = state.autoHideUI;
+                const glassInteractionToggle = document.getElementById('glassInteractionToggle'); if (glassInteractionToggle) glassInteractionToggle.checked = state.glassInteraction;
+                const format24Toggle = document.getElementById('format24Toggle'); if (format24Toggle) format24Toggle.checked = state.clock24h;
+                const showSecondsToggle = document.getElementById('showSecondsToggle'); if (showSecondsToggle) showSecondsToggle.checked = state.showSeconds;
+                const showQuoteToggle = document.getElementById('showQuoteToggle'); if (showQuoteToggle) showQuoteToggle.checked = state.showQuote;
+                const autoPomoToggle = document.getElementById('autoPomoToggle'); if (autoPomoToggle) autoPomoToggle.checked = state.autoPomo;
+                const soundChimeToggle = document.getElementById('soundChimeToggle'); if (soundChimeToggle) soundChimeToggle.checked = state.soundChime;
+
+                toggleFpsDisplay(state.showFps);
+                const customQuoteInput = document.getElementById('customQuoteInput'); if (customQuoteInput) customQuoteInput.value = state.customQuoteText || '';
+
+                const thunderBtn = document.getElementById('thunderToggleBtn'), thunderIcon = document.getElementById('thunderIcon');
+                if (thunderBtn && thunderIcon) {
+                    if (state.thunderEnabled) {
+                        thunderBtn.classList.add('bg-amber-500/20', 'border', 'border-amber-400/40');
+                        thunderIcon.className = "fa-solid fa-bolt text-xs text-amber-300 animate-pulse";
+                        scheduleNextLightning();
+                    } else {
+                        thunderBtn.classList.remove('bg-amber-500/20', 'border', 'border-amber-400/40');
+                        thunderIcon.className = "fa-solid fa-bolt text-xs text-white/50";
+                        clearTimeout(lightningTimeout);
+                    }
+                }
+
+                setClockFont(state.clockFont, false);
+                setClockScale(state.clockScale, false);
+                setRingStyle(state.ringStyle || 'simple', false);
+
+                const masterBtn = document.getElementById('masterAudioToggle');
+                if (masterBtn) {
+                    masterBtn.textContent = state.masterAudioOn ? "已開啟" : "已關閉";
+                    masterBtn.className = state.masterAudioOn ? "bg-indigo-600 text-white px-3 py-1 rounded-xl font-semibold transition" : "bg-white/10 text-white/50 px-3 py-1 rounded-xl font-semibold transition";
+                }
+
+                ['rain', 'alpha', 'fire', 'chime'].forEach(type => {
+                    const slider = document.getElementById(`${type}VolSlider`), valLabel = document.getElementById(`${type}VolVal`);
+                    if (slider && valLabel && state.volumes[type] !== undefined) {
+                        slider.value = state.volumes[type];
+                        valLabel.textContent = `${Math.round(state.volumes[type] * 100)}%`;
+                    }
+                });
+
+                const savedMemo = localStorage.getItem(MEMO_STORAGE_KEY), memoEl = document.getElementById('memoInput');
+                if (savedMemo !== null && memoEl) memoEl.value = savedMemo;
+
+                document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('ring-2', 'ring-white', 'scale-110'));
+                const activeThemeBtn = document.querySelector(`[data-theme="${state.theme}"]`);
+                if (activeThemeBtn) activeThemeBtn.classList.add('ring-2', 'ring-white', 'scale-110');
+
+                updateIosCardsActiveState();
+
+                if (state.youtubeVideoId) loadYouTubeVideo(state.youtubeVideoId, false);
+            } catch(e) { console.warn('UI 同步警告:', e); }
+        }
+
         function saveSettings() {
             try {
                 const dataToSave = { lowPerformance: state.lowPerformance, thunderEnabled: state.thunderEnabled, autoHideUI: state.autoHideUI, glassInteraction: state.glassInteraction, showFps: state.showFps, speed: state.speed, density: state.density, clock24h: state.clock24h, showSeconds: state.showSeconds, showQuote: state.showQuote, autoPomo: state.autoPomo, soundChime: state.soundChime, customQuoteText: state.customQuoteText, clockFont: state.clockFont, clockScale: state.clockScale, ringStyle: state.ringStyle, theme: state.theme, masterAudioOn: state.masterAudioOn, volumes: state.volumes, tasks: state.tasks, youtubeVideoId: state.youtubeVideoId };
@@ -412,72 +731,20 @@
             } catch(e) { console.warn('本地設定載入失敗:', e); }
         }
 
-        function syncUIFromState() {
-            const lowPerfBtn = document.getElementById('lowPerfToggleBtn'), lowPerfIcon = document.getElementById('lowPerfIcon'), lowPerfText = document.getElementById('lowPerfText');
-            if (state.lowPerformance) {
-                document.body.classList.add('low-performance');
-                if (lowPerfBtn) lowPerfBtn.classList.add('bg-green-900/40', 'border-green-500/50');
-                if (lowPerfText) lowPerfText.textContent = "性能: 節能";
-                if (lowPerfIcon) lowPerfIcon.className = "fa-solid fa-leaf text-green-300";
-            } else {
-                document.body.classList.remove('low-performance');
-                if (lowPerfBtn) lowPerfBtn.classList.remove('bg-green-900/40', 'border-green-500/50');
-                if (lowPerfText) lowPerfText.textContent = "性能: 標準";
-                if (lowPerfIcon) lowPerfIcon.className = "fa-solid fa-leaf text-green-400";
-            }
-
-            document.getElementById('speedSlider').value = state.speed;
-            document.getElementById('speedVal').textContent = `${state.speed.toFixed(1)}x`;
-            document.getElementById('densitySlider').value = state.density;
-            document.getElementById('densityVal').textContent = state.density < 0.8 ? "極簡" : state.density > 1.2 ? "密集" : "標準";
-            document.getElementById('showFpsToggle').checked = state.showFps;
-            document.getElementById('autoHideToggle').checked = state.autoHideUI;
-            document.getElementById('glassInteractionToggle').checked = state.glassInteraction;
-            document.getElementById('format24Toggle').checked = state.clock24h;
-            document.getElementById('showSecondsToggle').checked = state.showSeconds;
-            document.getElementById('showQuoteToggle').checked = state.showQuote;
-            document.getElementById('autoPomoToggle').checked = state.autoPomo;
-            document.getElementById('soundChimeToggle').checked = state.soundChime;
-
-            toggleFpsDisplay(state.showFps);
-            document.getElementById('customQuoteInput').value = state.customQuoteText || '';
-
-            const thunderBtn = document.getElementById('thunderToggleBtn'), thunderIcon = document.getElementById('thunderIcon');
-            if (thunderBtn && thunderIcon) {
-                if (state.thunderEnabled) {
-                    thunderBtn.classList.add('bg-amber-500/20', 'border', 'border-amber-400/40');
-                    thunderIcon.className = "fa-solid fa-bolt text-xs text-amber-300 animate-pulse";
-                    scheduleNextLightning();
+        function updateIosCardsActiveState() {
+            document.querySelectorAll('.ios-theme-card').forEach(card => {
+                const isCurrent = card.dataset.iosTheme === state.theme;
+                const badge = card.querySelector('.active-badge');
+                if (isCurrent) {
+                    card.classList.add('border-indigo-400', 'ring-4', 'ring-indigo-500/30', 'scale-105', 'opacity-100');
+                    card.classList.remove('border-white/20', 'opacity-70');
+                    if (badge) badge.classList.remove('hidden');
                 } else {
-                    thunderBtn.classList.remove('bg-amber-500/20', 'border', 'border-amber-400/40');
-                    thunderIcon.className = "fa-solid fa-bolt text-xs text-white/50";
-                    clearTimeout(lightningTimeout);
-                }
-            }
-
-            setClockFont(state.clockFont, false);
-            setClockScale(state.clockScale, false);
-            setRingStyle(state.ringStyle || 'simple', false);
-
-            const masterBtn = document.getElementById('masterAudioToggle');
-            masterBtn.textContent = state.masterAudioOn ? "已開啟" : "已關閉";
-            masterBtn.className = state.masterAudioOn ? "bg-indigo-600 text-white px-3 py-1 rounded-xl font-semibold transition" : "bg-white/10 text-white/50 px-3 py-1 rounded-xl font-semibold transition";
-
-            ['rain', 'alpha', 'fire', 'chime'].forEach(type => {
-                const slider = document.getElementById(`${type}VolSlider`), valLabel = document.getElementById(`${type}VolVal`);
-                if (slider && valLabel && state.volumes[type] !== undefined) {
-                    slider.value = state.volumes[type];
-                    valLabel.textContent = `${Math.round(state.volumes[type] * 100)}%`;
+                    card.classList.remove('border-indigo-400', 'ring-4', 'ring-indigo-500/30', 'scale-105', 'opacity-100');
+                    card.classList.add('border-white/20', 'opacity-70');
+                    if (badge) badge.classList.add('hidden');
                 }
             });
-
-            const savedMemo = localStorage.getItem(MEMO_STORAGE_KEY), memoEl = document.getElementById('memoInput');
-            if (savedMemo !== null && memoEl) memoEl.value = savedMemo;
-
-            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('ring-2', 'ring-white', 'scale-110'));
-            const activeThemeBtn = document.querySelector(`[data-theme="${state.theme}"]`);
-            if (activeThemeBtn) activeThemeBtn.classList.add('ring-2', 'ring-white', 'scale-110');
-            if (state.youtubeVideoId) loadYouTubeVideo(state.youtubeVideoId, false);
         }
 
         function extractYouTubeId(url) {
@@ -673,6 +940,93 @@
 
         let fpsFrameCount = 0, lastFpsTime = performance.now(), currentFps = 60;
 
+        const themePalettes = {
+            night_library: { stops: ['#1c130d', '#0d0908', '#030202'], bokeh: 'rgba(251, 146, 60, 0.25)', streak: 'rgba(254, 215, 170, 0.4)' },
+            cozy_cafe: { stops: ['#1a1024', '#0b0814', '#030208'], bokeh: 'rgba(192, 132, 252, 0.25)', streak: 'rgba(233, 213, 255, 0.4)' },
+            deep_emerald: { stops: ['#0a1a15', '#050d0b', '#020504'], bokeh: 'rgba(52, 211, 153, 0.25)', streak: 'rgba(167, 243, 208, 0.4)' },
+            cyber_tokyo: { stops: ['#051024', '#030814', '#010205'], bokeh: 'rgba(56, 189, 248, 0.25)', streak: 'rgba(186, 230, 253, 0.4)' },
+            midnight_ocean: { stops: ['#031026', '#020814', '#010205'], bokeh: 'rgba(96, 165, 250, 0.25)', streak: 'rgba(191, 219, 254, 0.4)' },
+            sunset_glow: { stops: ['#260d10', '#140608', '#050102'], bokeh: 'rgba(244, 63, 94, 0.25)', streak: 'rgba(254, 205, 211, 0.4)' },
+            nordic_aurora: { stops: ['#041c1c', '#020f0f', '#010505'], bokeh: 'rgba(45, 212, 191, 0.25)', streak: 'rgba(153, 246, 228, 0.4)' },
+            starlight_zen: { stops: ['#10121c', '#08090f', '#020205'], bokeh: 'rgba(129, 140, 248, 0.25)', streak: 'rgba(199, 210, 254, 0.4)' }
+        };
+
+        const cardCanvasInstances = [];
+
+        function initCardCanvases() {
+            cardCanvasInstances.length = 0;
+            document.querySelectorAll('.ios-theme-card').forEach(card => {
+                const cCanvas = card.querySelector('.card-bg-canvas');
+                if (!cCanvas) return;
+                const cCtx = cCanvas.getContext('2d');
+                const themeKey = card.dataset.iosTheme || 'night_library';
+
+                cCanvas.width = card.clientWidth || 280;
+                cCanvas.height = card.clientHeight || 480;
+
+                const streaks = [];
+                for (let i = 0; i < 25; i++) {
+                    streaks.push({
+                        x: Math.random() * cCanvas.width,
+                        y: Math.random() * cCanvas.height,
+                        len: Math.random() * 20 + 15,
+                        vy: Math.random() * 8 + 6,
+                        opacity: Math.random() * 0.4 + 0.15
+                    });
+                }
+
+                cardCanvasInstances.push({ card, canvas: cCanvas, ctx: cCtx, theme: themeKey, streaks });
+            });
+        }
+
+        function renderCardLiveCanvases() {
+            if (!isEditModeActive) return;
+            const time = Date.now() * 0.0006 * state.speed;
+
+            cardCanvasInstances.forEach(inst => {
+                const { canvas: cCanvas, ctx: cCtx, theme, streaks } = inst;
+                if (!cCanvas || !cCtx) return;
+
+                const w = cCanvas.width, h = cCanvas.height;
+                const palette = themePalettes[theme] || themePalettes.night_library;
+
+                // Self-contained card background
+                const bgGrad = cCtx.createRadialGradient(w / 2, h / 2, 20, w / 2, h / 2, Math.max(w, h));
+                bgGrad.addColorStop(0, palette.stops[0]);
+                bgGrad.addColorStop(0.6, palette.stops[1]);
+                bgGrad.addColorStop(1, palette.stops[2]);
+                cCtx.fillStyle = bgGrad;
+                cCtx.fillRect(0, 0, w, h);
+
+                // Bokeh Orbs inside card frame
+                for (let i = 0; i < 3; i++) {
+                    const bx = (Math.sin(i * 37 + time * 0.2) * 0.35 + 0.5) * w;
+                    const by = (Math.cos(i * 23 + time * 0.25) * 0.35 + 0.5) * h;
+                    const br = 35 + Math.sin(i * 2 + time) * 12;
+                    const bGrad = cCtx.createRadialGradient(bx, by, 0, bx, by, br * 1.8);
+                    bGrad.addColorStop(0, palette.bokeh);
+                    bGrad.addColorStop(1, 'transparent');
+                    cCtx.fillStyle = bGrad;
+                    cCtx.beginPath();
+                    cCtx.arc(bx, by, br * 1.8, 0, Math.PI * 2);
+                    cCtx.fill();
+                }
+
+                // Rain Streaks inside card frame
+                cCtx.strokeStyle = palette.streak;
+                cCtx.lineWidth = 1.2;
+                streaks.forEach(s => {
+                    s.y += s.vy * state.speed;
+                    s.x += state.windAngle * 0.3;
+                    if (s.y > h) { s.y = -20; s.x = Math.random() * w; }
+                    cCtx.beginPath();
+                    cCtx.moveTo(s.x, s.y);
+                    cCtx.lineTo(s.x + (state.windAngle * 0.3), s.y + s.len);
+                    cCtx.stroke();
+                });
+            });
+        }
+
         function updateFpsCounter(now) {
             fpsFrameCount++; const delta = now - lastFpsTime;
             if (delta >= 500) {
@@ -728,6 +1082,10 @@
             }
 
             glassDrops.forEach(d => { d.update(); d.draw(); });
+
+            // Render live cards
+            renderCardLiveCanvases();
+
             requestAnimationFrame(renderRain);
         }
 
@@ -737,8 +1095,14 @@
         function updateClock() {
             const now = new Date(); let h = now.getHours(); if (!state.clock24h) h = h % 12 || 12;
             const hStr = String(h).padStart(2, '0'), mStr = String(now.getMinutes()).padStart(2, '0'), sStr = String(now.getSeconds()).padStart(2, '0');
-            const timeEl = getClockEl('timeDisplay'); if (timeEl) timeEl.textContent = state.showSeconds ? `${hStr}:${mStr}:${sStr}` : `${hStr}:${mStr}`;
-            const dateEl = getClockEl('dateDisplay'); if (dateEl) dateEl.textContent = now.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+            const timeStr = state.showSeconds ? `${hStr}:${mStr}:${sStr}` : `${hStr}:${mStr}`;
+            const timeEl = getClockEl('timeDisplay'); if (timeEl) timeEl.textContent = timeStr;
+            const dateStr = now.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+            const dateEl = getClockEl('dateDisplay'); if (dateEl) dateEl.textContent = dateStr;
+
+            document.querySelectorAll('.card-time-display').forEach(el => el.textContent = timeStr);
+            document.querySelectorAll('.card-date-display').forEach(el => el.textContent = dateStr);
+
             const quoteEl = getClockEl('quoteDisplay');
             if (quoteEl) {
                 if (state.customQuoteText.trim()) quoteEl.textContent = `「${state.customQuoteText}」`;
@@ -762,7 +1126,7 @@
             const foldMiniText = document.getElementById('pomoFoldMiniText'); if (foldMiniText) foldMiniText.textContent = `⏱️ ${m}:${s}`;
         }
 
-        document.getElementById('pomoMainBtn').addEventListener('click', () => {
+        document.getElementById('pomoMainBtn')?.addEventListener('click', () => {
             initAudioEngine();
             if (state.pomoRunning) {
                 clearInterval(state.pomoInterval); state.pomoRunning = false;
@@ -788,7 +1152,7 @@
             }
         });
 
-        document.getElementById('pomoModeBtn').addEventListener('click', () => {
+        document.getElementById('pomoModeBtn')?.addEventListener('click', () => {
             clearInterval(state.pomoInterval); state.pomoRunning = false;
             if (state.pomoMode === 'work') { state.pomoMode = 'shortBreak'; state.pomoSecondsLeft = state.pomoTotalSeconds = 5 * 60; document.getElementById('pomoModeBtn').textContent = "切換長休息 (15m)"; document.getElementById('pomoBtnLabel').textContent = "開始短休息 (5m)"; }
             else if (state.pomoMode === 'shortBreak') { state.pomoMode = 'longBreak'; state.pomoSecondsLeft = state.pomoTotalSeconds = 15 * 60; document.getElementById('pomoModeBtn').textContent = "切換專注 (25m)"; document.getElementById('pomoBtnLabel').textContent = "開始長休息 (15m)"; }
@@ -796,7 +1160,7 @@
             document.getElementById('pomoBtnIcon').className = "fa-solid fa-play"; updatePomoDisplay();
         });
 
-        document.getElementById('pomoResetBtn').addEventListener('click', () => {
+        document.getElementById('pomoResetBtn')?.addEventListener('click', () => {
             clearInterval(state.pomoInterval); state.pomoRunning = false; state.pomoSecondsLeft = state.pomoTotalSeconds;
             document.getElementById('pomoBtnIcon').className = "fa-solid fa-play"; document.getElementById('pomoBtnLabel').textContent = "開始專注"; updatePomoDisplay();
         });
@@ -822,10 +1186,10 @@
         document.getElementById('pipBtn')?.addEventListener('click', togglePictureInPicture);
 
         const pomoCustomModal = document.getElementById('pomoCustomModal');
-        document.getElementById('pomoStatusBadge').addEventListener('click', () => pomoCustomModal.classList.remove('opacity-0', 'pointer-events-none'));
-        document.getElementById('closePomoModalBtn').addEventListener('click', () => pomoCustomModal.classList.add('opacity-0', 'pointer-events-none'));
+        document.getElementById('pomoStatusBadge')?.addEventListener('click', () => pomoCustomModal.classList.remove('opacity-0', 'pointer-events-none'));
+        document.getElementById('closePomoModalBtn')?.addEventListener('click', () => pomoCustomModal.classList.add('opacity-0', 'pointer-events-none'));
         window.setQuickPomo = function(mins) { document.getElementById('customMinutesInput').value = mins; }
-        document.getElementById('saveCustomPomoBtn').addEventListener('click', () => {
+        document.getElementById('saveCustomPomoBtn')?.addEventListener('click', () => {
             const mins = parseInt(document.getElementById('customMinutesInput').value) || 25;
             clearInterval(state.pomoInterval); state.pomoRunning = false; state.pomoSecondsLeft = state.pomoTotalSeconds = mins * 60;
             document.getElementById('pomoBtnIcon').className = "fa-solid fa-play"; document.getElementById('pomoBtnLabel').textContent = `開始專注 (${mins}m)`;
@@ -843,7 +1207,8 @@
         document.getElementById('openWhatsNewFromSettingsBtn')?.addEventListener('click', () => { document.getElementById('settingsModal').classList.add('opacity-0', 'pointer-events-none'); showWhatsNewModal(); });
 
         function renderTasks() {
-            const listEl = document.getElementById('taskList'); listEl.innerHTML = ''; let uncompleted = 0;
+            const listEl = document.getElementById('taskList'); if (!listEl) return;
+            listEl.innerHTML = ''; let uncompleted = 0;
             state.tasks.forEach(t => {
                 if (!t.done) uncompleted++;
                 const item = document.createElement('div');
@@ -851,32 +1216,32 @@
                 item.innerHTML = `<div class="flex items-center space-x-2 truncate"><button onclick="toggleTask(${t.id})" class="text-indigo-400 hover:text-indigo-300"><i class="fa-${t.done ? 'solid' : 'regular'} fa-circle-check"></i></button><span class="text-white/90 truncate">${t.text}</span></div><button onclick="deleteTask(${t.id})" class="text-white/30 hover:text-rose-400 text-xs"><i class="fa-solid fa-trash-can"></i></button>`;
                 listEl.appendChild(item);
             });
-            document.getElementById('taskCountBadge').textContent = uncompleted;
+            const badge = document.getElementById('taskCountBadge'); if (badge) badge.textContent = uncompleted;
         }
 
         window.toggleTask = function(id) { state.tasks = state.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t); renderTasks(); saveSettings(); };
         window.deleteTask = function(id) { state.tasks = state.tasks.filter(t => t.id !== id); renderTasks(); saveSettings(); };
 
-        document.getElementById('addTaskBtn').addEventListener('click', () => {
+        document.getElementById('addTaskBtn')?.addEventListener('click', () => {
             const input = document.getElementById('taskInput'), val = input.value.trim();
             if (val) { state.tasks.push({ id: Date.now(), text: val, done: false }); input.value = ''; renderTasks(); saveSettings(); }
         });
-        document.getElementById('memoInput').addEventListener('input', () => saveSettings());
+        document.getElementById('memoInput')?.addEventListener('input', () => saveSettings());
 
         const taskDrawer = document.getElementById('taskDrawer'), audioMixerDrawer = document.getElementById('audioMixerDrawer');
-        document.getElementById('toggleTaskDrawerBtn').addEventListener('click', () => {
+        document.getElementById('toggleTaskDrawerBtn')?.addEventListener('click', () => {
             taskDrawer.classList.toggle('opacity-0'); taskDrawer.classList.toggle('pointer-events-none'); taskDrawer.classList.toggle('-translate-x-full');
             audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full');
         });
-        document.getElementById('closeTaskDrawerBtn').addEventListener('click', () => taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full'));
+        document.getElementById('closeTaskDrawerBtn')?.addEventListener('click', () => taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full'));
 
-        document.getElementById('toggleAudioMixerBtn').addEventListener('click', () => {
+        document.getElementById('toggleAudioMixerBtn')?.addEventListener('click', () => {
             audioMixerDrawer.classList.toggle('opacity-0'); audioMixerDrawer.classList.toggle('pointer-events-none'); audioMixerDrawer.classList.toggle('translate-x-full');
             taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full');
         });
-        document.getElementById('closeAudioMixerBtn').addEventListener('click', () => audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full'));
+        document.getElementById('closeAudioMixerBtn')?.addEventListener('click', () => audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full'));
 
-        document.getElementById('lowPerfToggleBtn').addEventListener('click', () => {
+        document.getElementById('lowPerfToggleBtn')?.addEventListener('click', () => {
             state.lowPerformance = !state.lowPerformance;
             const btn = document.getElementById('lowPerfToggleBtn'), icon = document.getElementById('lowPerfIcon'), text = document.getElementById('lowPerfText');
             if (state.lowPerformance) { document.body.classList.add('low-performance'); btn.classList.add('bg-green-900/40', 'border-green-500/50'); if (text) text.textContent = "性能: 節能"; if (icon) icon.className = "fa-solid fa-leaf text-xs text-green-300"; }
@@ -884,7 +1249,7 @@
             initRain(); saveSettings();
         });
 
-        document.getElementById('masterAudioToggle').addEventListener('click', () => {
+        document.getElementById('masterAudioToggle')?.addEventListener('click', () => {
             initAudioEngine(); state.masterAudioOn = !state.masterAudioOn;
             document.getElementById('masterAudioToggle').textContent = state.masterAudioOn ? "已開啟" : "已關閉";
             document.getElementById('masterAudioToggle').className = state.masterAudioOn ? "bg-indigo-600 text-white px-3 py-1 rounded-xl font-semibold transition" : "bg-white/10 text-white/50 px-3 py-1 rounded-xl font-semibold transition";
@@ -892,15 +1257,172 @@
         });
 
         ['rain', 'alpha', 'fire', 'chime'].forEach(type => {
-            document.getElementById(`${type}VolSlider`).addEventListener('input', e => { initAudioEngine(); state.volumes[type] = parseFloat(e.target.value); document.getElementById(`${type}VolVal`).textContent = `${Math.round(state.volumes[type] * 100)}%`; updateAudioVolumes(); saveSettings(); });
+            document.getElementById(`${type}VolSlider`)?.addEventListener('input', e => { initAudioEngine(); state.volumes[type] = parseFloat(e.target.value); document.getElementById(`${type}VolVal`).textContent = `${Math.round(state.volumes[type] * 100)}%`; updateAudioVolumes(); saveSettings(); });
         });
+
+        function applyTheme(themeName) {
+            state.theme = themeName;
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('ring-2', 'ring-white', 'scale-110'));
+            const activeThemeBtn = document.querySelector(`[data-theme="${state.theme}"]`);
+            if (activeThemeBtn) activeThemeBtn.classList.add('ring-2', 'ring-white', 'scale-110');
+            updateIosCardsActiveState();
+            saveSettings();
+        }
 
         document.querySelectorAll('.theme-btn').forEach(btn => {
             btn.addEventListener('click', e => {
-                document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('ring-2', 'ring-white', 'scale-110'));
-                e.currentTarget.classList.add('ring-2', 'ring-white', 'scale-110'); state.theme = e.currentTarget.dataset.theme; saveSettings();
+                applyTheme(e.currentTarget.dataset.theme);
             });
         });
+
+        const iosThemeModal = document.getElementById('iosThemeModal');
+        const iosCardsContainer = document.getElementById('iosCardsContainer');
+        const iosTopHeader = document.getElementById('iosTopHeader');
+        const iosBottomFooter = document.getElementById('iosBottomFooter');
+        
+        let longPressTimer = null;
+        let pressStartX = 0, pressStartY = 0;
+        let isEditModeActive = false;
+
+        function updateIosCardsCenteredState() {
+            if (!iosCardsContainer) return;
+            const containerCenter = iosCardsContainer.getBoundingClientRect().left + iosCardsContainer.clientWidth / 2;
+            const cards = document.querySelectorAll('.ios-theme-card');
+
+            cards.forEach(card => {
+                const cardRect = card.getBoundingClientRect();
+                const cardCenter = cardRect.left + cardRect.width / 2;
+                const dist = Math.abs(containerCenter - cardCenter);
+
+                if (dist < cardRect.width * 0.45) {
+                    card.classList.add('is-centered');
+                    const cardTheme = card.dataset.iosTheme;
+                    if (state.theme !== cardTheme && isEditModeActive) {
+                        applyTheme(cardTheme);
+                    }
+                } else {
+                    card.classList.remove('is-centered');
+                }
+            });
+        }
+
+        if (iosCardsContainer) {
+            iosCardsContainer.addEventListener('scroll', updateIosCardsCenteredState, { passive: true });
+        }
+
+        function openIosThemeModal() {
+            if (!iosThemeModal || isEditModeActive) return;
+            isEditModeActive = true;
+
+            initCardCanvases();
+
+            // 1. Hide HUD
+            const topHud = document.getElementById('topHud');
+            const bottomHud = document.getElementById('bottomHud');
+            if (topHud) { topHud.style.opacity = '0'; topHud.style.pointerEvents = 'none'; }
+            if (bottomHud) { bottomHud.style.opacity = '0'; bottomHud.style.pointerEvents = 'none'; }
+
+            // 2. Haptic Feedback
+            if (navigator.vibrate) navigator.vibrate(50);
+
+            // 3. Stage 1: Scale main stage down
+            iosThemeModal.classList.remove('opacity-0', 'pointer-events-none');
+            document.body.classList.add('ios-edit-entering');
+
+            if (iosTopHeader) iosTopHeader.classList.remove('-translate-y-8', 'opacity-0');
+            if (iosBottomFooter) iosBottomFooter.classList.remove('translate-y-8', 'opacity-0');
+
+            // Center active theme card
+            const activeCard = document.querySelector(`.ios-theme-card[data-ios-theme="${state.theme}"]`);
+            if (activeCard && iosCardsContainer) {
+                const scrollLeft = activeCard.offsetLeft - (iosCardsContainer.clientWidth / 2) + (activeCard.clientWidth / 2);
+                iosCardsContainer.scrollLeft = scrollLeft;
+            }
+
+            // 4. Stage 2: Hand over to carousel & hide main stage background leakage
+            setTimeout(() => {
+                document.body.classList.remove('ios-edit-entering');
+                document.body.classList.add('ios-edit-active');
+                updateIosCardsCenteredState();
+            }, 150);
+        }
+
+        function closeIosThemeModal() {
+            if (!iosThemeModal || !isEditModeActive) return;
+            isEditModeActive = false;
+
+            document.body.classList.remove('ios-edit-active', 'ios-edit-entering');
+            if (iosTopHeader) iosTopHeader.classList.add('-translate-y-8', 'opacity-0');
+            if (iosBottomFooter) iosBottomFooter.classList.add('translate-y-8', 'opacity-0');
+
+            iosThemeModal.classList.add('opacity-0', 'pointer-events-none');
+
+            // Restore HUD
+            const topHud = document.getElementById('topHud');
+            const bottomHud = document.getElementById('bottomHud');
+            if (topHud) { topHud.style.opacity = '1'; topHud.style.pointerEvents = 'auto'; }
+            if (bottomHud) { bottomHud.style.opacity = '1'; bottomHud.style.pointerEvents = 'auto'; }
+        }
+
+        document.getElementById('openSettingsFromIosModalBtn')?.addEventListener('click', () => {
+            closeIosThemeModal();
+            document.getElementById('settingsModal')?.classList.remove('opacity-0', 'pointer-events-none');
+        });
+        
+        document.getElementById('quickThemeBtn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openIosThemeModal();
+        });
+
+        document.querySelectorAll('.ios-theme-card').forEach(card => {
+            card.addEventListener('click', e => {
+                const theme = e.currentTarget.dataset.iosTheme;
+                applyTheme(theme);
+                if (iosCardsContainer) {
+                    const scrollLeft = e.currentTarget.offsetLeft - (iosCardsContainer.clientWidth / 2) + (e.currentTarget.clientWidth / 2);
+                    iosCardsContainer.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+                }
+                setTimeout(closeIosThemeModal, 280);
+            });
+        });
+
+        function isInteractiveElement(target) {
+            if (!target) return false;
+            return !!target.closest('button, input, textarea, select, a, #clockScaleWrapper, .glass-panel, .drawer-slide, #settingsModal, #whatsNewModal, #pomoCustomModal, #iosThemeModal');
+        }
+
+        function startPressTimer(e) {
+            if (isInteractiveElement(e.target) || isEditModeActive) return;
+            const pt = e.touches ? e.touches[0] : e;
+            pressStartX = pt.clientX;
+            pressStartY = pt.clientY;
+
+            clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(() => {
+                openIosThemeModal();
+            }, 500);
+        }
+
+        function cancelPressTimer(e) {
+            if (e.touches && e.touches.length > 0) {
+                const pt = e.touches[0];
+                if (Math.hypot(pt.clientX - pressStartX, pt.clientY - pressStartY) > 10) {
+                    clearTimeout(longPressTimer);
+                }
+            } else {
+                clearTimeout(longPressTimer);
+            }
+        }
+
+        window.addEventListener('mousedown', startPressTimer, { passive: true });
+        window.addEventListener('mouseup', cancelPressTimer, { passive: true });
+        window.addEventListener('mousemove', (e) => {
+            if (Math.hypot(e.clientX - pressStartX, e.clientY - pressStartY) > 10) clearTimeout(longPressTimer);
+        }, { passive: true });
+
+        window.addEventListener('touchstart', startPressTimer, { passive: true });
+        window.addEventListener('touchend', cancelPressTimer, { passive: true });
+        window.addEventListener('touchmove', cancelPressTimer, { passive: true });
 
         let isZenMode = false, autoHideTimer = null, isUIHiddenByIdle = false;
         const zenNotice = document.getElementById('zenNotice');
@@ -925,7 +1447,7 @@
             if (!state.autoHideUI || isZenMode) return;
             autoHideTimer = setTimeout(() => {
                 const isDrawerOpen = (taskDrawer && !taskDrawer.classList.contains('opacity-0')) || (audioMixerDrawer && !audioMixerDrawer.classList.contains('opacity-0'));
-                const isModalOpen = (settingsModal && !settingsModal.classList.contains('opacity-0')) || (whatsNewModal && !whatsNewModal.classList.contains('opacity-0')) || (pomoCustomModal && !pomoCustomModal.classList.contains('opacity-0'));
+                const isModalOpen = (settingsModal && !settingsModal.classList.contains('opacity-0')) || (whatsNewModal && !whatsNewModal.classList.contains('opacity-0')) || (pomoCustomModal && !pomoCustomModal.classList.contains('opacity-0')) || (iosThemeModal && !iosThemeModal.classList.contains('opacity-0'));
                 if (!isDrawerOpen && !isModalOpen && state.autoHideUI && !isZenMode) { hideUI(); isUIHiddenByIdle = true; }
             }, 5000);
         }
@@ -987,19 +1509,19 @@
         function toggleZenMode(enable) {
             isZenMode = enable !== undefined ? enable : !isZenMode;
             if (isZenMode) {
-                hideUI(); taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full'); audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full');
+                hideUI(); taskDrawer?.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full'); audioMixerDrawer?.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full');
                 if (zenNotice) { zenNotice.classList.remove('opacity-0', '-translate-y-4'); setTimeout(() => { if (isZenMode && zenNotice) zenNotice.classList.add('opacity-0', '-translate-y-4'); }, 3000); }
             } else {
                 showUI(); isUIHiddenByIdle = false; if (zenNotice) zenNotice.classList.add('opacity-0', '-translate-y-4'); resetAutoHideTimer();
             }
         }
 
-        document.getElementById('zenModeBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleZenMode(true); });
-        window.addEventListener('click', () => { if (isZenMode) toggleZenMode(false); });
+        document.getElementById('zenModeBtn')?.addEventListener('click', (e) => { e.stopPropagation(); toggleZenMode(true); });
+        window.addEventListener('click', (e) => { if (isZenMode && !isInteractiveElement(e.target)) toggleZenMode(false); });
 
         const settingsModal = document.getElementById('settingsModal');
-        document.getElementById('openSettingsBtn').addEventListener('click', () => settingsModal.classList.remove('opacity-0', 'pointer-events-none'));
-        document.getElementById('closeSettingsBtn').addEventListener('click', () => settingsModal.classList.add('opacity-0', 'pointer-events-none'));
+        document.getElementById('openSettingsBtn')?.addEventListener('click', () => settingsModal?.classList.remove('opacity-0', 'pointer-events-none'));
+        document.getElementById('closeSettingsBtn')?.addEventListener('click', () => settingsModal?.classList.add('opacity-0', 'pointer-events-none'));
 
         document.querySelectorAll('.settings-tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -1017,8 +1539,8 @@
             });
         });
 
-        document.getElementById('speedSlider').addEventListener('input', e => { state.speed = parseFloat(e.target.value); document.getElementById('speedVal').textContent = `${state.speed.toFixed(1)}x`; saveSettings(); });
-        document.getElementById('densitySlider').addEventListener('input', e => { state.density = parseFloat(e.target.value); document.getElementById('densityVal').textContent = state.density < 0.8 ? "極簡" : state.density > 1.2 ? "密集" : "標準"; initRain(); saveSettings(); });
+        document.getElementById('speedSlider')?.addEventListener('input', e => { state.speed = parseFloat(e.target.value); document.getElementById('speedVal').textContent = `${state.speed.toFixed(1)}x`; saveSettings(); });
+        document.getElementById('densitySlider')?.addEventListener('input', e => { state.density = parseFloat(e.target.value); document.getElementById('densityVal').textContent = state.density < 0.8 ? "極簡" : state.density > 1.2 ? "密集" : "標準"; initRain(); saveSettings(); });
 
         window.setClockFont = function(font, autoSave = true) {
             state.clockFont = font; const tf = getClockEl('timeDisplay');
@@ -1055,18 +1577,18 @@
             if (autoSave) saveSettings();
         };
 
-        document.getElementById('customQuoteInput').addEventListener('input', e => { state.customQuoteText = e.target.value; updateClock(); saveSettings(); });
-        document.getElementById('binauralSelect').addEventListener('change', e => { updateBinauralFrequencies(e.target.value); saveSettings(); });
-        document.getElementById('showFpsToggle').addEventListener('change', e => { state.showFps = e.target.checked; toggleFpsDisplay(state.showFps); saveSettings(); });
-        document.getElementById('autoHideToggle').addEventListener('change', e => { state.autoHideUI = e.target.checked; resetAutoHideTimer(); saveSettings(); });
-        document.getElementById('glassInteractionToggle').addEventListener('change', e => { state.glassInteraction = e.target.checked; saveSettings(); });
-        document.getElementById('format24Toggle').addEventListener('change', e => { state.clock24h = e.target.checked; updateClock(); saveSettings(); });
-        document.getElementById('showSecondsToggle').addEventListener('change', e => { state.showSeconds = e.target.checked; updateClock(); saveSettings(); });
-        document.getElementById('showQuoteToggle').addEventListener('change', e => { state.showQuote = e.target.checked; const q = getClockEl('quoteDisplay'); if (q) q.style.display = state.showQuote ? 'block' : 'none'; saveSettings(); });
-        document.getElementById('autoPomoToggle').addEventListener('change', e => { state.autoPomo = e.target.checked; saveSettings(); });
-        document.getElementById('soundChimeToggle').addEventListener('change', e => { state.soundChime = e.target.checked; saveSettings(); });
+        document.getElementById('customQuoteInput')?.addEventListener('input', e => { state.customQuoteText = e.target.value; updateClock(); saveSettings(); });
+        document.getElementById('binauralSelect')?.addEventListener('change', e => { updateBinauralFrequencies(e.target.value); saveSettings(); });
+        document.getElementById('showFpsToggle')?.addEventListener('change', e => { state.showFps = e.target.checked; toggleFpsDisplay(state.showFps); saveSettings(); });
+        document.getElementById('autoHideToggle')?.addEventListener('change', e => { state.autoHideUI = e.target.checked; resetAutoHideTimer(); saveSettings(); });
+        document.getElementById('glassInteractionToggle')?.addEventListener('change', e => { state.glassInteraction = e.target.checked; saveSettings(); });
+        document.getElementById('format24Toggle')?.addEventListener('change', e => { state.clock24h = e.target.checked; updateClock(); saveSettings(); });
+        document.getElementById('showSecondsToggle')?.addEventListener('change', e => { state.showSeconds = e.target.checked; updateClock(); saveSettings(); });
+        document.getElementById('showQuoteToggle')?.addEventListener('change', e => { state.showQuote = e.target.checked; const q = getClockEl('quoteDisplay'); if (q) q.style.display = state.showQuote ? 'block' : 'none'; saveSettings(); });
+        document.getElementById('autoPomoToggle')?.addEventListener('change', e => { state.autoPomo = e.target.checked; saveSettings(); });
+        document.getElementById('soundChimeToggle')?.addEventListener('change', e => { state.soundChime = e.target.checked; saveSettings(); });
 
-        document.getElementById('fullscreenBtn').addEventListener('click', () => {
+        document.getElementById('fullscreenBtn')?.addEventListener('click', () => {
             if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); document.getElementById('fsIcon').className = "fa-solid fa-compress text-sm"; }
             else { document.exitFullscreen(); document.getElementById('fsIcon').className = "fa-solid fa-expand text-sm"; }
         });
@@ -1075,37 +1597,44 @@
         const foldPomoBtn = document.getElementById('togglePomoFoldBtn'), fullPomoControls = document.getElementById('pomoFullControls'), foldPomoIcon = document.getElementById('pomoFoldIcon'), foldMiniText = document.getElementById('pomoFoldMiniText'), foldTooltip = document.getElementById('pomoFoldTooltip');
         foldPomoBtn?.addEventListener('click', () => {
             isPomoFolded = !isPomoFolded;
-            if (isPomoFolded) { fullPomoControls.classList.add('hidden'); foldPomoIcon.className = "fa-solid fa-stopwatch text-xs text-indigo-400"; foldMiniText.classList.remove('hidden'); if (foldTooltip) foldTooltip.textContent = "展開控制按鈕"; }
-            else { fullPomoControls.classList.remove('hidden'); foldPomoIcon.className = "fa-solid fa-chevron-left text-xs"; foldMiniText.classList.add('hidden'); if (foldTooltip) foldTooltip.textContent = "收納控制按鈕"; }
+            if (isPomoFolded) { fullPomoControls?.classList.add('hidden'); if (foldPomoIcon) foldPomoIcon.className = "fa-solid fa-stopwatch text-xs text-indigo-400"; foldMiniText?.classList.remove('hidden'); if (foldTooltip) foldTooltip.textContent = "展開控制按鈕"; }
+            else { fullPomoControls?.classList.remove('hidden'); if (foldPomoIcon) foldPomoIcon.className = "fa-solid fa-chevron-left text-xs"; foldMiniText?.classList.add('hidden'); if (foldTooltip) foldTooltip.textContent = "收納控制按鈕"; }
         });
 
         window.addEventListener('keydown', (e) => {
             const activeEl = document.activeElement, isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
             if (e.key === 'Escape') {
                 if (isZenMode) toggleZenMode(false);
-                settingsModal.classList.add('opacity-0', 'pointer-events-none'); whatsNewModal.classList.add('opacity-0', 'pointer-events-none');
-                pomoCustomModal.classList.add('opacity-0', 'pointer-events-none'); taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full');
-                audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full'); return;
+                closeIosThemeModal();
+                settingsModal?.classList.add('opacity-0', 'pointer-events-none'); whatsNewModal?.classList.add('opacity-0', 'pointer-events-none');
+                pomoCustomModal?.classList.add('opacity-0', 'pointer-events-none'); taskDrawer?.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full');
+                audioMixerDrawer?.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full'); return;
             }
             if (isTyping) return;
-            if (e.code === 'Space') { e.preventDefault(); document.getElementById('pomoMainBtn').click(); }
+            if (e.code === 'Space') { e.preventDefault(); document.getElementById('pomoMainBtn')?.click(); }
             if (e.altKey && (e.key === 'p' || e.key === 'P')) { e.preventDefault(); togglePictureInPicture(); }
-            if (e.key === 'c' || e.key === 'C') { e.preventDefault(); foldPomoBtn.click(); }
-            if (e.key === 'r' || e.key === 'R') { e.preventDefault(); document.getElementById('pomoResetBtn').click(); }
-            if (e.key === 'n' || e.key === 'N') { e.preventDefault(); document.getElementById('pomoModeBtn').click(); }
+            if (e.key === 'c' || e.key === 'C') { e.preventDefault(); foldPomoBtn?.click(); }
+            if (e.key === 'r' || e.key === 'R') { e.preventDefault(); document.getElementById('pomoResetBtn')?.click(); }
+            if (e.key === 'n' || e.key === 'N') { e.preventDefault(); document.getElementById('pomoModeBtn')?.click(); }
             if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); toggleZenMode(); }
-            if (e.key === 'm' || e.key === 'M') { e.preventDefault(); document.getElementById('masterAudioToggle').click(); }
-            if (e.key === 't' || e.key === 'T') { e.preventDefault(); document.getElementById('toggleTaskDrawerBtn').click(); }
-            if (e.key === 'a' || e.key === 'A') { e.preventDefault(); document.getElementById('toggleAudioMixerBtn').click(); }
-            if (e.key === 's' || e.key === 'S') { e.preventDefault(); settingsModal.classList.toggle('opacity-0'); settingsModal.classList.toggle('pointer-events-none'); }
-            if (e.key === 'f' || e.key === 'F') { e.preventDefault(); document.getElementById('fullscreenBtn').click(); }
-            if (e.key === 'l' || e.key === 'L') { e.preventDefault(); document.getElementById('lowPerfToggleBtn').click(); }
-            if (e.key === '?' || e.key === '/') { e.preventDefault(); settingsModal.classList.remove('opacity-0', 'pointer-events-none'); const shortcutTab = document.querySelector('[data-tab="tab-shortcuts"]'); if (shortcutTab) shortcutTab.click(); }
+            if (e.key === 'm' || e.key === 'M') { e.preventDefault(); document.getElementById('masterAudioToggle')?.click(); }
+            if (e.key === 't' || e.key === 'T') { e.preventDefault(); document.getElementById('toggleTaskDrawerBtn')?.click(); }
+            if (e.key === 'a' || e.key === 'A') { e.preventDefault(); document.getElementById('toggleAudioMixerBtn')?.click(); }
+            if (e.key === 's' || e.key === 'S') { e.preventDefault(); settingsModal?.classList.toggle('opacity-0'); settingsModal?.classList.toggle('pointer-events-none'); }
+            if (e.key === 'f' || e.key === 'F') { e.preventDefault(); document.getElementById('fullscreenBtn')?.click(); }
+            if (e.key === 'l' || e.key === 'L') { e.preventDefault(); document.getElementById('lowPerfToggleBtn')?.click(); }
+            if (e.key === '?' || e.key === '/') { e.preventDefault(); settingsModal?.classList.remove('opacity-0', 'pointer-events-none'); const shortcutTab = document.querySelector('[data-tab="tab-shortcuts"]'); if (shortcutTab) shortcutTab.click(); }
         });
 
         window.onload = () => {
             loadSettings(); syncUIFromState(); initRain(); renderRain(); renderTasks(); updatePomoDisplay(); updateClock(); resetAutoHideTimer();
             if (!localStorage.getItem(WHATS_NEW_KEY)) setTimeout(showWhatsNewModal, 500);
+
+            const hint = document.getElementById('longPressHint');
+            if (hint) {
+                setTimeout(() => { hint.classList.remove('opacity-0', '-translate-y-2'); }, 1200);
+                setTimeout(() => { hint.classList.add('opacity-0', '-translate-y-2'); }, 6000);
+            }
         };
 
         if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW 註冊失敗:', err)); }); }
@@ -1124,6 +1653,7 @@
 
         document.getElementById('factoryResetBtn')?.addEventListener('click', () => {
             const btn = document.getElementById('factoryResetBtn');
+            if (!btn) return;
             if (btn.dataset.confirm === 'true') { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(MEMO_STORAGE_KEY); localStorage.removeItem(WHATS_NEW_KEY); location.reload(); }
             else {
                 btn.dataset.confirm = 'true'; btn.innerHTML = `<i class="fa-solid fa-triangle-exclamation w-4 text-center animate-pulse"></i><span>確定重設？(再點一次)</span>`;
