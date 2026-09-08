@@ -155,7 +155,7 @@ If you like this project, please consider giving it a ⭐ Star! It means a lot t
 
 📜 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is
 
 AURA Studio | 沉浸式雨夜專注空間 🌧️🎧
 
@@ -305,5 +305,5 @@ L
 
 📜 授權條款 (License)
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is
 
