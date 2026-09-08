@@ -1,6 +1,154 @@
 # AURA-Studio
 !!文章由AI生成，僅供參考，因為我還在想怎麼寫
+AURA Studio | Immersive Rainy Night Focus Space 🌧️🎧
 
+An ultra-immersive, browser-based focus tool. Combining ambient white noise, binaural beats, a smart Pomodoro timer, and aesthetic dynamic visuals to help you instantly isolate external noise and enter a deep state of flow.
+
+
+(Tip: Replace the placeholder image above with an actual screenshot of your application)
+
+✨ Core Features
+
+🌧️ Ultimate Visual Experience
+
+Dynamic Rain on Glass: HTML5 Canvas-based realistic rain droplet simulation, supporting mouse and touch interactions to push away water drops.
+
+Diverse Immersive Themes: 8 built-in high-quality themes including "Midnight Library", "Cozy Cafe", "Cyber Tokyo", and "Midnight Ocean".
+
+3D Theme Switching: Inspired by the iOS lock screen experience, featuring long-press scaling and smooth card-swipe transitions.
+
+Lightning Effects: Randomly generated visual lightning strikes and screen flashes for enhanced environmental realism.
+
+Zen Mode: Hide all UI elements with a single click, leaving only the pure clock and rainy night to completely eliminate distractions.
+
+🎵 Focus Audio Mixer
+
+Multi-Track Ambient Sounds: Built-in cozy rain, crackling campfire, gentle wind, and meditation chimes. Adjust the volume of each track independently.
+
+Binaural Beats: Real-time generation of $\alpha$ waves (10Hz), $\beta$ waves (18Hz), and $\theta$ waves (6Hz) via the Web Audio API to scientifically assist the brain in entering specific states.
+
+YouTube Music Embedding: Seamlessly paste a YouTube video or live stream link (e.g., Lofi Girl) to play continuously in the background.
+
+⏱️ Productivity Tools
+
+Smart Pomodoro Timer: Supports standard 25/5/15 minute modes and custom countdown times. Features stage auto-looping and completion chimes.
+
+Picture-in-Picture (PiP): Supports the browser's native Document PiP floating clock, allowing you to check your countdown progress anytime while switching windows.
+
+Tasks & Quick Notes: Built-in Todo List and an auto-saving (LocalStorage) scratchpad to capture fleeting inspiration.
+
+⚙️ Deep Customization
+
+Customize clock fonts (Sans, Mono, Serif), overall sizing, and progress ring styles.
+
+Set a personalized focus quote or motto.
+
+Eco Mode: Built-in performance mode that reduces Canvas rendering load, perfect for when your laptop is unplugged.
+
+PWA Support: Installable as a Progressive Web App (PWA) on desktop and mobile devices for a native, full-screen experience.
+
+🛠️ Tech Stack
+
+This project is built using minimalist and highly efficient frontend technologies. No bundlers required, ready to use out of the box:
+
+Core Languages: HTML5, Vanilla JavaScript (ES6+), CSS3
+
+Visual Rendering: HTML5 <canvas> (2D Context particle and fluid simulation)
+
+Audio Processing: Web Audio API (Oscillators, channel merging, real-time filtering)
+
+UI Framework: Tailwind CSS (via CDN)
+
+Icons: FontAwesome 6
+
+Data Storage: LocalStorage API
+
+🚀 Quick Start
+
+Since this is a pure frontend application, no complex Node.js environment setup is needed.
+
+Clone the repository:
+
+git clone https://github.com/YourUsername/AURA-Studio.git
+
+
+Open the project:
+
+Simply double-click aura_studio.html to open it in your browser.
+
+Recommended: Use the Live Server extension in VS Code for the best experience (ensures the YouTube iframe and Web Audio APIs work flawlessly).
+
+PWA Installation (Optional):
+Open the web page using Chrome or Edge, click the "Install" icon on the right side of the address bar, and add AURA Studio directly to your desktop.
+
+⌨️ Keyboard Shortcuts
+
+To keep your flow state uninterrupted, AURA Studio supports full keyboard navigation:
+
+Shortcut
+
+Function
+
+Space
+
+Start / Pause Pomodoro timer
+
+Alt + P
+
+Toggle Picture-in-Picture (PiP) clock
+
+C
+
+Collapse / Expand Pomodoro controls
+
+R
+
+Reset current Pomodoro
+
+N
+
+Skip to the next stage (Focus/Break)
+
+Z
+
+Toggle Zen Mode (Press Esc to exit)
+
+M
+
+Master Audio Mute / Unmute
+
+T
+
+Open / Close Tasks & Notes drawer
+
+A
+
+Open / Close Audio Mixer drawer
+
+S
+
+Open Advanced Settings panel
+
+F
+
+Toggle Fullscreen mode
+
+L
+
+Toggle Standard / Eco Performance mode
+
+? or /
+
+Quick open shortcut guide
+
+🤝 Contributing
+
+Issues and Pull Requests are highly welcome to help improve AURA Studio!
+If you like this project, please consider giving it a ⭐ Star! It means a lot to me.
+
+📜 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 AURA Studio | 沉浸式雨夜專注空間 🌧️🎧
 
