@@ -5,4 +5,6 @@
 OR https://aura-studio-8yn.pages.dev/
 
 
-下載來離線使用Download for offline use：index.html
+下載來離線使用Download for offline use：
+
+https://github.com/henry01151111/AURA-Studio/releases/latest
