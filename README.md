@@ -1,5 +1,5 @@
 # AURA-Studio
-## 從這裡打開Open Here:
+# 從這裡打開Open Here:
 
 # https://aura.henry0115.dpdns.org/
 OR https://aura-studio-8yn.pages.dev/
