@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AURA Studio</title>
+    <title>AURA Studio - 沉浸式雨夜專注空間</title>
     
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#030712">
@@ -570,6 +570,7 @@
                 <div class="flex items-center space-x-1">
                     <button id="pipBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="懸浮時鐘 (Alt + P)"><i class="fa-solid fa-arrow-up-right-from-square text-xs text-indigo-300"></i><span class="tooltip-text">子母畫面</span></button>
                     <button id="lowPerfToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="切換性能模式"><i id="lowPerfIcon" class="fa-solid fa-leaf text-xs text-green-400"></i><span id="lowPerfText" class="tooltip-text">性能: 標準</span></button>
+                    <button id="breathingToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="正念呼吸引導 (B)"><i class="fa-solid fa-lungs text-xs text-sky-300"></i><span class="tooltip-text">正念呼吸</span></button>
                     <button id="zenModeBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="Zen 沉浸專注模式"><i class="fa-solid fa-spa text-xs"></i><span class="tooltip-text">Zen 模式</span></button>
                     <button id="thunderToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="打雷視覺效果"><i id="thunderIcon" class="fa-solid fa-bolt text-xs text-white/50"></i><span class="tooltip-text">打雷效果</span></button>
                     <button id="openSettingsBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="進階設定"><i class="fa-solid fa-sliders text-xs"></i><span class="tooltip-text">進階設定</span></button>
@@ -584,40 +585,76 @@
         <i class="fa-solid fa-spa text-indigo-400 mr-2"></i>已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）
     </div>
 
-    <!-- 進階設定彈窗 (iOS Settings 原生視差滑動架構) -->
+    <!-- 正念呼吸引導 Modal -->
+    <div id="breathingModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-2xl flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 p-4 select-none">
+        <button id="closeBreathingBtn" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition active:scale-95 cursor-pointer z-20">
+            <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+
+        <div class="flex flex-col items-center max-w-md w-full text-center z-10 space-y-6 sm:space-y-8">
+            <div class="space-y-1">
+                <span class="text-xs font-mono text-sky-300 tracking-widest uppercase bg-sky-500/20 border border-sky-400/30 px-3.5 py-1 rounded-full"><i class="fa-solid fa-lungs mr-1.5"></i>正念沉浸呼吸</span>
+                <p id="breathingSubtitle" class="text-xs text-white/50 mt-2">深呼吸，調整節奏，重拾沉靜專注</p>
+            </div>
+
+            <!-- 動態擴張圓環 -->
+            <div class="relative flex items-center justify-center my-4 w-64 h-64 sm:w-72 sm:h-72">
+                <div id="breathingGlowCircle" class="absolute inset-0 rounded-full bg-sky-500/20 blur-3xl transition-transform duration-[4000ms] ease-in-out scale-75 opacity-60"></div>
+                <div id="breathingOuterRing" class="absolute inset-0 rounded-full border-2 border-sky-400/30 transition-transform duration-[4000ms] ease-in-out scale-75 shadow-[0_0_50px_rgba(56,189,248,0.2)]"></div>
+                <div id="breathingInnerRing" class="absolute inset-4 rounded-full border border-sky-300/40 bg-sky-500/10 backdrop-blur-md transition-transform duration-[4000ms] ease-in-out scale-75 flex flex-col items-center justify-center p-4">
+                    <span id="breathingPhaseText" class="text-2xl sm:text-3xl font-light tracking-widest text-white text-shadow-glow">吸氣</span>
+                    <span id="breathingTimerText" class="text-4xl sm:text-5xl font-mono font-extralight text-sky-200 mt-2">4</span>
+                </div>
+            </div>
+
+            <!-- 呼吸模式選擇器 -->
+            <div class="flex flex-col space-y-3 w-full max-w-xs">
+                <div class="grid grid-cols-3 gap-2 text-xs">
+                    <button onclick="setBreathingTechnique('box')" id="btnBreathBox" class="bg-sky-500/20 border border-sky-400/40 text-sky-200 py-2 rounded-xl font-semibold transition active:scale-95">4-4-4-4 箱式</button>
+                    <button onclick="setBreathingTechnique('relax')" id="btnBreathRelax" class="bg-white/5 border border-transparent text-white/70 hover:bg-white/10 py-2 rounded-xl font-semibold transition active:scale-95">4-7-8 放鬆</button>
+                    <button onclick="setBreathingTechnique('calm')" id="btnBreathCalm" class="bg-white/5 border border-transparent text-white/70 hover:bg-white/10 py-2 rounded-xl font-semibold transition active:scale-95">5-5 均勻</button>
+                </div>
+                <div class="flex items-center justify-between text-[11px] text-white/40 px-1 pt-1">
+                    <span id="breathingCycleCount" class="font-mono">已完成 0 次循環</span>
+                    <button id="toggleBreathSoundBtn" class="hover:text-white/80 transition flex items-center space-x-1"><i class="fa-solid fa-volume-high text-sky-400 mr-1"></i><span>提示音：開</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 進階設定彈窗 -->
     <div id="settingsModal" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-4 overflow-hidden">
         <div class="modal-slide-up glass-panel w-full max-w-2xl rounded-3xl flex flex-col border border-white/15 shadow-2xl overflow-hidden max-h-[90vh]">
-            <!-- 頂部標題列 -->
-            <div class="flex justify-between items-center border-b border-white/10 p-4 sm:p-6 bg-black/20 shrink-0 z-20">
-                <div class="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
-                    <button id="settingsBackBtn" class="hidden w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 items-center justify-center text-white transition-all duration-300 shrink-0 active:scale-90 mr-0.5" title="返回上一頁"><i class="fa-solid fa-chevron-left text-xs"></i></button>
-                    <i id="settingsHeaderIcon" class="fa-solid fa-sliders text-indigo-400 text-lg shrink-0 transition-all duration-300"></i>
-                    <h3 id="settingsHeaderTitle" class="font-bold text-white text-sm sm:text-base truncate transition-all duration-300">專注與顯示進階設定</h3>
+            <div class="flex justify-between items-center border-b border-white/10 p-5 sm:p-6 bg-black/20 shrink-0">
+                <button id="settingsBackBtn" class="hidden text-white/70 hover:text-white p-1.5 rounded-xl bg-white/10 transition active:scale-95 items-center justify-center mr-2">
+                    <i class="fa-solid fa-chevron-left text-xs"></i>
+                </button>
+                <div class="flex items-center space-x-3">
+                    <i id="settingsHeaderIcon" class="fa-solid fa-sliders text-indigo-400 text-lg"></i>
+                    <h3 id="settingsHeaderTitle" class="font-bold text-white text-base">專注與顯示進階設定</h3>
                 </div>
-                <button id="closeSettingsBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition shrink-0"><i class="fa-solid fa-xmark"></i></button>
+                <button id="closeSettingsBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            
-            <!-- 視差滑動容器 -->
-            <div id="settingsBodyViewport" class="relative flex-1 overflow-hidden min-h-[380px] sm:min-h-[400px] sm:flex sm:flex-row">
-                <!-- 第一層：分類選單清單 (iOS List Parallax Layer) -->
-                <div id="settingsCategoryList" class="ios-settings-page-transition w-full sm:w-1/3 border-b sm:border-b-0 sm:border-r border-white/10 p-3.5 sm:p-5 flex flex-col gap-2 overflow-y-auto custom-scrollbar bg-black/10 shrink-0">
-                    <button class="settings-tab-btn w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-amber-500/10 text-amber-300 text-xs font-semibold transition shrink-0 border border-amber-500/20 active:scale-[0.98]" data-tab="tab-visual" data-title="視覺與特效" data-icon="fa-solid fa-wand-magic-sparkles text-amber-400" data-active-bg="bg-amber-500/10" data-active-text="text-amber-300" data-active-border="border-amber-500/20">
+            <div class="flex flex-col sm:flex-row flex-1 overflow-hidden min-h-[400px] relative">
+                <!-- 第一層：分類選單頁 (iOS Category List Layer) -->
+                <div id="settingsCategoryList" class="ios-settings-page-transition w-full sm:w-1/3 border-b sm:border-b-0 sm:border-r border-white/10 p-4 sm:p-5 flex sm:flex-col gap-2 overflow-x-auto sm:overflow-y-auto custom-scrollbar bg-black/10 shrink-0">
+                    <button class="settings-tab-btn w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-amber-500/10 text-amber-300 text-xs font-semibold transition shrink-0 border border-amber-500/20" data-tab="tab-visual" data-title="視覺與特效" data-icon="fa-solid fa-wand-magic-sparkles text-amber-400" data-active-bg="bg-amber-500/10" data-active-text="text-amber-300" data-active-border="border-amber-500/20">
                         <div class="flex items-center space-x-3 text-left">
                             <i class="fa-solid fa-wand-magic-sparkles text-amber-400 w-4 text-center"></i>
                             <div>
                                 <div class="font-bold">視覺與特效</div>
-                                <div class="text-[10px] text-white/40 font-normal mt-0.5">雨滴速度、密度、玻璃物理與 FPS</div>
+                                <div class="text-[10px] text-white/40 font-normal mt-0.5">雨速、密度、玻璃水滴互動</div>
                             </div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-white/30 text-[11px] sm:hidden"></i>
                     </button>
-                    
+
                     <button class="settings-tab-btn w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-white/60 hover:bg-white/5 hover:text-white/80 text-xs font-semibold transition shrink-0 border border-transparent active:scale-[0.98]" data-tab="tab-clock" data-title="時鐘與外觀" data-icon="fa-regular fa-clock text-cyan-400" data-active-bg="bg-cyan-500/10" data-active-text="text-cyan-300" data-active-border="border-cyan-500/20">
                         <div class="flex items-center space-x-3 text-left">
                             <i class="fa-regular fa-clock text-cyan-400 w-4 text-center"></i>
                             <div>
                                 <div class="font-bold">時鐘與外觀</div>
-                                <div class="text-[10px] text-white/40 font-normal mt-0.5">字體風格、圓環樣式、尺寸縮放</div>
+                                <div class="text-[10px] text-white/40 font-normal mt-0.5">字體風格、尺寸、進度圓環</div>
                             </div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-white/30 text-[11px] sm:hidden"></i>
@@ -721,6 +758,7 @@
                         <div class="grid grid-cols-2 gap-2">
                             <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">開始 / 暫停倒數</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">Space</kbd></div>
                             <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">子母畫面時鐘</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-indigo-300">Alt + P</kbd></div>
+                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">正念呼吸引導</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-sky-300">B</kbd></div>
                             <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">折疊 / 展開按鈕</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-indigo-300">C</kbd></div>
                             <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">重設番茄鐘</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">R</kbd></div>
                             <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">跳過目前階段</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">N</kbd></div>
@@ -1015,6 +1053,9 @@
         };
 
         const themePalettes = {
+            morning_mist: { stops: ['#e2e8f0', '#cbd5e1', '#94a3b8'], bokeh: 'rgba(56, 189, 248, 0.35)', streak: 'rgba(51, 65, 85, 0.45)', isLight: true },
+            sunlit_shower: { stops: ['#fef3c7', '#fde68a', '#f59e0b'], bokeh: 'rgba(245, 158, 11, 0.35)', streak: 'rgba(120, 53, 15, 0.45)', isLight: true },
+            cloudy_daylight: { stops: ['#f1f5f9', '#e2e8f0', '#cbd5e1'], bokeh: 'rgba(99, 102, 241, 0.25)', streak: 'rgba(71, 85, 105, 0.45)', isLight: true },
             night_library: { stops: ['#1c130d', '#0d0908', '#030202'], bokeh: 'rgba(251, 146, 60, 0.25)', streak: 'rgba(254, 215, 170, 0.4)', isLight: false },
             cozy_cafe: { stops: ['#1a1024', '#0b0814', '#030208'], bokeh: 'rgba(192, 132, 252, 0.25)', streak: 'rgba(233, 213, 255, 0.4)', isLight: false },
             deep_emerald: { stops: ['#0a1a15', '#050d0b', '#020504'], bokeh: 'rgba(52, 211, 153, 0.25)', streak: 'rgba(167, 243, 208, 0.4)', isLight: false },
@@ -1022,16 +1063,172 @@
             midnight_ocean: { stops: ['#031026', '#020814', '#010205'], bokeh: 'rgba(96, 165, 250, 0.25)', streak: 'rgba(191, 219, 254, 0.4)', isLight: false },
             sunset_glow: { stops: ['#260d10', '#140608', '#050102'], bokeh: 'rgba(244, 63, 94, 0.25)', streak: 'rgba(254, 205, 211, 0.4)', isLight: false },
             nordic_aurora: { stops: ['#041c1c', '#020f0f', '#010505'], bokeh: 'rgba(45, 212, 191, 0.25)', streak: 'rgba(153, 246, 228, 0.4)', isLight: false },
-            starlight_zen: { stops: ['#10121c', '#08090f', '#020205'], bokeh: 'rgba(129, 140, 248, 0.25)', streak: 'rgba(199, 210, 254, 0.4)', isLight: false },
-            // 淺色主題定義
-            morning_mist: { stops: ['#f0f9ff', '#e0f2fe', '#bae6fd'], bokeh: 'rgba(14, 165, 233, 0.25)', streak: 'rgba(56, 189, 248, 0.65)', isLight: true },
-            sunlit_shower: { stops: ['#fffbeb', '#fef3c7', '#fde68a'], bokeh: 'rgba(245, 158, 11, 0.25)', streak: 'rgba(217, 119, 6, 0.55)', isLight: true },
-            cloudy_daylight: { stops: ['#f8fafc', '#f1f5f9', '#cbd5e1'], bokeh: 'rgba(99, 102, 241, 0.20)', streak: 'rgba(71, 85, 105, 0.50)', isLight: true }
+            starlight_zen: { stops: ['#10121c', '#08090f', '#020205'], bokeh: 'rgba(129, 140, 248, 0.25)', streak: 'rgba(199, 210, 254, 0.4)', isLight: false }
+        };
+
+        const breathingState = {
+            active: false,
+            technique: 'box', // 'box' (4-4-4-4), 'relax' (4-7-8), 'calm' (5-5)
+            phaseIndex: 0,
+            timer: 0,
+            completedCycles: 0,
+            interval: null,
+            soundEnabled: true
+        };
+
+        const breathingTechniques = {
+            box: {
+                name: '4-4-4-4 箱式呼吸',
+                subtitle: '美國海豹部隊專用，快速平復高壓與焦慮',
+                phases: [
+                    { name: '吸氣', duration: 4, scale: 1.25, glow: 'rgba(56, 189, 248, 0.4)', textCls: 'text-sky-200' },
+                    { name: '屏息', duration: 4, scale: 1.25, glow: 'rgba(168, 85, 247, 0.4)', textCls: 'text-purple-200' },
+                    { name: '呼氣', duration: 4, scale: 0.75, glow: 'rgba(99, 102, 241, 0.4)', textCls: 'text-indigo-200' },
+                    { name: '屏息', duration: 4, scale: 0.75, glow: 'rgba(45, 212, 191, 0.4)', textCls: 'text-teal-200' }
+                ]
+            },
+            relax: {
+                name: '4-7-8 放鬆呼吸',
+                subtitle: '哈佛醫師推薦，深層放鬆大腦與助眠減壓',
+                phases: [
+                    { name: '吸氣', duration: 4, scale: 1.3, glow: 'rgba(56, 189, 248, 0.4)', textCls: 'text-sky-200' },
+                    { name: '屏息', duration: 7, scale: 1.3, glow: 'rgba(251, 146, 60, 0.4)', textCls: 'text-amber-200' },
+                    { name: '呼氣', duration: 8, scale: 0.7, glow: 'rgba(244, 63, 94, 0.4)', textCls: 'text-rose-200' }
+                ]
+            },
+            calm: {
+                name: '5-5 均勻呼吸',
+                subtitle: '和諧安穩節奏，引導進入深層心流冥想',
+                phases: [
+                    { name: '吸氣', duration: 5, scale: 1.2, glow: 'rgba(52, 211, 153, 0.4)', textCls: 'text-emerald-200' },
+                    { name: '呼氣', duration: 5, scale: 0.8, glow: 'rgba(99, 102, 241, 0.4)', textCls: 'text-indigo-200' }
+                ]
+            }
         };
 
         function getClockEl(id) {
             return (state.pipWindow && state.pipWindow.document) ? (state.pipWindow.document.getElementById(id) || document.getElementById(id)) : document.getElementById(id);
         }
+
+        function playBreathPhaseTone(pitchMultiplier = 1.0) {
+            if (!breathingState.soundEnabled) return;
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const ctx = audioCtx || new AudioContext();
+                const osc = ctx.createOscillator(), g = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(320 * pitchMultiplier, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(440 * pitchMultiplier, ctx.currentTime + 0.3);
+                g.gain.setValueAtTime(0.08, ctx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
+                osc.connect(g); g.connect(ctx.destination);
+                osc.start(); osc.stop(ctx.currentTime + 1.25);
+            } catch(e){}
+        }
+
+        function updateBreathingUI() {
+            const tech = breathingTechniques[breathingState.technique];
+            const currentPhase = tech.phases[breathingState.phaseIndex];
+
+            const phaseTextEl = document.getElementById('breathingPhaseText');
+            const timerTextEl = document.getElementById('breathingTimerText');
+            const subtitleEl = document.getElementById('breathingSubtitle');
+            const glowCircle = document.getElementById('breathingGlowCircle');
+            const outerRing = document.getElementById('breathingOuterRing');
+            const innerRing = document.getElementById('breathingInnerRing');
+            const cycleCountEl = document.getElementById('breathingCycleCount');
+
+            if (phaseTextEl) { phaseTextEl.textContent = currentPhase.name; phaseTextEl.className = `text-2xl sm:text-3xl font-light tracking-widest text-shadow-glow ${currentPhase.textCls}`; }
+            if (timerTextEl) timerTextEl.textContent = breathingState.timer;
+            if (subtitleEl) subtitleEl.textContent = tech.subtitle;
+            if (cycleCountEl) cycleCountEl.textContent = `已完成 ${breathingState.completedCycles} 次循環`;
+
+            const transitionSec = currentPhase.duration;
+            if (glowCircle) {
+                glowCircle.style.transitionDuration = `${transitionSec}s`;
+                glowCircle.style.transform = `scale(${currentPhase.scale})`;
+                glowCircle.style.backgroundColor = currentPhase.glow;
+            }
+            if (outerRing) {
+                outerRing.style.transitionDuration = `${transitionSec}s`;
+                outerRing.style.transform = `scale(${currentPhase.scale})`;
+            }
+            if (innerRing) {
+                innerRing.style.transitionDuration = `${transitionSec}s`;
+                innerRing.style.transform = `scale(${currentPhase.scale})`;
+            }
+        }
+
+        function nextBreathingStep() {
+            const tech = breathingTechniques[breathingState.technique];
+            breathingState.timer--;
+
+            if (breathingState.timer <= 0) {
+                breathingState.phaseIndex = (breathingState.phaseIndex + 1) % tech.phases.length;
+                if (breathingState.phaseIndex === 0) breathingState.completedCycles++;
+                
+                const nextPhase = tech.phases[breathingState.phaseIndex];
+                breathingState.timer = nextPhase.duration;
+                playBreathPhaseTone(breathingState.phaseIndex === 0 ? 1.2 : 0.9);
+            }
+
+            updateBreathingUI();
+        }
+
+        function startBreathingGuide() {
+            breathingState.active = true;
+            breathingState.phaseIndex = 0;
+            breathingState.completedCycles = 0;
+            const tech = breathingTechniques[breathingState.technique];
+            breathingState.timer = tech.phases[0].duration;
+
+            const modal = document.getElementById('breathingModal');
+            if (modal) modal.classList.remove('opacity-0', 'pointer-events-none');
+
+            updateBreathingUI();
+            playBreathPhaseTone(1.0);
+
+            clearInterval(breathingState.interval);
+            breathingState.interval = setInterval(nextBreathingStep, 1000);
+        }
+
+        function stopBreathingGuide() {
+            breathingState.active = false;
+            clearInterval(breathingState.interval);
+            const modal = document.getElementById('breathingModal');
+            if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        window.setBreathingTechnique = function(type) {
+            if (!breathingTechniques[type]) return;
+            breathingState.technique = type;
+            breathingState.phaseIndex = 0;
+            breathingState.completedCycles = 0;
+            const tech = breathingTechniques[type];
+            breathingState.timer = tech.phases[0].duration;
+
+            const btns = { box: 'btnBreathBox', relax: 'btnBreathRelax', calm: 'btnBreathCalm' };
+            Object.keys(btns).forEach(key => {
+                const btn = document.getElementById(btns[key]);
+                if (!btn) return;
+                if (key === type) {
+                    btn.className = "bg-sky-500/20 border border-sky-400/40 text-sky-200 py-2 rounded-xl font-semibold transition active:scale-95";
+                } else {
+                    btn.className = "bg-white/5 border border-transparent text-white/70 hover:bg-white/10 py-2 rounded-xl font-semibold transition active:scale-95";
+                }
+            });
+
+            updateBreathingUI();
+            playBreathPhaseTone(1.1);
+        };
+
+        document.getElementById('breathingToggleBtn')?.addEventListener('click', startBreathingGuide);
+        document.getElementById('closeBreathingBtn')?.addEventListener('click', stopBreathingGuide);
+        document.getElementById('toggleBreathSoundBtn')?.addEventListener('click', () => {
+            breathingState.soundEnabled = !breathingState.soundEnabled;
+            const btn = document.getElementById('toggleBreathSoundBtn');
+            if (btn) btn.innerHTML = breathingState.soundEnabled ? `<i class="fa-solid fa-volume-high text-sky-400 mr-1"></i><span>提示音：開</span>` : `<i class="fa-solid fa-volume-xmark text-white/40 mr-1"></i><span>提示音：關</span>`;
+        });
 
         function syncUIFromState() {
             try {
@@ -2060,7 +2257,6 @@
 
             if (isMobile) {
                 if (isMobileSettingsSubView) {
-                    // 詳細層開啟：第一層向左微移 25% 並變暗，第二層從右側彈入
                     if (catList) {
                         catList.style.transform = 'translateX(-25%)';
                         catList.style.opacity = '0.3';
@@ -2081,7 +2277,6 @@
                         if (headerIcon) headerIcon.className = activeBtn.dataset.icon || 'fa-solid fa-sliders text-indigo-400 text-lg';
                     }
                 } else {
-                    // 分類層開啟：第一層復原，第二層滑回右側隱藏
                     if (catList) {
                         catList.style.transform = 'translateX(0)';
                         catList.style.opacity = '1';
@@ -2100,7 +2295,6 @@
                     if (headerIcon) headerIcon.className = 'fa-solid fa-sliders text-indigo-400 text-lg';
                 }
             } else {
-                // 電腦版 reset 復原雙欄排版
                 if (catList) {
                     catList.style.transform = '';
                     catList.style.opacity = '';
@@ -2223,6 +2417,7 @@
         window.addEventListener('keydown', (e) => {
             const activeEl = document.activeElement, isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
             if (e.key === 'Escape') {
+                if (breathingState.active) { stopBreathingGuide(); return; }
                 if (isZenMode) toggleZenMode(false);
                 closeIosThemeModal();
                 settingsModal?.classList.add('opacity-0', 'pointer-events-none'); whatsNewModal?.classList.add('opacity-0', 'pointer-events-none');
@@ -2236,6 +2431,7 @@
             if (isTyping) return;
             if (e.code === 'Space') { e.preventDefault(); document.getElementById('pomoMainBtn')?.click(); }
             if (e.altKey && (e.key === 'p' || e.key === 'P')) { e.preventDefault(); togglePictureInPicture(); }
+            if (e.key === 'b' || e.key === 'B') { e.preventDefault(); breathingState.active ? stopBreathingGuide() : startBreathingGuide(); }
             if (e.key === 'c' || e.key === 'C') { e.preventDefault(); foldPomoBtn?.click(); }
             if (e.key === 'r' || e.key === 'R') { e.preventDefault(); document.getElementById('pomoResetBtn')?.click(); }
             if (e.key === 'n' || e.key === 'N') { e.preventDefault(); document.getElementById('pomoModeBtn')?.click(); }
