@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AURA Studio - 沉浸式雨夜專注空間</title>
+    <title>AURA Studio - 一個專注時鐘。</title>
     
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#030712">
@@ -573,7 +573,11 @@
                     <button id="breathingToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="正念呼吸引導 (B)"><i class="fa-solid fa-lungs text-xs text-sky-300"></i><span class="tooltip-text">正念呼吸</span></button>
                     <button id="zenModeBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="Zen 沉浸專注模式"><i class="fa-solid fa-spa text-xs"></i><span class="tooltip-text">Zen 模式</span></button>
                     <button id="thunderToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="打雷視覺效果"><i id="thunderIcon" class="fa-solid fa-bolt text-xs text-white/50"></i><span class="tooltip-text">打雷效果</span></button>
-                    <button id="openSettingsBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="進階設定"><i class="fa-solid fa-sliders text-xs"></i><span class="tooltip-text">進階設定</span></button>
+                    <button id="openSettingsBtn" class="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="進階設定">
+                        <i class="fa-solid fa-sliders text-xs"></i>
+                        <span id="settingsBadge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center shadow-lg border border-slate-900 animate-pulse">1</span>
+                        <span class="tooltip-text">進階設定</span>
+                    </button>
                     <button id="fullscreenBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-md tooltip" title="全螢幕"><i class="fa-solid fa-expand text-xs" id="fsIcon"></i><span class="tooltip-text">全螢幕</span></button>
                 </div>
             </div>
@@ -685,7 +689,7 @@
                     <button id="openWhatsNewFromSettingsBtn" class="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-amber-300/80 hover:bg-amber-500/10 text-xs font-semibold transition shrink-0 border border-transparent active:scale-[0.98]">
                         <div class="flex items-center space-x-3 text-left">
                             <i class="fa-solid fa-sparkles text-amber-300 w-4 text-center"></i>
-                            <span>最新升級特色</span>
+                            <span id="whatsNewBtnText">最新升級特色</span>
                         </div>
                         <i class="fa-solid fa-chevron-right text-white/30 text-[11px] sm:hidden"></i>
                     </button>
@@ -1009,22 +1013,22 @@
             <div class="flex justify-between items-center border-b border-white/10 pb-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-9 h-9 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-base border border-indigo-500/30 shadow-lg shadow-indigo-500/10"><i class="fa-solid fa-sparkles"></i></div>
-                    <div><h3 class="font-bold text-white text-base">AURA 新功能特色</h3><p class="text-[10px] text-indigo-300/80 font-mono uppercase tracking-wider">Release Notes & Updates</p></div>
+                    <div><h3 class="font-bold text-white text-base">AURA Studio v1.0.0 正式版</h3><p class="text-[10px] text-indigo-300/80 font-mono uppercase tracking-wider">v1.0.0 Official Release Notes</p></div>
                 </div>
                 <button id="closeWhatsNewModalBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="space-y-3 text-xs">
                 <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                    <div class="w-7 h-7 rounded-xl bg-sky-600/30 text-sky-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-sun text-xs"></i></div>
-                    <div><h4 class="font-semibold text-white/90 mb-0.5">1. 白晝淺色主題選單</h4><p class="text-white/60 leading-relaxed text-[11px]">新增「晨霧雨露」、「日光溫室」與「雲海白晝」等質感淺色主題，適合日間專注體驗。</p></div>
+                    <div class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-wand-magic-sparkles text-xs"></i></div>
+                    <div><h4 class="font-semibold text-white/90 mb-0.5">1. 晝夜 11 款質感主題選單</h4><p class="text-white/60 leading-relaxed text-[11px]">新增晨霧雨露、日光溫室等淺色主題，搭配 iOS 風格滑動切換卡片與動態雨滴特效。</p></div>
                 </div>
                 <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                    <div class="w-7 h-7 rounded-xl bg-red-600/30 text-red-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-brands fa-youtube text-xs"></i></div>
-                    <div><h4 class="font-semibold text-white/90 mb-0.5">2. YouTube 音樂嵌入</h4><p class="text-white/60 leading-relaxed text-[11px]">在混音器抽屜中貼上任意 YouTube 專注音樂或直播網址即可背景持續播放，音樂不中斷。</p></div>
+                    <div class="w-7 h-7 rounded-xl bg-teal-500/20 text-teal-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-sliders text-xs"></i></div>
+                    <div><h4 class="font-semibold text-white/90 mb-0.5">2. 多軌聲學混音與 YouTube 音訊</h4><p class="text-white/60 leading-relaxed text-[11px]">支援雙耳節律 (α/β/θ)、雨聲與柴火獨立調音，並整合 YouTube 音樂背景持續播放。</p></div>
                 </div>
                 <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                    <div class="w-7 h-7 rounded-xl bg-indigo-600/30 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-arrow-up-right-from-square text-xs"></i></div>
-                    <div><h4 class="font-semibold text-white/90 mb-0.5">3. 圓形時鐘子母畫面 (PiP)</h4><p class="text-white/60 leading-relaxed text-[11px]">支援 Chrome 原生 Document PiP 與 Canvas 備用雙軌，倒數時間與雨夜視覺同步懸浮上方。</p></div>
+                    <div class="w-7 h-7 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-lungs text-xs"></i></div>
+                    <div><h4 class="font-semibold text-white/90 mb-0.5">3. PiP 懸浮時鐘與正念呼吸</h4><p class="text-white/60 leading-relaxed text-[11px]">原生支援跨分頁懸浮子母畫面時鐘，並內建箱式 (4-4-4-4) 與 4-7-8 放鬆呼吸引導節奏。</p></div>
                 </div>
             </div>
             <div class="pt-2 border-t border-white/10 flex items-center gap-2">
@@ -1032,7 +1036,7 @@
                 <a href="https://github.com/henry01151111/AURA-Studio/" target="_blank" rel="noopener noreferrer" class="flex-1 bg-white hover:bg-slate-100 text-slate-900 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-md active:scale-95"><i class="fa-brands fa-github text-sm"></i><span>GitHub 開源專案</span></a>
             </div>
             <div class="pt-1 flex flex-col space-y-2.5">
-                <button id="startFocusBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i><span>選擇主題，開始使用</span></button>
+                <button id="startFocusBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i><span>探索 v1.0.0 正式版，開始使用</span></button>
                 <div class="flex items-center justify-between px-1 text-[11px]"><label class="flex items-center space-x-2 text-white/50 cursor-pointer hover:text-white/80 transition"><input type="checkbox" id="dontShowWhatsNewAgain" class="w-3.5 h-3.5 accent-indigo-500 rounded cursor-pointer"><span>下次開啟時不再自動提示</span></label></div>
             </div>
         </div>
@@ -1041,7 +1045,8 @@
     <script>
         const STORAGE_KEY = 'aura_focus_studio_settings';
         const MEMO_STORAGE_KEY = 'aura_focus_studio_memo';
-        const WHATS_NEW_KEY = 'aura_whats_new_seen_v2';
+        const WHATS_NEW_KEY = 'aura_whats_new_seen_v1_0_0';
+        const BADGE_CLEARED_KEY = 'aura_v1_0_0_badge_cleared';
 
         const state = {
             lowPerformance: false, thunderEnabled: false, autoHideUI: false, glassInteraction: false, showFps: false,
@@ -1049,7 +1054,7 @@
             customQuoteText: "", clockFont: 'sans', clockScale: 1.0, ringStyle: 'simple', theme: 'night_library', youtubeVideoId: '',
             pomoMode: 'work', pomoRunning: false, pomoSecondsLeft: 25 * 60, pomoTotalSeconds: 25 * 60, pomoInterval: null,
             masterAudioOn: false, volumes: { rain: 0.7, alpha: 0.3, fire: 0.2, chime: 0.4 }, tasks: [{ id: 1, text: '範例事項', done: false }],
-            pipWindow: null, isPipActive: false, pipModeType: null
+            pipWindow: null, isPipActive: false
         };
 
         const themePalettes = {
@@ -1809,21 +1814,57 @@
         });
 
         async function togglePictureInPicture() {
-            if (state.isPipActive) { if (state.pipWindow) state.pipWindow.close(); return; }
+            if (state.isPipActive) { 
+                if (state.pipWindow) state.pipWindow.close(); 
+                return; 
+            }
             if ('documentPictureInPicture' in window) {
                 try {
                     const pipWin = await window.documentPictureInPicture.requestWindow({ width: 450, height: 450 });
-                    state.pipWindow = pipWin; state.isPipActive = true;
+                    state.pipWindow = pipWin; 
+                    state.isPipActive = true;
+
+                    // 複製主頁面 CSS 樣式
                     document.querySelectorAll('link[rel="stylesheet"]').forEach(l => pipWin.document.head.appendChild(l.cloneNode(true)));
-                    [...document.styleSheets].forEach(s => { try { if (s.cssRules) { const style = pipWin.document.createElement('style'); style.textContent = [...s.cssRules].map(r => r.cssText).join('\n'); pipWin.document.head.appendChild(style); } } catch(e){} });
+                    [...document.styleSheets].forEach(s => { 
+                        try { 
+                            if (s.cssRules) { 
+                                const style = pipWin.document.createElement('style'); 
+                                style.textContent = [...s.cssRules].map(r => r.cssText).join('\n'); 
+                                pipWin.document.head.appendChild(style); 
+                            } 
+                        } catch(e){} 
+                    });
+
+                    // 寫入 PiP 專用版面微調
                     const pipStyle = pipWin.document.createElement('style');
                     pipStyle.textContent = `body { background-color: #030712 !important; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; } #clockScaleWrapper { transform: scale(0.9) !important; }`;
                     pipWin.document.head.appendChild(pipStyle);
 
-                    const clockWrapper = document.getElementById('clockScaleWrapper'); pipWin.document.body.appendChild(clockWrapper);
-                    pipWin.addEventListener('pagehide', () => { document.getElementById('clockContainer').appendChild(clockWrapper); state.pipWindow = null; state.isPipActive = false; updateClock(); updatePomoDisplay(); });
+                    // 移入 DOM 時鐘組件
+                    const clockWrapper = document.getElementById('clockScaleWrapper'); 
+                    pipWin.document.body.appendChild(clockWrapper);
+
+                    // 關閉時自動還原 DOM 至主頁面
+                    pipWin.addEventListener('pagehide', () => { 
+                        document.getElementById('clockContainer').appendChild(clockWrapper); 
+                        state.pipWindow = null; 
+                        state.isPipActive = false; 
+                        updateClock(); 
+                        updatePomoDisplay(); 
+                    });
                     return;
-                } catch(e) { console.warn("Document PiP 啟動失敗:", e); }
+                } catch(e) { 
+                    console.warn("Document PiP 啟動失敗:", e); 
+                }
+            } else {
+                // 若瀏覽器不支援 Document PiP，顯示提示
+                const zenNotice = document.getElementById('zenNotice');
+                if (zenNotice) {
+                    zenNotice.innerHTML = `<i class="fa-solid fa-circle-info text-amber-400 mr-2"></i>您的瀏覽器尚未支援原生懸浮視窗（建議使用 Chrome / Edge 瀏覽器）`;
+                    zenNotice.classList.remove('opacity-0', '-translate-y-4');
+                    setTimeout(() => { zenNotice.classList.add('opacity-0', '-translate-y-4'); }, 4000);
+                }
             }
         }
         document.getElementById('pipBtn')?.addEventListener('click', togglePictureInPicture);
@@ -1841,9 +1882,40 @@
 
         const whatsNewModal = document.getElementById('whatsNewModal');
         function showWhatsNewModal() { if (whatsNewModal) whatsNewModal.classList.remove('opacity-0', 'pointer-events-none'); }
+        
+        function updateBadgeDisplay() {
+            const hasSeenWhatsNew = localStorage.getItem(WHATS_NEW_KEY) === 'true';
+            const badgeCleared = localStorage.getItem(BADGE_CLEARED_KEY) === 'true';
+
+            const settingsBadge = document.getElementById('settingsBadge');
+            const whatsNewBtnText = document.getElementById('whatsNewBtnText');
+
+            if (hasSeenWhatsNew && !badgeCleared) {
+                if (settingsBadge) settingsBadge.classList.remove('hidden');
+                if (whatsNewBtnText) {
+                    whatsNewBtnText.textContent = '發現新版本！';
+                    whatsNewBtnText.className = 'text-rose-400 font-bold animate-pulse';
+                }
+            } else {
+                if (settingsBadge) settingsBadge.classList.add('hidden');
+                if (whatsNewBtnText) {
+                    whatsNewBtnText.textContent = '最新升級特色';
+                    whatsNewBtnText.className = '';
+                }
+            }
+        }
+
+        function clearVersionBadge() {
+            localStorage.setItem(BADGE_CLEARED_KEY, 'true');
+            updateBadgeDisplay();
+        }
+
         function hideWhatsNewModal() {
             if (whatsNewModal) whatsNewModal.classList.add('opacity-0', 'pointer-events-none');
-            const dontShow = document.getElementById('dontShowWhatsNewAgain'); if (dontShow && dontShow.checked) localStorage.setItem(WHATS_NEW_KEY, 'true');
+            const dontShow = document.getElementById('dontShowWhatsNewAgain'); 
+            if (dontShow && dontShow.checked) localStorage.setItem(WHATS_NEW_KEY, 'true');
+            else localStorage.setItem(WHATS_NEW_KEY, 'true');
+            updateBadgeDisplay();
         }
         document.getElementById('closeWhatsNewModalBtn')?.addEventListener('click', hideWhatsNewModal);
         document.getElementById('startFocusBtn')?.addEventListener('click', () => {
@@ -1852,7 +1924,11 @@
                 openIosThemeModal();
             }, 300);
         });
-        document.getElementById('openWhatsNewFromSettingsBtn')?.addEventListener('click', () => { document.getElementById('settingsModal').classList.add('opacity-0', 'pointer-events-none'); showWhatsNewModal(); });
+        document.getElementById('openWhatsNewFromSettingsBtn')?.addEventListener('click', () => { 
+            clearVersionBadge();
+            document.getElementById('settingsModal').classList.add('opacity-0', 'pointer-events-none'); 
+            showWhatsNewModal(); 
+        });
 
         function renderTasks() {
             const listEl = document.getElementById('taskList'); if (!listEl) return;
@@ -2447,7 +2523,11 @@
 
         window.onload = () => {
             loadSettings(); syncUIFromState(); initRain(); renderRain(); renderTasks(); updatePomoDisplay(); updateClock(); resetAutoHideTimer();
-            if (!localStorage.getItem(WHATS_NEW_KEY)) setTimeout(showWhatsNewModal, 500);
+            if (!localStorage.getItem(WHATS_NEW_KEY)) {
+                setTimeout(showWhatsNewModal, 500);
+            } else {
+                updateBadgeDisplay();
+            }
 
             setTimeout(() => {
                 isPageLoaded = true;
