@@ -33,6 +33,7 @@
 
     <style>
         * { user-select: none; -webkit-user-select: none; box-sizing: border-box; }
+        input, textarea, select { user-select: text; -webkit-user-select: text; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #030712; color: #ffffff; transition: background-color 0.8s ease; }
         canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
         .canvas-layer { z-index: 2; }
@@ -59,8 +60,9 @@
         #appStage {
             position: fixed;
             inset: 0;
-            width: 100vw;
+            width: 100%;
             height: 100vh;
+            height: 100dvh;
             z-index: 20;
             transform-origin: center center;
             transition: transform 1.0s cubic-bezier(0.25, 1, 0.5, 1), border-radius 1.0s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 1.0s cubic-bezier(0.25, 1, 0.5, 1), border-color 1.0s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
@@ -412,11 +414,6 @@
         <div id="lightningOverlay" class="fixed inset-0 pointer-events-none z-[3] opacity-0 transition-opacity duration-75 mix-blend-screen bg-indigo-100/70"></div>
         <canvas id="lightningCanvas" class="fixed inset-0 pointer-events-none z-[3]"></canvas>
 
-        <!-- FPS 標籤 -->
-        <div id="fpsBadge" class="hud-element absolute top-4 left-4 z-30 flex items-center space-x-1.5 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 text-[11px] font-mono shadow-lg transition-all duration-300 opacity-0 pointer-events-none">
-            <span id="fpsDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span id="fpsValDisplay" class="text-emerald-300 font-semibold tracking-wider">60 FPS</span>
-        </div>
 
         <!-- 中央時鐘容器 -->
         <div id="clockContainer" class="absolute z-10 pointer-events-none transition-all duration-700 ease-out flex flex-col items-center justify-center p-6 text-center inset-0">
@@ -549,15 +546,16 @@
                 <span>長按背景來切換主題</span>
             </button>
 
-            <div class="glass-panel w-full px-4 py-2 rounded-2xl flex items-center justify-between shadow-2xl transition-all duration-300">
-                <div class="flex items-center space-x-1.5">
-                    <div id="pomoFullControls" class="hidden flex items-center space-x-2 transition-all duration-300">
+            <div id="pomoFullControls" class="hidden glass-panel w-full px-4 py-2 rounded-2xl flex items-center justify-center space-x-2 shadow-2xl transition-all duration-300">
                         <button id="pomoMainBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3.5 py-1.5 rounded-xl transition flex items-center space-x-1.5 shadow-md shadow-indigo-600/30">
                             <i class="fa-solid fa-play" id="pomoBtnIcon"></i><span id="pomoBtnLabel">開始專注 (25m)</span>
                         </button>
                         <button id="pomoModeBtn" class="bg-white/5 hover:bg-white/15 text-white/80 text-xs px-2.5 py-1.5 rounded-xl transition" title="切換短休息/長休息">短休息 (5m)</button>
                         <button id="pomoResetBtn" class="p-1.5 text-white/50 hover:text-white transition" title="重設番茄鐘"><i class="fa-solid fa-rotate-right text-xs"></i></button>
-                    </div>
+            </div>
+
+            <div class="glass-panel w-full px-4 py-2 rounded-2xl flex items-center justify-between shadow-2xl transition-all duration-300">
+                <div class="flex items-center space-x-1.5">
                     <button id="togglePomoFoldBtn" class="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-white/70 hover:text-white transition tooltip flex items-center space-x-1">
                         <i id="pomoFoldIcon" class="fa-solid fa-stopwatch text-xs text-indigo-400"></i>
                         <span id="pomoFoldMiniText" class="text-[11px] font-mono text-indigo-300 px-1">⏱️ 25m</span>
@@ -583,6 +581,12 @@
             </div>
         </div>
     </div>
+
+    <!-- FPS 標籤 (置於 #appStage 之外，永遠顯示在最上層) -->
+    <div id="fpsBadge" class="hud-element fixed top-4 left-4 z-[9999] flex items-center space-x-1.5 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 text-[11px] font-mono shadow-lg transition-all duration-300 opacity-0 pointer-events-none">
+            <span id="fpsDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="fpsValDisplay" class="text-emerald-300 font-semibold tracking-wider">60 FPS</span>
+        </div>
 
     <!-- Zen 模式提示 -->
     <div id="zenNotice" class="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-black/70 backdrop-blur-md border border-white/20 text-white/90 text-xs px-4 py-2 rounded-full pointer-events-none transition-all duration-500 opacity-0 transform -translate-y-4 shadow-xl">
@@ -1037,7 +1041,7 @@
             </div>
             <div class="pt-1 flex flex-col space-y-2.5">
                 <button id="startFocusBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i><span>探索 v1.0.1 正式版，開始使用</span></button>
-                <div class="flex items-center justify-between px-1 text-[11px]"><label class="flex items-center space-x-2 text-white/50 cursor-pointer hover:text-white/80 transition"><input type="checkbox" id="dontShowWhatsNewAgain" class="w-3.5 h-3.5 accent-indigo-500 rounded cursor-pointer"><span>下次開啟時不再自動提示</span></label></div>
+                <div class="flex items-center justify-between px-1 text-[11px]"><label class="flex items-center space-x-2 text-white/50 cursor-pointer hover:text-white/80 transition"><input type="checkbox" id="dontShowWhatsNewAgain" checked class="w-3.5 h-3.5 accent-indigo-500 rounded cursor-pointer"><span>下次開啟時不再自動提示</span></label></div>
             </div>
         </div>
     </div>
@@ -1118,8 +1122,8 @@
         function playBreathPhaseTone(pitchMultiplier = 1.0) {
             if (!breathingState.soundEnabled) return;
             try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                const ctx = audioCtx || new AudioContext();
+                if (!audioCtx) initAudioEngine();
+                const ctx = audioCtx; if (!ctx) return; resumeAudio();
                 const osc = ctx.createOscillator(), g = ctx.createGain();
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(320 * pitchMultiplier, ctx.currentTime);
@@ -1318,7 +1322,11 @@
         function loadSettings() {
             try {
                 const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) Object.assign(state, JSON.parse(saved));
+                if (saved) {
+                    Object.assign(state, JSON.parse(saved));
+                    if (!Array.isArray(state.tasks)) state.tasks = [];
+                    state.volumes = Object.assign({ rain: 0.7, alpha: 0.3, fire: 0.2, chime: 0.4 }, state.volumes || {});
+                }
             } catch(e) { console.warn('本地設定載入失敗:', e); }
         }
 
@@ -1341,7 +1349,7 @@
         function extractYouTubeId(url) {
             if (!url) return '';
             const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|live\/|watch\?v=|\&v=)([^#\&\?]*).*/);
-            return (match && match[2].length === 11) ? match[2] : (url.length === 11 ? url : '');
+            const id = (match && match[2].length === 11) ? match[2] : url; return /^[\w-]{11}$/.test(id) ? id : '';
         }
 
         function loadYouTubeVideo(videoUrlOrId, autoPlay = true) {
@@ -1380,7 +1388,7 @@
         
         let lastWidth = window.innerWidth, lastHeight = window.innerHeight;
         let lastAspect = window.innerWidth / window.innerHeight;
-        let resizePulseTimer = null, resizeEndTimer = null;
+        let resizePulseTimer = null, resizeEndTimer = null, resizeRainTimer = null;
         let isPageLoaded = false;
 
         function triggerResizePulse() {
@@ -1409,7 +1417,7 @@
         window.addEventListener('resize', () => {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
-            initRain();
+            clearTimeout(resizeRainTimer); resizeRainTimer = setTimeout(initRain, 200);
 
             const currentAspect = window.innerWidth / window.innerHeight;
             const widthDiff = Math.abs(window.innerWidth - lastWidth);
@@ -1426,8 +1434,12 @@
 
         let audioCtx = null, audioNodes = { rainSource: null, rainGain: null, alphaOscL: null, alphaOscR: null, alphaGain: null, fireSource: null, fireGain: null };
 
+        function resumeAudio() {
+            if (audioCtx && (audioCtx.state === 'suspended' || audioCtx.state === 'interrupted')) audioCtx.resume().catch(() => {});
+        }
+
         function initAudioEngine() {
-            if (audioCtx) return;
+            if (audioCtx) { resumeAudio(); return; }
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             audioCtx = new AudioContext();
 
@@ -1458,12 +1470,12 @@
 
         function updateBinauralFrequencies(diffHz) {
             if (!audioCtx) return;
-            if (audioNodes.alphaOscL && audioNodes.alphaOscR) { try { audioNodes.alphaOscL.stop(); audioNodes.alphaOscR.stop(); } catch(e){} }
+            if (audioNodes.alphaOscL && audioNodes.alphaOscR) { try { audioNodes.alphaOscL.stop(); audioNodes.alphaOscR.stop(); } catch(e){} try { if (audioNodes.alphaGain) audioNodes.alphaGain.disconnect(); } catch(e){} }
             const merger = audioCtx.createChannelMerger(2);
             audioNodes.alphaOscL = audioCtx.createOscillator(); audioNodes.alphaOscR = audioCtx.createOscillator();
             audioNodes.alphaOscL.type = 'sine'; audioNodes.alphaOscR.type = 'sine';
             audioNodes.alphaOscL.frequency.setValueAtTime(200, audioCtx.currentTime); audioNodes.alphaOscR.frequency.setValueAtTime(200 + parseFloat(diffHz), audioCtx.currentTime);
-            audioNodes.alphaGain = audioCtx.createGain(); audioNodes.alphaGain.gain.setValueAtTime(state.volumes.alpha * 0.08, audioCtx.currentTime);
+            audioNodes.alphaGain = audioCtx.createGain(); audioNodes.alphaGain.gain.setValueAtTime(state.volumes.alpha * 0.08 * (state.masterAudioOn ? 1 : 0), audioCtx.currentTime);
             audioNodes.alphaOscL.connect(merger, 0, 0); audioNodes.alphaOscR.connect(merger, 0, 1); merger.connect(audioNodes.alphaGain); audioNodes.alphaGain.connect(audioCtx.destination);
             audioNodes.alphaOscL.start(); audioNodes.alphaOscR.start();
         }
@@ -1480,7 +1492,7 @@
         }
 
         function playCompletionChime() {
-            if (!audioCtx || !state.soundChime) return;
+            if (!audioCtx || !state.soundChime) return; resumeAudio();
             const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
             osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.4);
             g.gain.setValueAtTime(0.2, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 3.0);
@@ -1507,7 +1519,7 @@
 
         window.addEventListener('mousemove', handlePointerMove, { passive: true });
         window.addEventListener('touchmove', handlePointerMove, { passive: true });
-        window.addEventListener('mouseleave', () => { mousePos.active = false; });
+        document.documentElement.addEventListener('mouseleave', () => { mousePos.active = false; });
         window.addEventListener('touchend', () => { mousePos.active = false; });
 
         class BackgroundStreak {
@@ -1686,6 +1698,7 @@
         }
 
         function renderRain() {
+            requestAnimationFrame(renderRain);
             updateFpsCounter(performance.now());
             const time = Date.now() * 0.0006 * state.speed;
             const palette = themePalettes[state.theme] || themePalettes.night_library;
@@ -1733,8 +1746,6 @@
             glassDrops.forEach(d => { d.update(); d.draw(); });
 
             renderCardLiveCanvases();
-
-            requestAnimationFrame(renderRain);
         }
 
         const studyQuotes = ["「專注於眼前的小事，平靜是進入高效流道的鑰匙。」", "「大腦就像肌肉，每一次抗拒分心都是一次深層強化。」", "「寧靜並非沒有噪音，而是心靈於風浪中的安定。」", "「不積跬步，無以至千里;不積小流，無以成江海。」", "「享受深層專注的當下，結果自然隨之而來。」"];
@@ -1774,44 +1785,69 @@
             const foldMiniText = document.getElementById('pomoFoldMiniText'); if (foldMiniText) foldMiniText.textContent = `⏱️ ${m}:${s}`;
         }
 
+        // ===== 番茄鐘 =====
+        // 以「結束時間戳」計算剩餘秒數：背景分頁的計時器被節流時，倒數也不會變慢
+        const POMO_NAMES = { work: '專注', shortBreak: '短休息', longBreak: '長休息' };
+        const POMO_NEXT = { work: 'shortBreak', shortBreak: 'longBreak', longBreak: 'work' };
+        Object.assign(state, { pomoDurations: { work: 25 * 60, shortBreak: 5 * 60, longBreak: 15 * 60 }, pomoEndAt: 0, pomoWorkDone: 0 });
+
+        function syncPomoLabels() {
+            const mins = m => Math.round(state.pomoDurations[m] / 60);
+            const labelEl = document.getElementById('pomoBtnLabel');
+            if (labelEl && !state.pomoRunning) labelEl.textContent = `開始${POMO_NAMES[state.pomoMode]} (${mins(state.pomoMode)}m)`;
+            const modeBtn = document.getElementById('pomoModeBtn'), nx = POMO_NEXT[state.pomoMode];
+            if (modeBtn) modeBtn.textContent = `切換${POMO_NAMES[nx]} (${mins(nx)}m)`;
+        }
+
+        function setPomoMode(mode) {
+            clearInterval(state.pomoInterval); state.pomoRunning = false;
+            state.pomoMode = mode;
+            state.pomoSecondsLeft = state.pomoTotalSeconds = state.pomoDurations[mode];
+            const icon = document.getElementById('pomoBtnIcon'); if (icon) icon.className = "fa-solid fa-play";
+            syncPomoLabels(); updatePomoDisplay();
+        }
+
+        function startPomoTicking() {
+            state.pomoRunning = true;
+            state.pomoEndAt = Date.now() + state.pomoSecondsLeft * 1000;
+            clearInterval(state.pomoInterval);
+            state.pomoInterval = setInterval(tickPomo, 250);
+            document.getElementById('pomoBtnIcon').className = "fa-solid fa-pause";
+            document.getElementById('pomoBtnLabel').textContent = "暫停倒數";
+        }
+
+        function finishPomo() {
+            clearInterval(state.pomoInterval); state.pomoRunning = false;
+            playCompletionChime();
+            if (state.pomoMode === 'work') state.pomoWorkDone++;
+            // 每完成 4 次專注進入長休息，其餘為短休息；休息結束回到專注
+            const next = state.pomoMode === 'work' ? (state.pomoWorkDone % 4 === 0 ? 'longBreak' : 'shortBreak') : 'work';
+            setPomoMode(next);
+            if (state.autoPomo) startPomoTicking();
+        }
+
+        function tickPomo() {
+            if (!state.pomoRunning) return;
+            const remaining = Math.max(0, Math.ceil((state.pomoEndAt - Date.now()) / 1000));
+            if (remaining !== state.pomoSecondsLeft) { state.pomoSecondsLeft = remaining; updatePomoDisplay(); }
+            if (remaining <= 0) finishPomo();
+        }
+
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) { tickPomo(); resumeAudio(); } });
+
         document.getElementById('pomoMainBtn')?.addEventListener('click', () => {
             initAudioEngine();
             if (state.pomoRunning) {
+                tickPomo(); if (!state.pomoRunning) return; // 剛好結束時交給 finishPomo 處理
                 clearInterval(state.pomoInterval); state.pomoRunning = false;
-                document.getElementById('pomoBtnIcon').className = "fa-solid fa-play"; document.getElementById('pomoBtnLabel').textContent = "繼續專注";
+                document.getElementById('pomoBtnIcon').className = "fa-solid fa-play";
+                document.getElementById('pomoBtnLabel').textContent = "繼續專注";
             } else {
-                state.pomoRunning = true; document.getElementById('pomoBtnIcon').className = "fa-solid fa-pause"; document.getElementById('pomoBtnLabel').textContent = "暫停倒數";
-                state.pomoInterval = setInterval(() => {
-                    state.pomoSecondsLeft--; updatePomoDisplay();
-                    if (state.pomoSecondsLeft <= 0) {
-                        clearInterval(state.pomoInterval); state.pomoRunning = false; playCompletionChime();
-                        if (state.autoPomo) {
-                            state.pomoMode = (state.pomoMode === 'work') ? 'shortBreak' : 'work';
-                            state.pomoSecondsLeft = state.pomoTotalSeconds = (state.pomoMode === 'shortBreak') ? 5 * 60 : 25 * 60;
-                            document.getElementById('pomoMainBtn').click();
-                        } else {
-                            if (state.pomoMode === 'work') { state.pomoMode = 'shortBreak'; state.pomoSecondsLeft = state.pomoTotalSeconds = 5 * 60; document.getElementById('pomoBtnLabel').textContent = "開始短休息 (5m)"; }
-                            else { state.pomoMode = 'work'; state.pomoSecondsLeft = state.pomoTotalSeconds = 25 * 60; document.getElementById('pomoBtnLabel').textContent = "開始專注 (25m)"; }
-                            document.getElementById('pomoBtnIcon').className = "fa-solid fa-play";
-                        }
-                        updatePomoDisplay();
-                    }
-                }, 1000);
+                startPomoTicking();
             }
         });
-
-        document.getElementById('pomoModeBtn')?.addEventListener('click', () => {
-            clearInterval(state.pomoInterval); state.pomoRunning = false;
-            if (state.pomoMode === 'work') { state.pomoMode = 'shortBreak'; state.pomoSecondsLeft = state.pomoTotalSeconds = 5 * 60; document.getElementById('pomoModeBtn').textContent = "切換長休息 (15m)"; document.getElementById('pomoBtnLabel').textContent = "開始短休息 (5m)"; }
-            else if (state.pomoMode === 'shortBreak') { state.pomoMode = 'longBreak'; state.pomoSecondsLeft = state.pomoTotalSeconds = 15 * 60; document.getElementById('pomoModeBtn').textContent = "切換專注 (25m)"; document.getElementById('pomoBtnLabel').textContent = "開始長休息 (15m)"; }
-            else { state.pomoMode = 'work'; state.pomoSecondsLeft = state.pomoTotalSeconds = 25 * 60; document.getElementById('pomoModeBtn').textContent = "短休息 (5m)"; document.getElementById('pomoBtnLabel').textContent = "開始專注 (25m)"; }
-            document.getElementById('pomoBtnIcon').className = "fa-solid fa-play"; updatePomoDisplay();
-        });
-
-        document.getElementById('pomoResetBtn')?.addEventListener('click', () => {
-            clearInterval(state.pomoInterval); state.pomoRunning = false; state.pomoSecondsLeft = state.pomoTotalSeconds;
-            document.getElementById('pomoBtnIcon').className = "fa-solid fa-play"; document.getElementById('pomoBtnLabel').textContent = "開始專注"; updatePomoDisplay();
-        });
+        document.getElementById('pomoModeBtn')?.addEventListener('click', () => setPomoMode(POMO_NEXT[state.pomoMode]));
+        document.getElementById('pomoResetBtn')?.addEventListener('click', () => setPomoMode(state.pomoMode));
 
         async function togglePictureInPicture() {
             if (state.isPipActive) { 
@@ -1874,10 +1910,10 @@
         document.getElementById('closePomoModalBtn')?.addEventListener('click', () => pomoCustomModal.classList.add('opacity-0', 'pointer-events-none'));
         window.setQuickPomo = function(mins) { document.getElementById('customMinutesInput').value = mins; }
         document.getElementById('saveCustomPomoBtn')?.addEventListener('click', () => {
-            const mins = parseInt(document.getElementById('customMinutesInput').value) || 25;
-            clearInterval(state.pomoInterval); state.pomoRunning = false; state.pomoSecondsLeft = state.pomoTotalSeconds = mins * 60;
-            document.getElementById('pomoBtnIcon').className = "fa-solid fa-play"; document.getElementById('pomoBtnLabel').textContent = `開始專注 (${mins}m)`;
-            updatePomoDisplay(); pomoCustomModal.classList.add('opacity-0', 'pointer-events-none');
+            const mins = Math.min(Math.max(parseInt(document.getElementById('customMinutesInput').value) || 25, 1), 180);
+            state.pomoDurations[state.pomoMode] = mins * 60; // 自訂時間套用在目前的階段，之後自動切換也沿用
+            setPomoMode(state.pomoMode);
+            pomoCustomModal.classList.add('opacity-0', 'pointer-events-none');
         });
 
         const whatsNewModal = document.getElementById('whatsNewModal');
@@ -1911,10 +1947,10 @@
         }
 
         function hideWhatsNewModal() {
-            if (whatsNewModal) whatsNewModal.classList.add('opacity-0', 'pointer-events-none');
-            const dontShow = document.getElementById('dontShowWhatsNewAgain'); 
-            if (dontShow && dontShow.checked) localStorage.setItem(WHATS_NEW_KEY, 'true');
-            else localStorage.setItem(WHATS_NEW_KEY, 'true');
+            if (!whatsNewModal || whatsNewModal.classList.contains('opacity-0')) return; // 沒開著就不處理
+            whatsNewModal.classList.add('opacity-0', 'pointer-events-none');
+            const dontShow = document.getElementById('dontShowWhatsNewAgain');
+            if (!dontShow || dontShow.checked) localStorage.setItem(WHATS_NEW_KEY, 'true');
             localStorage.setItem(BADGE_CLEARED_KEY, 'true');
             updateBadgeDisplay();
         }
@@ -1931,6 +1967,8 @@
             showWhatsNewModal(); 
         });
 
+        function escapeHTML(str) { return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
         function renderTasks() {
             const listEl = document.getElementById('taskList'); if (!listEl) return;
             listEl.innerHTML = ''; let uncompleted = 0;
@@ -1938,7 +1976,7 @@
                 if (!t.done) uncompleted++;
                 const item = document.createElement('div');
                 item.className = `flex items-center justify-between bg-black/30 p-2.5 rounded-xl border border-white/10 text-xs ${t.done ? 'opacity-50 line-through' : ''}`;
-                item.innerHTML = `<div class="flex items-center space-x-2 truncate"><button onclick="toggleTask(${t.id})" class="text-indigo-400 hover:text-indigo-300"><i class="fa-${t.done ? 'solid' : 'regular'} fa-circle-check"></i></button><span class="text-white/90 truncate">${t.text}</span></div><button onclick="deleteTask(${t.id})" class="text-white/30 hover:text-rose-400 text-xs"><i class="fa-solid fa-trash-can"></i></button>`;
+                item.innerHTML = `<div class="flex items-center space-x-2 truncate"><button onclick="toggleTask(${Number(t.id)})" class="text-indigo-400 hover:text-indigo-300"><i class="fa-${t.done ? 'solid' : 'regular'} fa-circle-check"></i></button><span class="text-white/90 truncate">${escapeHTML(t.text)}</span></div><button onclick="deleteTask(${Number(t.id)})" class="text-white/30 hover:text-rose-400 text-xs"><i class="fa-solid fa-trash-can"></i></button>`;
                 listEl.appendChild(item);
             });
             const badge = document.getElementById('taskCountBadge'); if (badge) badge.textContent = uncompleted;
@@ -2227,6 +2265,7 @@
 
         let isZenMode = false, autoHideTimer = null, isUIHiddenByIdle = false;
         const zenNotice = document.getElementById('zenNotice');
+        const zenNoticeDefaultHTML = zenNotice ? zenNotice.innerHTML : '';
 
         function hideUI() {
             const topHud = document.getElementById('topHud'), bottomHud = document.getElementById('bottomHud'), quoteDisplay = getClockEl('quoteDisplay');
@@ -2311,7 +2350,7 @@
             isZenMode = enable !== undefined ? enable : !isZenMode;
             if (isZenMode) {
                 hideUI(); taskDrawer?.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full'); audioMixerDrawer?.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full');
-                if (zenNotice) { zenNotice.classList.remove('opacity-0', '-translate-y-4'); setTimeout(() => { if (isZenMode && zenNotice) zenNotice.classList.add('opacity-0', '-translate-y-4'); }, 3000); }
+                if (zenNotice) { zenNotice.innerHTML = zenNoticeDefaultHTML; zenNotice.classList.remove('opacity-0', '-translate-y-4'); setTimeout(() => { if (isZenMode && zenNotice) zenNotice.classList.add('opacity-0', '-translate-y-4'); }, 3000); }
             } else {
                 showUI(); isUIHiddenByIdle = false; if (zenNotice) zenNotice.classList.add('opacity-0', '-translate-y-4'); resetAutoHideTimer();
             }
@@ -2479,9 +2518,23 @@
         document.getElementById('autoPomoToggle')?.addEventListener('change', e => { state.autoPomo = e.target.checked; saveSettings(); });
         document.getElementById('soundChimeToggle')?.addEventListener('change', e => { state.soundChime = e.target.checked; saveSettings(); });
 
+        function updateFsIcon() {
+            const icon = document.getElementById('fsIcon');
+            if (icon) icon.className = (document.fullscreenElement || document.webkitFullscreenElement) ? "fa-solid fa-compress text-xs" : "fa-solid fa-expand text-xs";
+        }
+        document.addEventListener('fullscreenchange', updateFsIcon);
+        document.addEventListener('webkitfullscreenchange', updateFsIcon);
         document.getElementById('fullscreenBtn')?.addEventListener('click', () => {
-            if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); document.getElementById('fsIcon').className = "fa-solid fa-compress text-sm"; }
-            else { document.exitFullscreen(); document.getElementById('fsIcon').className = "fa-solid fa-expand text-sm"; }
+            const el = document.documentElement;
+            const req = el.requestFullscreen || el.webkitRequestFullscreen;
+            const exit = document.exitFullscreen || document.webkitExitFullscreen;
+            if (document.fullscreenElement || document.webkitFullscreenElement) { if (exit) exit.call(document); return; }
+            if (req) { const p = req.call(el); if (p && p.catch) p.catch(() => {}); return; }
+            if (zenNotice) {
+                zenNotice.innerHTML = `<i class="fa-solid fa-circle-info text-amber-400 mr-2"></i>此瀏覽器不支援全螢幕（iPhone 請用「加入主畫面」以 App 模式開啟）`;
+                zenNotice.classList.remove('opacity-0', '-translate-y-4');
+                setTimeout(() => { zenNotice.classList.add('opacity-0', '-translate-y-4'); }, 4000);
+            }
         });
 
         let isPomoFolded = true;
@@ -2489,11 +2542,11 @@
         foldPomoBtn?.addEventListener('click', () => {
             isPomoFolded = !isPomoFolded;
             if (isPomoFolded) { fullPomoControls?.classList.add('hidden'); if (foldPomoIcon) foldPomoIcon.className = "fa-solid fa-stopwatch text-xs text-indigo-400"; foldMiniText?.classList.remove('hidden'); if (foldTooltip) foldTooltip.textContent = "展開控制按鈕"; }
-            else { fullPomoControls?.classList.remove('hidden'); if (foldPomoIcon) foldPomoIcon.className = "fa-solid fa-chevron-left text-xs"; foldMiniText?.classList.add('hidden'); if (foldTooltip) foldTooltip.textContent = "收納控制按鈕"; }
+            else { fullPomoControls?.classList.remove('hidden'); if (foldPomoIcon) foldPomoIcon.className = "fa-solid fa-chevron-down text-xs"; foldMiniText?.classList.add('hidden'); if (foldTooltip) foldTooltip.textContent = "收納控制按鈕"; }
         });
 
         window.addEventListener('keydown', (e) => {
-            const activeEl = document.activeElement, isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+            const activeEl = document.activeElement, isTyping = activeEl && (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeEl.tagName) || activeEl.isContentEditable);
             if (e.key === 'Escape') {
                 if (breathingState.active) { stopBreathingGuide(); return; }
                 if (isZenMode) toggleZenMode(false);
@@ -2502,13 +2555,14 @@
                 pomoCustomModal?.classList.add('opacity-0', 'pointer-events-none'); taskDrawer?.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full');
                 audioMixerDrawer?.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full'); return;
             }
+            if (e.ctrlKey || e.metaKey) return; // 不攔截瀏覽器組合鍵 (Ctrl/Cmd + R、F 等)
             if (isEditModeActive) {
                 if (e.key === 'ArrowLeft') { e.preventDefault(); scrollIosThemeCards(-1); return; }
                 if (e.key === 'ArrowRight') { e.preventDefault(); scrollIosThemeCards(1); return; }
             }
             if (isTyping) return;
             if (e.code === 'Space') { e.preventDefault(); document.getElementById('pomoMainBtn')?.click(); }
-            if (e.altKey && (e.key === 'p' || e.key === 'P')) { e.preventDefault(); togglePictureInPicture(); }
+            if (e.altKey && (e.code === 'KeyP' || e.key === 'p' || e.key === 'P')) { e.preventDefault(); togglePictureInPicture(); }
             if (e.key === 'b' || e.key === 'B') { e.preventDefault(); breathingState.active ? stopBreathingGuide() : startBreathingGuide(); }
             if (e.key === 'c' || e.key === 'C') { e.preventDefault(); foldPomoBtn?.click(); }
             if (e.key === 'r' || e.key === 'R') { e.preventDefault(); document.getElementById('pomoResetBtn')?.click(); }
@@ -2524,7 +2578,7 @@
         });
 
         window.onload = () => {
-            loadSettings(); syncUIFromState(); initRain(); renderRain(); renderTasks(); updatePomoDisplay(); updateClock(); resetAutoHideTimer();
+            loadSettings(); syncUIFromState(); initRain(); renderRain(); renderTasks(); updatePomoDisplay(); syncPomoLabels(); updateClock(); resetAutoHideTimer();
             if (!localStorage.getItem(WHATS_NEW_KEY)) {
                 setTimeout(showWhatsNewModal, 500);
             } else {
