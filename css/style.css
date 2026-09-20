@@ -1,0 +1,369 @@
+* { user-select: none; -webkit-user-select: none; box-sizing: border-box; }
+input, textarea, select { user-select: text; -webkit-user-select: text; }
+body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #030712; color: #ffffff; transition: background-color 0.8s ease; }
+canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+.canvas-layer { z-index: 2; }
+.hud-element { transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+.glass-panel { background: rgba(13, 18, 30, 0.82); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65); transition: background 0.6s ease, border-color 0.6s ease, color 0.6s ease, box-shadow 0.6s ease; }
+.text-shadow-glow { text-shadow: 0 0 30px rgba(255, 255, 255, 0.6), 0 0 60px rgba(99, 102, 241, 0.4); }
+.custom-scrollbar::-webkit-scrollbar { width: 4px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 8px; }
+.progress-ring-circle { transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%; }
+.drawer-slide { transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s ease; }
+.tooltip { position: relative; }
+.tooltip .tooltip-text { visibility: hidden; width: max-content; background-color: rgba(0, 0, 0, 0.88); color: #fff; text-align: center; border-radius: 6px; padding: 4px 8px; position: absolute; z-index: 50; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 0.7rem; border: 1px solid rgba(255, 255, 255, 0.1); pointer-events: none; }
+.tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
+.modal-slide-up { transform: translateY(100vh); transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1); }
+#whatsNewModal:not(.opacity-0) .modal-slide-up, #settingsModal:not(.opacity-0) .modal-slide-up, #pomoCustomModal:not(.opacity-0) .modal-slide-up { transform: translateY(0); }
+body.low-performance .drawer-slide, body.low-performance .modal-slide-up, body.low-performance #whatsNewModal, body.low-performance #settingsModal, body.low-performance #pomoCustomModal, body.low-performance #taskDrawer, body.low-performance #audioMixerDrawer, body.low-performance .hud-element, body.low-performance #appStage, body.low-performance .ios-mode-backdrop, body.low-performance .ios-adjacent-card, body.low-performance #iosThemeModal, body.low-performance #iosTopHeader, body.low-performance #iosBottomFooter, body.low-performance #iosPrevThemeBtn, body.low-performance #iosNextThemeBtn { transition: none !important; }
+.font-sans { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important; }
+.font-mono { font-family: 'JetBrains Mono', monospace !important; }
+.font-serif { font-family: 'Playfair Display', serif !important; }
+.ios-card-shadow { box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.95), 0 0 40px rgba(255, 255, 255, 0.08); }
+
+/* Master Grouped App Stage */
+#appStage {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 20;
+    transform-origin: center center;
+    transition: transform 1.0s cubic-bezier(0.25, 1, 0.5, 1), border-radius 1.0s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 1.0s cubic-bezier(0.25, 1, 0.5, 1), border-color 1.0s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
+    overflow: hidden;
+    pointer-events: auto;
+    border: 0px solid rgba(255, 255, 255, 0);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+#appStage.window-resize-press {
+    transform: scale(0.92) !important;
+    border-radius: 28px !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9) !important;
+}
+
+#appStage.window-resize-restore {
+    transform: scale(1.0) !important;
+    border-radius: 0px !important;
+    border: 0px solid rgba(255, 255, 255, 0) !important;
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0) !important;
+}
+
+body.ios-edit-entering #appStage {
+    transform: scale(0.62) translateY(-10px);
+    border-radius: 44px;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    box-shadow: 0 35px 90px -10px rgba(0, 0, 0, 0.95), 0 0 60px rgba(99, 102, 241, 0.35);
+    opacity: 1;
+}
+
+body.ios-edit-active #appStage {
+    transform: scale(0.62) translateY(-10px);
+    border-radius: 44px;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.ios-mode-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    background: radial-gradient(circle at center, rgba(15, 23, 42, 0.96) 0%, rgba(3, 7, 18, 0.99) 100%);
+    backdrop-filter: blur(35px);
+    -webkit-backdrop-filter: blur(35px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+body.ios-edit-entering .ios-mode-backdrop,
+body.ios-edit-active .ios-mode-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.ios-adjacent-card {
+    width: 78vw;
+    height: 68vh;
+    transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease, opacity 0.5s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+    transform: scale(0.88) translateY(20px);
+    opacity: 0.4;
+    filter: brightness(0.45) contrast(0.95);
+    border-radius: 44px;
+    overflow: hidden !important;
+}
+
+@media (min-width: 640px) {
+    .ios-adjacent-card {
+        width: 62vw;
+        height: 62vh;
+    }
+}
+
+body.ios-edit-active .ios-adjacent-card {
+    transform: scale(0.92) translateY(0);
+    opacity: 0.5;
+}
+
+body.ios-edit-active .ios-adjacent-card.is-centered {
+    transform: scale(1.0) translateY(0) !important;
+    opacity: 1 !important;
+    filter: brightness(1) contrast(1) !important;
+    border-color: rgba(255, 255, 255, 0.7) !important;
+    box-shadow: 0 35px 80px -10px rgba(0, 0, 0, 0.95), 0 0 50px rgba(99, 102, 241, 0.35) !important;
+}
+
+.card-bg-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 42px;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+/* iOS Parallax Slide Transitions for Mobile Settings */
+.ios-settings-page-transition {
+    transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.32s cubic-bezier(0.32, 0.72, 0, 1), filter 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Light Theme UI Adaptive Overrides */
+body.theme-is-light {
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+body.theme-is-light #settingsBackBtn {
+    color: #0f172a !important;
+    background-color: rgba(0, 0, 0, 0.08) !important;
+}
+body.theme-is-light #timeDisplay {
+    color: #0f172a !important;
+    text-shadow: 0 0 25px rgba(255, 255, 255, 0.9), 0 0 45px rgba(14, 165, 233, 0.3) !important;
+}
+body.theme-is-light #dateDisplay {
+    color: #0369a1 !important;
+}
+body.theme-is-light #pomoStatusBadge {
+    background-color: rgba(14, 165, 233, 0.18) !important;
+    border-color: rgba(14, 165, 233, 0.35) !important;
+    color: #0284c7 !important;
+}
+body.theme-is-light #quoteDisplay {
+    color: #334155 !important;
+}
+body.theme-is-light .glass-panel {
+    background: rgba(255, 255, 255, 0.75) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12) !important;
+    color: #0f172a !important;
+}
+body.theme-is-light #topHud button,
+body.theme-is-light #quickThemeBtn {
+    background-color: rgba(255, 255, 255, 0.78) !important;
+    color: #0f172a !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+}
+body.theme-is-light #pomoMainBtn {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+}
+body.theme-is-light #pomoModeBtn,
+body.theme-is-light #bottomHud button:not(#pomoMainBtn):not(#fullscreenBtn) {
+    background-color: rgba(0, 0, 0, 0.06) !important;
+    color: #1e293b !important;
+}
+body.theme-is-light #bottomHud button:not(#pomoMainBtn):not(#fullscreenBtn):hover {
+    background-color: rgba(0, 0, 0, 0.12) !important;
+}
+body.theme-is-light #clockContainer svg circle:first-child {
+    stroke: rgba(0, 0, 0, 0.12) !important;
+}
+body.theme-is-light #fpsBadge {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+body.theme-is-light #fpsValDisplay {
+    color: #047857 !important;
+}
+
+/* Light Theme - Settings Modal & Drawers Text Overrides */
+body.theme-is-light #settingsModal,
+body.theme-is-light #taskDrawer,
+body.theme-is-light #audioMixerDrawer,
+body.theme-is-light #pomoCustomModal,
+body.theme-is-light #whatsNewModal {
+    color: #0f172a;
+}
+
+body.theme-is-light #settingsModal {
+    background-color: rgba(15, 23, 42, 0.4) !important;
+    backdrop-filter: blur(16px);
+}
+
+body.theme-is-light #settingsModal .glass-panel,
+body.theme-is-light #taskDrawer.glass-panel,
+body.theme-is-light #audioMixerDrawer.glass-panel,
+body.theme-is-light #pomoCustomModal .glass-panel,
+body.theme-is-light #whatsNewModal .glass-panel {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+    color: #0f172a !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18) !important;
+}
+
+body.theme-is-light #settingsDetailContainer {
+    background-color: rgba(248, 250, 252, 0.96) !important;
+}
+
+/* Modal Header & Section Labels */
+body.theme-is-light #settingsModal h3,
+body.theme-is-light #whatsNewModal h3,
+body.theme-is-light #pomoCustomModal h3,
+body.theme-is-light #taskDrawer span,
+body.theme-is-light #audioMixerDrawer span {
+    color: #0f172a !important;
+}
+
+body.theme-is-light #settingsModal .bg-black\/20,
+body.theme-is-light #settingsModal .bg-black\/10 {
+    background-color: rgba(241, 245, 249, 0.85) !important;
+}
+
+body.theme-is-light #settingsModal .border-white\/10,
+body.theme-is-light #taskDrawer .border-white\/10,
+body.theme-is-light #audioMixerDrawer .border-white\/10,
+body.theme-is-light #pomoCustomModal .border-white\/10,
+body.theme-is-light #whatsNewModal .border-white\/10 {
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Generic Text Color Overrides for Light Mode Panels */
+body.theme-is-light .glass-panel .text-white,
+body.theme-is-light .glass-panel .text-white\/90,
+body.theme-is-light .glass-panel .text-white\/80,
+body.theme-is-light .glass-panel .text-white\/70 {
+    color: #0f172a !important;
+}
+
+body.theme-is-light .glass-panel .text-white\/60,
+body.theme-is-light .glass-panel .text-white\/50 {
+    color: #334155 !important;
+}
+
+body.theme-is-light .glass-panel .text-white\/40,
+body.theme-is-light .glass-panel .text-white\/30,
+body.theme-is-light .glass-panel .text-white\/25 {
+    color: #64748b !important;
+}
+
+/* Tab Navigation Buttons in Light Mode */
+body.theme-is-light .settings-tab-btn {
+    color: #475569 !important;
+}
+body.theme-is-light .settings-tab-btn:hover {
+    background-color: rgba(0, 0, 0, 0.06) !important;
+    color: #0f172a !important;
+}
+body.theme-is-light .settings-tab-btn.bg-amber-500\/10,
+body.theme-is-light .settings-tab-btn[data-tab="tab-visual"].bg-amber-500\/10 {
+    background-color: rgba(245, 158, 11, 0.18) !important;
+    color: #b45309 !important;
+    border-color: rgba(245, 158, 11, 0.35) !important;
+}
+body.theme-is-light .settings-tab-btn.bg-cyan-500\/10,
+body.theme-is-light .settings-tab-btn[data-tab="tab-clock"].bg-cyan-500\/10 {
+    background-color: rgba(6, 182, 212, 0.18) !important;
+    color: #0e7490 !important;
+    border-color: rgba(6, 182, 212, 0.35) !important;
+}
+body.theme-is-light .settings-tab-btn.bg-purple-500\/10,
+body.theme-is-light .settings-tab-btn[data-tab="tab-focus"].bg-purple-500\/10 {
+    background-color: rgba(168, 85, 247, 0.18) !important;
+    color: #7e22ce !important;
+    border-color: rgba(168, 85, 247, 0.35) !important;
+}
+body.theme-is-light .settings-tab-btn.bg-teal-500\/10,
+body.theme-is-light .settings-tab-btn[data-tab="tab-shortcuts"].bg-teal-500\/10 {
+    background-color: rgba(20, 184, 166, 0.18) !important;
+    color: #0f766e !important;
+    border-color: rgba(20, 184, 166, 0.35) !important;
+}
+
+/* Option buttons (Font / Scale / Ring style) */
+body.theme-is-light .font-btn.bg-white\/5,
+body.theme-is-light .size-btn.bg-white\/5,
+body.theme-is-light .ring-style-btn.bg-white\/5 {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    color: #334155 !important;
+}
+body.theme-is-light .font-btn.bg-white\/5:hover,
+body.theme-is-light .size-btn.bg-white\/5:hover,
+body.theme-is-light .ring-style-btn.bg-white\/5:hover {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+    color: #0f172a !important;
+}
+body.theme-is-light .font-btn.bg-cyan-500\/20,
+body.theme-is-light .size-btn.bg-cyan-500\/20,
+body.theme-is-light .ring-style-btn.bg-cyan-500\/20 {
+    background-color: rgba(6, 182, 212, 0.2) !important;
+    color: #0891b2 !important;
+    border-color: rgba(6, 182, 212, 0.4) !important;
+}
+
+/* Value Display Indicators */
+body.theme-is-light #speedVal,
+body.theme-is-light #densityVal {
+    color: #d97706 !important;
+}
+
+/* Inputs, Range Sliders, and Checkboxes in Light Mode */
+body.theme-is-light input[type="range"] {
+    background-color: rgba(0, 0, 0, 0.1) !important;
+}
+body.theme-is-light input[type="text"],
+body.theme-is-light input[type="number"],
+body.theme-is-light textarea,
+body.theme-is-light select {
+    background-color: rgba(241, 245, 249, 0.95) !important;
+    border-color: rgba(0, 0, 0, 0.15) !important;
+    color: #0f172a !important;
+}
+body.theme-is-light input[type="text"]::placeholder,
+body.theme-is-light textarea::placeholder {
+    color: #94a3b8 !important;
+}
+
+/* Shortcuts Legend Cards */
+body.theme-is-light #tab-shortcuts .bg-white\/5 {
+    background-color: rgba(241, 245, 249, 0.85) !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+body.theme-is-light #tab-shortcuts kbd {
+    background-color: #ffffff !important;
+    border-color: rgba(0, 0, 0, 0.18) !important;
+    color: #0f766e !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* Close Buttons */
+body.theme-is-light #closeSettingsBtn,
+body.theme-is-light #closeTaskDrawerBtn,
+body.theme-is-light #closeAudioMixerBtn,
+body.theme-is-light #closePomoModalBtn,
+body.theme-is-light #closeWhatsNewModalBtn {
+    color: #475569 !important;
+    background-color: rgba(0, 0, 0, 0.05) !important;
+}
+body.theme-is-light #closeSettingsBtn:hover,
+body.theme-is-light #closeTaskDrawerBtn:hover,
+body.theme-is-light #closeAudioMixerBtn:hover,
+body.theme-is-light #closePomoModalBtn:hover,
+body.theme-is-light #closeWhatsNewModalBtn:hover {
+    color: #0f172a !important;
+    background-color: rgba(0, 0, 0, 0.12) !important;
+}
