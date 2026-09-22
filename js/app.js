@@ -1,3 +1,40 @@
+        // 語言字典
+        const i18n = {
+            'zh-TW': {
+                taskBtn: '任務與草稿',
+                audioBtn: '專注音效',
+                pomoStatus: '專注階段 (25m)',
+                installBtn: '安裝 App'
+            },
+            'en': {
+                taskBtn: 'Tasks & Drafts',
+                audioBtn: 'Focus Sounds',
+                pomoStatus: 'Focus Phase (25m)',
+                installBtn: 'Install App'
+            }
+        };
+
+        let currentLang = 'zh-TW';
+
+        function updateLanguageUI() {
+            const dict = i18n[currentLang];
+            const taskBtn = document.querySelector('#toggleTaskDrawerBtn span.font-medium');
+            if (taskBtn) taskBtn.textContent = dict.taskBtn;
+            const audioBtn = document.querySelector('#toggleAudioMixerBtn span.font-medium');
+            if (audioBtn) audioBtn.textContent = dict.audioBtn;
+            const pomoStatus = document.getElementById('pomoStatusText');
+            if (pomoStatus) pomoStatus.textContent = dict.pomoStatus;
+            const pwaBtn = document.querySelector('#pwaInstallBtn span');
+            if (pwaBtn) pwaBtn.textContent = dict.installBtn;
+            const langBtnText = document.getElementById('langBtnText');
+            if (langBtnText) langBtnText.textContent = currentLang === 'zh-TW' ? 'EN' : '中文';
+        }
+
+        document.getElementById('langToggleBtn')?.addEventListener('click', () => {
+            currentLang = currentLang === 'zh-TW' ? 'en' : 'zh-TW';
+            updateLanguageUI();
+        });
+
         const STORAGE_KEY = 'aura_focus_studio_settings';
         const MEMO_STORAGE_KEY = 'aura_focus_studio_memo';
         const WHATS_NEW_KEY = 'aura_whats_new_seen_v1_0_2';
