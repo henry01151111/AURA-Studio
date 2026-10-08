@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW" class="h-full dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AURA Studio - 一個專注時鐘。</title>
+    <title id="docTitle">AURA Studio - 一個專注時鐘。</title>
     
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#030712">
@@ -31,7 +31,218 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <link rel="stylesheet" href="css/style.css">
+    <style>
+* { user-select: none; -webkit-user-select: none; box-sizing: border-box; }
+input, textarea, select { user-select: text; -webkit-user-select: text; }
+body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #030712; color: #ffffff; transition: background-color 0.8s ease; }
+canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+.canvas-layer { z-index: 2; }
+.hud-element { transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+.glass-panel { background: rgba(13, 18, 30, 0.82); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65); transition: background 0.6s ease, border-color 0.6s ease, color 0.6s ease, box-shadow 0.6s ease; }
+.text-shadow-glow { text-shadow: 0 0 30px rgba(255, 255, 255, 0.6), 0 0 60px rgba(99, 102, 241, 0.4); }
+.custom-scrollbar::-webkit-scrollbar { width: 4px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 8px; }
+.progress-ring-circle { transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%; }
+.drawer-slide { transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s ease; }
+.tooltip { position: relative; }
+.tooltip .tooltip-text { visibility: hidden; width: max-content; background-color: rgba(0, 0, 0, 0.88); color: #fff; text-align: center; border-radius: 6px; padding: 4px 8px; position: absolute; z-index: 50; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 0.7rem; border: 1px solid rgba(255, 255, 255, 0.1); pointer-events: none; }
+.tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
+.modal-slide-up { transform: translateY(100vh); transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1); }
+#whatsNewModal:not(.opacity-0) .modal-slide-up, #settingsModal:not(.opacity-0) .modal-slide-up, #pomoCustomModal:not(.opacity-0) .modal-slide-up { transform: translateY(0); }
+body.low-performance .drawer-slide, body.low-performance .modal-slide-up, body.low-performance #whatsNewModal, body.low-performance #settingsModal, body.low-performance #pomoCustomModal, body.low-performance #taskDrawer, body.low-performance #audioMixerDrawer, body.low-performance .hud-element, body.low-performance #appStage, body.low-performance .ios-mode-backdrop, body.low-performance .ios-adjacent-card, body.low-performance #iosThemeModal, body.low-performance #iosTopHeader, body.low-performance #iosBottomFooter, body.low-performance #iosPrevThemeBtn, body.low-performance #iosNextThemeBtn { transition: none !important; }
+.font-sans { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important; }
+.font-mono { font-family: 'JetBrains Mono', monospace !important; }
+.font-serif { font-family: 'Playfair Display', serif !important; }
+.ios-card-shadow { box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.95), 0 0 40px rgba(255, 255, 255, 0.08); }
+
+#appStage {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 20;
+    transform-origin: center center;
+    transition: transform 1.0s cubic-bezier(0.25, 1, 0.5, 1), border-radius 1.0s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 1.0s cubic-bezier(0.25, 1, 0.5, 1), border-color 1.0s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.4s ease;
+    overflow: hidden;
+    pointer-events: auto;
+    border: 0px solid rgba(255, 255, 255, 0);
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+#appStage.window-resize-press {
+    transform: scale(0.92) !important;
+    border-radius: 28px !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9) !important;
+}
+
+#appStage.window-resize-restore {
+    transform: scale(1.0) !important;
+    border-radius: 0px !important;
+    border: 0px solid rgba(255, 255, 255, 0) !important;
+    box-shadow: 0 0 0 rgba(0, 0, 0, 0) !important;
+}
+
+body.ios-edit-entering #appStage {
+    transform: scale(0.62) translateY(-10px);
+    border-radius: 44px;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    box-shadow: 0 35px 90px -10px rgba(0, 0, 0, 0.95), 0 0 60px rgba(99, 102, 241, 0.35);
+    opacity: 1;
+}
+
+body.ios-edit-active #appStage {
+    transform: scale(0.62) translateY(-10px);
+    border-radius: 44px;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.ios-mode-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    background: radial-gradient(circle at center, rgba(15, 23, 42, 0.96) 0%, rgba(3, 7, 18, 0.99) 100%);
+    backdrop-filter: blur(35px);
+    -webkit-backdrop-filter: blur(35px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+body.ios-edit-entering .ios-mode-backdrop,
+body.ios-edit-active .ios-mode-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.ios-adjacent-card {
+    width: 78vw;
+    height: 68vh;
+    transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), filter 0.5s ease, opacity 0.5s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+    transform: scale(0.88) translateY(20px);
+    opacity: 0.4;
+    filter: brightness(0.45) contrast(0.95);
+    border-radius: 44px;
+    overflow: hidden !important;
+}
+
+@media (min-width: 640px) {
+    .ios-adjacent-card {
+        width: 62vw;
+        height: 62vh;
+    }
+}
+
+body.ios-edit-active .ios-adjacent-card {
+    transform: scale(0.92) translateY(0);
+    opacity: 0.5;
+}
+
+body.ios-edit-active .ios-adjacent-card.is-centered {
+    transform: scale(1.0) translateY(0) !important;
+    opacity: 1 !important;
+    filter: brightness(1) contrast(1) !important;
+    border-color: rgba(255, 255, 255, 0.7) !important;
+    box-shadow: 0 35px 80px -10px rgba(0, 0, 0, 0.95), 0 0 50px rgba(99, 102, 241, 0.35) !important;
+}
+
+.card-bg-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 42px;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.ios-settings-page-transition {
+    transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.32s cubic-bezier(0.32, 0.72, 0, 1), filter 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+body.theme-is-light {
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+body.theme-is-light #settingsBackBtn {
+    color: #0f172a !important;
+    background-color: rgba(0, 0, 0, 0.08) !important;
+}
+body.theme-is-light #timeDisplay {
+    color: #0f172a !important;
+    text-shadow: 0 0 25px rgba(255, 255, 255, 0.9), 0 0 45px rgba(14, 165, 233, 0.3) !important;
+}
+body.theme-is-light #dateDisplay {
+    color: #0369a1 !important;
+}
+body.theme-is-light #pomoStatusBadge {
+    background-color: rgba(14, 165, 233, 0.18) !important;
+    border-color: rgba(14, 165, 233, 0.35) !important;
+    color: #0284c7 !important;
+}
+body.theme-is-light #quoteDisplay {
+    color: #334155 !important;
+}
+body.theme-is-light .glass-panel {
+    background: rgba(255, 255, 255, 0.75) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12) !important;
+    color: #0f172a !important;
+}
+body.theme-is-light #topHud button,
+body.theme-is-light #quickThemeBtn {
+    background-color: rgba(255, 255, 255, 0.78) !important;
+    color: #0f172a !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+}
+body.theme-is-light #pomoMainBtn {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+}
+body.theme-is-light #pomoModeBtn,
+body.theme-is-light #bottomHud button:not(#pomoMainBtn):not(#fullscreenBtn) {
+    background-color: rgba(0, 0, 0, 0.06) !important;
+    color: #1e293b !important;
+}
+body.theme-is-light #bottomHud button:not(#pomoMainBtn):not(#fullscreenBtn):hover {
+    background-color: rgba(0, 0, 0, 0.12) !important;
+}
+body.theme-is-light #clockContainer svg circle:first-child {
+    stroke: rgba(0, 0, 0, 0.12) !important;
+}
+body.theme-is-light #fpsBadge {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+body.theme-is-light #fpsValDisplay {
+    color: #047857 !important;
+}
+body.theme-is-light #settingsModal,
+body.theme-is-light #taskDrawer,
+body.theme-is-light #audioMixerDrawer,
+body.theme-is-light #pomoCustomModal,
+body.theme-is-light #whatsNewModal {
+    color: #0f172a;
+}
+body.theme-is-light #settingsModal {
+    background-color: rgba(15, 23, 42, 0.4) !important;
+    backdrop-filter: blur(16px);
+}
+body.theme-is-light #settingsModal .glass-panel,
+body.theme-is-light #taskDrawer.glass-panel,
+body.theme-is-light #audioMixerDrawer.glass-panel,
+body.theme-is-light #pomoCustomModal .glass-panel,
+body.theme-is-light #whatsNewModal .glass-panel {
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+    color: #0f172a !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.18) !important;
+}
+    </style>
 </head>
 <body class="font-sans antialiased overflow-hidden">
 
@@ -44,7 +255,6 @@
         <div id="lightningOverlay" class="fixed inset-0 pointer-events-none z-[3] opacity-0 transition-opacity duration-75 mix-blend-screen bg-indigo-100/70"></div>
         <canvas id="lightningCanvas" class="fixed inset-0 pointer-events-none z-[3]"></canvas>
 
-
         <!-- 中央時鐘容器 -->
         <div id="clockContainer" class="absolute z-10 pointer-events-none transition-all duration-700 ease-out flex flex-col items-center justify-center p-6 text-center inset-0">
             <div id="clockScaleWrapper" class="relative flex items-center justify-center pointer-events-auto group transition-transform duration-500 ease-out origin-center">
@@ -55,7 +265,7 @@
                 </svg>
                 <div class="absolute inset-0 flex flex-col items-center justify-center p-4 z-20">
                     <div id="timeDisplay" class="font-sans font-light text-5xl sm:text-7xl tracking-tight text-shadow-glow text-white/95">00:00:00</div>
-                    <div id="dateDisplay" class="font-mono text-xs sm:text-sm font-medium text-indigo-300/80 tracking-widest uppercase mt-2">2026年9月8日 星期二</div>
+                    <div id="dateDisplay" class="font-mono text-xs sm:text-sm font-medium text-indigo-300/80 tracking-widest uppercase mt-2">2026年10月8日 星期四</div>
                     <div id="pomoStatusBadge" class="mt-3 inline-flex items-center space-x-1.5 bg-indigo-500/20 border border-indigo-400/30 px-3 py-1 rounded-full text-xs font-medium text-indigo-300 cursor-pointer hover:bg-indigo-500/30 transition" title="點擊自訂倒數時間">
                         <span class="w-2 h-2 rounded-full bg-indigo-400 animate-ping"></span>
                         <span id="pomoStatusText">專注階段 (25m)</span>
@@ -65,12 +275,11 @@
             <div id="quoteDisplay" class="font-serif italic text-xs sm:text-sm text-white/70 max-w-lg mt-6 px-6 leading-relaxed transition-opacity duration-700" style="display: none;">「專注於眼前的小事，平靜是進入高效流道的鑰匙。」</div>
         </div>
 
-        <!-- 頂部工具列 -->
         <header id="topHud" class="hud-element absolute top-0 left-0 right-0 z-20 flex justify-between items-center p-4 sm:p-6 text-xs sm:text-sm">
             <div class="flex items-center space-x-3">
                 <button id="toggleTaskDrawerBtn" class="group flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 hover:border-indigo-400/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.25)] hover:scale-105 active:scale-95 text-white/90 transition-all duration-300 shadow-lg cursor-pointer">
                     <i class="fa-solid fa-list-check text-indigo-400 group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-300"></i>
-                    <span class="font-medium">任務與草稿</span>
+                    <span id="lblTasksBtn" class="font-medium">任務與草稿</span>
                     <span id="taskCountBadge" class="bg-indigo-600 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold group-hover:scale-110 transition-transform duration-300">0</span>
                 </button>
             </div>
@@ -80,10 +289,11 @@
                     <span id="langBtnText" class="font-medium">EN</span>
                 </button>
                 <button id="pwaInstallBtn" class="hidden flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-full border border-indigo-400/30 transition shadow-lg text-xs font-semibold">
-                    <i class="fa-solid fa-download"></i><span>安裝 App</span>
+                    <i class="fa-solid fa-download"></i><span id="lblInstallApp">安裝 App</span>
                 </button>
                 <button id="toggleAudioMixerBtn" class="group flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 hover:border-teal-400/50 hover:shadow-[0_0_15px_rgba(45,212,191,0.25)] hover:scale-105 active:scale-95 text-white/90 transition-all duration-300 shadow-lg cursor-pointer">
-                    <i class="fa-solid fa-headphones text-teal-400 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300"></i><span class="font-medium">專注音效</span>
+                    <i class="fa-solid fa-headphones text-teal-400 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300"></i>
+                    <span id="lblFocusSoundsBtn" class="font-medium">專注音效</span>
                 </button>
             </div>
         </header>
@@ -92,7 +302,7 @@
         <div id="taskDrawer" class="drawer-slide absolute top-20 left-4 z-30 w-80 sm:w-96 glass-panel rounded-3xl p-5 border border-white/15 shadow-2xl opacity-0 pointer-events-none -translate-x-full">
             <div class="flex justify-between items-center pb-3 border-b border-white/10 mb-4">
                 <div class="flex items-center space-x-2 text-indigo-300 font-semibold text-sm">
-                    <i class="fa-solid fa-book-bookmark"></i><span>任務與隨手筆記</span>
+                    <i class="fa-solid fa-book-bookmark"></i><span id="lblTaskDrawerTitle">任務與隨手筆記</span>
                 </div>
                 <button id="closeTaskDrawerBtn" class="text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -102,7 +312,7 @@
             </div>
             <div id="taskList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1 mb-4"></div>
             <div class="pt-3 border-t border-white/10">
-                <label class="block text-[11px] text-white/50 uppercase font-semibold mb-1.5">專注草稿備忘錄 (自動儲存)</label>
+                <label id="lblMemoTitle" class="block text-[11px] text-white/50 uppercase font-semibold mb-1.5">專注草稿備忘錄 (自動儲存)</label>
                 <textarea id="memoInput" rows="4" class="w-full bg-black/40 border border-white/15 rounded-xl p-3 text-xs text-white placeholder-white/25 focus:outline-none focus:border-indigo-500 transition resize-none custom-scrollbar" placeholder="在此記錄臨時想法、解題算式或待查資料..."></textarea>
             </div>
         </div>
@@ -111,31 +321,31 @@
         <div id="audioMixerDrawer" class="drawer-slide absolute top-20 right-4 z-30 w-80 glass-panel rounded-3xl p-5 border border-white/15 shadow-2xl opacity-0 pointer-events-none translate-x-full max-h-[85vh] overflow-y-auto custom-scrollbar">
             <div class="flex justify-between items-center pb-3 border-b border-white/10 mb-4">
                 <div class="flex items-center space-x-2 text-teal-300 font-semibold text-sm">
-                    <i class="fa-solid fa-sliders"></i><span>多軌專注音效混音器</span>
+                    <i class="fa-solid fa-sliders"></i><span id="lblMixerTitle">多軌專注音效混音器</span>
                 </div>
                 <button id="closeAudioMixerBtn" class="text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="space-y-4 text-xs">
                 <div class="flex items-center justify-between bg-white/5 p-3 rounded-2xl">
-                    <span class="text-white/80 font-medium">總聲音開關</span>
+                    <span id="lblMasterSound" class="text-white/80 font-medium">總聲音開關</span>
                     <button id="masterAudioToggle" class="bg-indigo-600 text-white px-3 py-1 rounded-xl font-semibold transition">已開啟</button>
                 </div>
                 <div>
                     <div class="flex justify-between text-white/70 font-medium mb-1">
-                        <span><i class="fa-solid fa-cloud-rain text-blue-400 mr-1.5"></i>真實溫馨雨聲</span>
+                        <span><i class="fa-solid fa-cloud-rain text-blue-400 mr-1.5"></i><span id="lblRainSound">真實溫馨雨聲</span></span>
                         <span id="rainVolVal" class="text-indigo-300">70%</span>
                     </div>
                     <input id="rainVolSlider" type="range" min="0" max="1" step="0.05" value="0.7" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
                 </div>
                 <div>
                     <div class="flex justify-between text-white/70 font-medium mb-1">
-                        <span><i class="fa-solid fa-brain text-purple-400 mr-1.5"></i>雙耳節律 (Binaural Focus)</span>
+                        <span><i class="fa-solid fa-brain text-purple-400 mr-1.5"></i><span id="lblBinauralFocus">雙耳節律 (Binaural Focus)</span></span>
                         <span id="alphaVolVal" class="text-indigo-300">30%</span>
                     </div>
                     <input id="alphaVolSlider" type="range" min="0" max="1" step="0.05" value="0.3" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
                 </div>
                 <div class="pl-2 border-l-2 border-indigo-500/40 my-2">
-                    <label class="block text-white/60 mb-1 font-medium">雙耳節律頻段：</label>
+                    <label id="lblBinauralFreqLabel" class="block text-white/60 mb-1 font-medium">雙耳節律頻段：</label>
                     <select id="binauralSelect" class="w-full bg-black/50 border border-white/15 rounded-xl px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500 transition cursor-pointer">
                         <option value="10">α 波 (10Hz) - 深層專注與平靜</option>
                         <option value="18">β 波 (18Hz) - 高強度運算與邏輯</option>
@@ -144,21 +354,21 @@
                 </div>
                 <div>
                     <div class="flex justify-between text-white/70 font-medium mb-1">
-                        <span><i class="fa-solid fa-fire text-amber-400 mr-1.5"></i>溫馨柴火噼啪聲</span>
+                        <span><i class="fa-solid fa-fire text-amber-400 mr-1.5"></i><span id="lblFireplaceSound">溫馨柴火噼啪聲</span></span>
                         <span id="fireVolVal" class="text-indigo-300">20%</span>
                     </div>
                     <input id="fireVolSlider" type="range" min="0" max="1" step="0.05" value="0.2" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
                 </div>
                 <div>
                     <div class="flex justify-between text-white/70 font-medium mb-1">
-                        <span><i class="fa-solid fa-wind text-teal-300 mr-1.5"></i>微風與靜心磬音</span>
+                        <span><i class="fa-solid fa-wind text-teal-300 mr-1.5"></i><span id="lblChimeSound">微風與靜心磬音</span></span>
                         <span id="chimeVolVal" class="text-indigo-300">40%</span>
                     </div>
                     <input id="chimeVolSlider" type="range" min="0" max="1" step="0.05" value="0.4" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
                 </div>
                 <div class="pt-3 border-t border-white/10 mt-3">
                     <div class="flex items-center justify-between text-white/80 font-medium mb-1.5">
-                        <span><i class="fa-brands fa-youtube text-red-500 mr-1.5"></i>YouTube 專注音樂</span>
+                        <span><i class="fa-brands fa-youtube text-red-500 mr-1.5"></i><span id="lblYtMusic">YouTube 專注音樂</span></span>
                         <span id="ytStatusBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-white/40">未載入</span>
                     </div>
                     <div class="flex items-center space-x-1.5 mb-2">
@@ -177,15 +387,15 @@
         <div id="bottomHud" class="hud-element absolute bottom-5 left-1/2 -translate-x-1/2 z-20 w-full max-w-[520px] px-4 flex flex-col items-center space-y-2.5">
             <button id="quickThemeBtn" class="glass-panel px-3.5 py-1.5 rounded-full text-[11px] font-medium text-white/70 hover:text-white hover:bg-white/15 transition-all duration-300 flex items-center space-x-1.5 shadow-lg border border-white/10 active:scale-95 group">
                 <i class="fa-solid fa-wand-magic-sparkles text-indigo-400 group-hover:rotate-12 transition-transform duration-300"></i>
-                <span>長按背景來切換主題</span>
+                <span id="lblQuickThemeHint">長按背景來切換主題</span>
             </button>
 
             <div id="pomoFullControls" class="hidden glass-panel w-full px-4 py-2 rounded-2xl flex items-center justify-center space-x-2 shadow-2xl transition-all duration-300">
-                        <button id="pomoMainBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3.5 py-1.5 rounded-xl transition flex items-center space-x-1.5 shadow-md shadow-indigo-600/30">
-                            <i class="fa-solid fa-play" id="pomoBtnIcon"></i><span id="pomoBtnLabel">開始專注 (25m)</span>
-                        </button>
-                        <button id="pomoModeBtn" class="bg-white/5 hover:bg-white/15 text-white/80 text-xs px-2.5 py-1.5 rounded-xl transition" title="切換短休息/長休息">短休息 (5m)</button>
-                        <button id="pomoResetBtn" class="p-1.5 text-white/50 hover:text-white transition" title="重設番茄鐘"><i class="fa-solid fa-rotate-right text-xs"></i></button>
+                <button id="pomoMainBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3.5 py-1.5 rounded-xl transition flex items-center space-x-1.5 shadow-md shadow-indigo-600/30">
+                    <i class="fa-solid fa-play" id="pomoBtnIcon"></i><span id="pomoBtnLabel">開始專注 (25m)</span>
+                </button>
+                <button id="pomoModeBtn" class="bg-white/5 hover:bg-white/15 text-white/80 text-xs px-2.5 py-1.5 rounded-xl transition" title="切換短休息/長休息">短休息 (5m)</button>
+                <button id="pomoResetBtn" class="p-1.5 text-white/50 hover:text-white transition" title="重設番茄鐘"><i class="fa-solid fa-rotate-right text-xs"></i></button>
             </div>
 
             <div class="glass-panel w-full px-4 py-2 rounded-2xl flex items-center justify-between shadow-2xl transition-all duration-300">
@@ -200,31 +410,31 @@
                 <div class="h-4 w-[1px] bg-white/15 mx-1 hidden sm:block"></div>
 
                 <div class="flex items-center space-x-1">
-                    <button id="pipBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="懸浮時鐘 (Alt + P)"><i class="fa-solid fa-arrow-up-right-from-square text-xs text-indigo-300"></i><span class="tooltip-text">子母畫面</span></button>
+                    <button id="pipBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="懸浮時鐘 (Alt + P)"><i class="fa-solid fa-arrow-up-right-from-square text-xs text-indigo-300"></i><span class="tooltip-text" id="ttPip">子母畫面</span></button>
                     <button id="lowPerfToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="切換性能模式"><i id="lowPerfIcon" class="fa-solid fa-leaf text-xs text-green-400"></i><span id="lowPerfText" class="tooltip-text">性能: 標準</span></button>
-                    <button id="breathingToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="正念呼吸引導 (B)"><i class="fa-solid fa-lungs text-xs text-sky-300"></i><span class="tooltip-text">正念呼吸</span></button>
-                    <button id="zenModeBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="Zen 沉浸專注模式"><i class="fa-solid fa-spa text-xs"></i><span class="tooltip-text">Zen 模式</span></button>
-                    <button id="thunderToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="打雷視覺效果"><i id="thunderIcon" class="fa-solid fa-bolt text-xs text-white/50"></i><span class="tooltip-text">打雷效果</span></button>
+                    <button id="breathingToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="正念呼吸引導 (B)"><i class="fa-solid fa-lungs text-xs text-sky-300"></i><span class="tooltip-text" id="ttBreath">正念呼吸</span></button>
+                    <button id="zenModeBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="Zen 沉浸專注模式"><i class="fa-solid fa-spa text-xs"></i><span class="tooltip-text" id="ttZen">Zen 模式</span></button>
+                    <button id="thunderToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="打雷視覺效果"><i id="thunderIcon" class="fa-solid fa-bolt text-xs text-white/50"></i><span class="tooltip-text" id="ttThunder">打雷效果</span></button>
                     <button id="openSettingsBtn" class="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="進階設定">
                         <i class="fa-solid fa-sliders text-xs"></i>
                         <span id="settingsBadge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center shadow-lg border border-slate-900 animate-pulse">1</span>
-                        <span class="tooltip-text">進階設定</span>
+                        <span class="tooltip-text" id="ttSettings">進階設定</span>
                     </button>
-                    <button id="fullscreenBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-md tooltip" title="全螢幕"><i class="fa-solid fa-expand text-xs" id="fsIcon"></i><span class="tooltip-text">全螢幕</span></button>
+                    <button id="fullscreenBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-md tooltip" title="全螢幕"><i class="fa-solid fa-expand text-xs" id="fsIcon"></i><span class="tooltip-text" id="ttFullscreen">全螢幕</span></button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- FPS 標籤 (置於 #appStage 之外，永遠顯示在最上層) -->
+    <!-- FPS 標籤 -->
     <div id="fpsBadge" class="hud-element fixed top-4 left-4 z-[9999] flex items-center space-x-1.5 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 text-[11px] font-mono shadow-lg transition-all duration-300 opacity-0 pointer-events-none">
-            <span id="fpsDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span id="fpsValDisplay" class="text-emerald-300 font-semibold tracking-wider">60 FPS</span>
-        </div>
+        <span id="fpsDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="fpsValDisplay" class="text-emerald-300 font-semibold tracking-wider">60 FPS</span>
+    </div>
 
     <!-- Zen 模式提示 -->
     <div id="zenNotice" class="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-black/70 backdrop-blur-md border border-white/20 text-white/90 text-xs px-4 py-2 rounded-full pointer-events-none transition-all duration-500 opacity-0 transform -translate-y-4 shadow-xl">
-        <i class="fa-solid fa-spa text-indigo-400 mr-2"></i>已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）
+        <i class="fa-solid fa-spa text-indigo-400 mr-2"></i><span id="zenModeBanner">已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）</span>
     </div>
 
     <!-- 正念呼吸引導 Modal -->
@@ -235,7 +445,7 @@
 
         <div class="flex flex-col items-center max-w-md w-full text-center z-10 space-y-6 sm:space-y-8">
             <div class="space-y-1">
-                <span class="text-xs font-mono text-sky-300 tracking-widest uppercase bg-sky-500/20 border border-sky-400/30 px-3.5 py-1 rounded-full"><i class="fa-solid fa-lungs mr-1.5"></i>正念沉浸呼吸</span>
+                <span id="lblBreathingTitle" class="text-xs font-mono text-sky-300 tracking-widest uppercase bg-sky-500/20 border border-sky-400/30 px-3.5 py-1 rounded-full"><i class="fa-solid fa-lungs mr-1.5"></i>正念沉浸呼吸</span>
                 <p id="breathingSubtitle" class="text-xs text-white/50 mt-2">深呼吸，調整節奏，重拾沉靜專注</p>
             </div>
 
@@ -249,7 +459,6 @@
                 </div>
             </div>
 
-            <!-- 呼吸模式選擇器 -->
             <div class="flex flex-col space-y-3 w-full max-w-xs">
                 <div class="grid grid-cols-3 gap-2 text-xs">
                     <button onclick="setBreathingTechnique('box')" id="btnBreathBox" class="bg-sky-500/20 border border-sky-400/40 text-sky-200 py-2 rounded-xl font-semibold transition active:scale-95">4-4-4-4 箱式</button>
@@ -258,7 +467,7 @@
                 </div>
                 <div class="flex items-center justify-between text-[11px] text-white/40 px-1 pt-1">
                     <span id="breathingCycleCount" class="font-mono">已完成 0 次循環</span>
-                    <button id="toggleBreathSoundBtn" class="hover:text-white/80 transition flex items-center space-x-1"><i class="fa-solid fa-volume-high text-sky-400 mr-1"></i><span>提示音：開</span></button>
+                    <button id="toggleBreathSoundBtn" class="hover:text-white/80 transition flex items-center space-x-1"><i class="fa-solid fa-volume-high text-sky-400 mr-1"></i><span id="lblChimeToggle">提示音：開</span></button>
                 </div>
             </div>
         </div>
@@ -278,14 +487,14 @@
                 <button id="closeSettingsBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="flex flex-col sm:flex-row flex-1 overflow-hidden min-h-[400px] relative">
-                <!-- 第一層：分類選單頁 (iOS Category List Layer) -->
+                <!-- 第一層：分類選單頁 -->
                 <div id="settingsCategoryList" class="ios-settings-page-transition w-full sm:w-1/3 sm:border-r border-white/10 p-4 sm:p-5 flex flex-col gap-2 overflow-y-auto custom-scrollbar bg-black/10 shrink-0">
                     <button class="settings-tab-btn w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-amber-500/10 text-amber-300 text-xs font-semibold transition shrink-0 border border-amber-500/20" data-tab="tab-visual" data-title="視覺與特效" data-icon="fa-solid fa-wand-magic-sparkles text-amber-400" data-active-bg="bg-amber-500/10" data-active-text="text-amber-300" data-active-border="border-amber-500/20">
                         <div class="flex items-center space-x-3 text-left">
                             <i class="fa-solid fa-wand-magic-sparkles text-amber-400 w-4 text-center"></i>
                             <div>
-                                <div class="font-bold">視覺與特效</div>
-                                <div class="text-[10px] text-white/40 font-normal mt-0.5">雨速、密度、玻璃水滴互動</div>
+                                <div class="font-bold" id="tabTitleVisual">視覺與特效</div>
+                                <div class="text-[10px] text-white/40 font-normal mt-0.5" id="tabSubVisual">雨速、密度、玻璃水滴互動</div>
                             </div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-white/30 text-[11px] sm:hidden"></i>
@@ -295,8 +504,8 @@
                         <div class="flex items-center space-x-3 text-left">
                             <i class="fa-regular fa-clock text-cyan-400 w-4 text-center"></i>
                             <div>
-                                <div class="font-bold">時鐘與外觀</div>
-                                <div class="text-[10px] text-white/40 font-normal mt-0.5">字體風格、尺寸、進度圓環</div>
+                                <div class="font-bold" id="tabTitleClock">時鐘與外觀</div>
+                                <div class="text-[10px] text-white/40 font-normal mt-0.5" id="tabSubClock">字體風格、尺寸、進度圓環</div>
                             </div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-white/30 text-[11px] sm:hidden"></i>
@@ -306,8 +515,8 @@
                         <div class="flex items-center space-x-3 text-left">
                             <i class="fa-solid fa-brain text-purple-400 w-4 text-center"></i>
                             <div>
-                                <div class="font-bold">專注與系統</div>
-                                <div class="text-[10px] text-white/40 font-normal mt-0.5">自訂語錄、自動連播、提醒音效</div>
+                                <div class="font-bold" id="tabTitleFocus">專注與系統</div>
+                                <div class="text-[10px] text-white/40 font-normal mt-0.5" id="tabSubFocus">自訂語錄、自動連播、提醒音效</div>
                             </div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-white/30 text-[11px] sm:hidden"></i>
@@ -317,8 +526,8 @@
                         <div class="flex items-center space-x-3 text-left">
                             <i class="fa-solid fa-keyboard text-teal-400 w-4 text-center"></i>
                             <div>
-                                <div class="font-bold">快捷鍵指南</div>
-                                <div class="text-[10px] text-white/40 font-normal mt-0.5">高效全鍵盤快速鍵操控表</div>
+                                <div class="font-bold" id="tabTitleShortcuts">快捷鍵指南</div>
+                                <div class="text-[10px] text-white/40 font-normal mt-0.5" id="tabSubShortcuts">高效全鍵盤快速鍵操控表</div>
                             </div>
                         </div>
                         <i class="fa-solid fa-chevron-right text-white/30 text-[11px] sm:hidden"></i>
@@ -334,29 +543,29 @@
 
                     <button id="factoryResetBtn" class="w-full flex items-center space-x-3 px-4 py-3.5 rounded-2xl text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 text-xs font-semibold transition sm:mt-auto shrink-0 group border border-transparent active:scale-[0.98]">
                         <i class="fa-solid fa-rotate-left w-4 text-center group-hover:-rotate-180 transition-transform duration-500"></i>
-                        <span>恢復預設值</span>
+                        <span id="lblRestoreDefaults">恢復預設值</span>
                     </button>
                 </div>
 
-                <!-- 第二層：詳細設定內容頁 (iOS Detail Slide Layer) -->
+                <!-- 第二層：詳細設定內容頁 -->
                 <div id="settingsDetailContainer" class="ios-settings-page-transition absolute inset-0 sm:static w-full sm:w-2/3 p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1 bg-slate-950/95 sm:bg-transparent backdrop-blur-xl sm:backdrop-blur-none z-10 sm:z-auto translate-x-full sm:translate-x-0 pointer-events-none sm:pointer-events-auto">
                     <div id="tab-visual" class="settings-tab-content space-y-6 text-xs block">
                         <div>
-                            <div class="flex justify-between font-semibold mb-2"><span class="text-white/70">雨滴滑落速度</span><span id="speedVal" class="text-amber-400 font-mono">1.0x</span></div>
+                            <div class="flex justify-between font-semibold mb-2"><span id="lblRainSpeed" class="text-white/70">雨滴滑落速度</span><span id="speedVal" class="text-amber-400 font-mono">1.0x</span></div>
                             <input id="speedSlider" type="range" min="0.3" max="2.0" step="0.1" value="1.0" class="w-full accent-amber-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
                         </div>
                         <div>
-                            <div class="flex justify-between font-semibold mb-2"><span class="text-white/70">玻璃水珠密度</span><span id="densityVal" class="text-amber-400 font-mono">標準</span></div>
+                            <div class="flex justify-between font-semibold mb-2"><span id="lblDropDensity" class="text-white/70">玻璃水珠密度</span><span id="densityVal" class="text-amber-400 font-mono">標準</span></div>
                             <input id="densitySlider" type="range" min="0.5" max="2.0" step="0.25" value="1.0" class="w-full accent-amber-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
                         </div>
                         <div class="pt-3 border-t border-white/10 space-y-4">
-                            <div class="flex items-center justify-between"><span class="text-white/80">滑鼠/觸控與雨滴玻璃互動</span><input type="checkbox" id="glassInteractionToggle" class="w-4 h-4 accent-amber-500 rounded cursor-pointer"></div>
-                            <div class="flex items-center justify-between"><span class="text-white/80">顯示即時 FPS 影格率</span><input type="checkbox" id="showFpsToggle" class="w-4 h-4 accent-amber-500 rounded cursor-pointer"></div>
+                            <div class="flex items-center justify-between"><span id="lblTouchInteraction" class="text-white/80">滑鼠/觸控與雨滴玻璃互動</span><input type="checkbox" id="glassInteractionToggle" class="w-4 h-4 accent-amber-500 rounded cursor-pointer"></div>
+                            <div class="flex items-center justify-between"><span id="lblShowLiveFps" class="text-white/80">顯示即時 FPS 影格率</span><input type="checkbox" id="showFpsToggle" class="w-4 h-4 accent-amber-500 rounded cursor-pointer"></div>
                         </div>
                     </div>
                     <div id="tab-clock" class="settings-tab-content space-y-6 text-xs hidden">
                         <div>
-                            <label class="block text-white/70 font-semibold mb-2">時鐘字體風格</label>
+                            <label id="lblClockFontStyle" class="block text-white/70 font-semibold mb-2">時鐘字體風格</label>
                             <div class="grid grid-cols-3 gap-2">
                                 <button onclick="setClockFont('sans')" class="font-btn bg-cyan-500/20 py-2 rounded-xl text-center text-cyan-200 font-semibold border border-cyan-500/30 transition">無襯線 (Sans)</button>
                                 <button onclick="setClockFont('mono')" class="font-btn bg-white/5 hover:bg-white/20 py-2 rounded-xl text-center text-white/80 border border-transparent transition">單寬碼 (Mono)</button>
@@ -364,14 +573,14 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-white/70 font-semibold mb-2">時鐘圓環樣式</label>
+                            <label id="lblRingStyle" class="block text-white/70 font-semibold mb-2">時鐘圓環樣式</label>
                             <div class="grid grid-cols-2 gap-2">
                                 <button onclick="setRingStyle('simple')" id="btnRingSimple" class="ring-style-btn bg-cyan-500/20 py-2 rounded-xl text-center text-cyan-200 font-semibold border border-cyan-500/30 transition">簡潔 (預設)</button>
                                 <button onclick="setRingStyle('refined')" id="btnRingRefined" class="ring-style-btn bg-white/5 hover:bg-white/20 py-2 rounded-xl text-center text-white/80 border border-transparent transition">精緻 (磨砂)</button>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-white/70 font-semibold mb-2">時鐘與進度圓環整體尺寸</label>
+                            <label id="lblClockScale" class="block text-white/70 font-semibold mb-2">時鐘與進度圓環整體尺寸</label>
                             <div class="grid grid-cols-4 gap-1.5">
                                 <button onclick="setClockScale(0.75)" class="size-btn bg-white/5 hover:bg-white/20 py-2 rounded-xl text-center text-white/80 border border-transparent transition text-[11px]">極簡 (0.75x)</button>
                                 <button onclick="setClockScale(1.0)" class="size-btn bg-cyan-500/20 py-2 rounded-xl text-center text-cyan-200 font-semibold border border-cyan-500/30 transition text-[11px]">標準 (1.0x)</button>
@@ -380,35 +589,35 @@
                             </div>
                         </div>
                         <div class="pt-3 border-t border-white/10 space-y-4">
-                            <div class="flex items-center justify-between"><span class="text-white/80">顯示 24 小時制時鐘</span><input type="checkbox" id="format24Toggle" checked class="w-4 h-4 accent-cyan-500 rounded cursor-pointer"></div>
-                            <div class="flex items-center justify-between"><span class="text-white/80">顯示即時秒數</span><input type="checkbox" id="showSecondsToggle" checked class="w-4 h-4 accent-cyan-500 rounded cursor-pointer"></div>
+                            <div class="flex items-center justify-between"><span id="lblUse24h" class="text-white/80">顯示 24 小時制時鐘</span><input type="checkbox" id="format24Toggle" checked class="w-4 h-4 accent-cyan-500 rounded cursor-pointer"></div>
+                            <div class="flex items-center justify-between"><span id="lblShowSeconds" class="text-white/80">顯示即時秒數</span><input type="checkbox" id="showSecondsToggle" checked class="w-4 h-4 accent-cyan-500 rounded cursor-pointer"></div>
                         </div>
                     </div>
                     <div id="tab-focus" class="settings-tab-content space-y-6 text-xs hidden">
                         <div>
-                            <label class="block text-white/70 font-semibold mb-1.5">自訂專注格言 / 座右銘</label>
+                            <label id="lblCustomMotto" class="block text-white/70 font-semibold mb-1.5">自訂專注格言 / 座右銘</label>
                             <input id="customQuoteInput" type="text" placeholder="輸入專屬激勵小語..." class="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500 transition">
                         </div>
                         <div class="pt-3 border-t border-white/10 space-y-4">
-                            <div class="flex items-center justify-between"><span class="text-white/80">顯示專注語錄</span><input type="checkbox" id="showQuoteToggle" class="w-4 h-4 accent-purple-500 rounded cursor-pointer"></div>
-                            <div class="flex items-center justify-between"><span class="text-white/80">番茄鐘階段自動連播</span><input type="checkbox" id="autoPomoToggle" class="w-4 h-4 accent-purple-500 rounded cursor-pointer"></div>
-                            <div class="flex items-center justify-between"><span class="text-white/80">倒數結束播放提醒聲音</span><input type="checkbox" id="soundChimeToggle" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer"></div>
-                            <div class="flex items-center justify-between"><span class="text-white/80">無操作 5 秒後自動隱藏介面</span><input type="checkbox" id="autoHideToggle" class="w-4 h-4 accent-purple-500 rounded cursor-pointer"></div>
+                            <div class="flex items-center justify-between"><span id="lblShowQuote" class="text-white/80">顯示專注語錄</span><input type="checkbox" id="showQuoteToggle" class="w-4 h-4 accent-purple-500 rounded cursor-pointer"></div>
+                            <div class="flex items-center justify-between"><span id="lblAutoPomo" class="text-white/80">番茄鐘階段自動連播</span><input type="checkbox" id="autoPomoToggle" class="w-4 h-4 accent-purple-500 rounded cursor-pointer"></div>
+                            <div class="flex items-center justify-between"><span id="lblSoundChime" class="text-white/80">倒數結束播放提醒聲音</span><input type="checkbox" id="soundChimeToggle" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer"></div>
+                            <div class="flex items-center justify-between"><span id="lblAutoHideUI" class="text-white/80">無操作 5 秒後自動隱藏介面</span><input type="checkbox" id="autoHideToggle" class="w-4 h-4 accent-purple-500 rounded cursor-pointer"></div>
                         </div>
                     </div>
                     <div id="tab-shortcuts" class="settings-tab-content space-y-3 text-xs hidden">
                         <div class="grid grid-cols-2 gap-2">
-                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">開始 / 暫停倒數</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">Space</kbd></div>
-                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">子母畫面時鐘</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-indigo-300">Alt + P</kbd></div>
-                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">正念呼吸引導</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-sky-300">B</kbd></div>
-                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">折疊 / 展開按鈕</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-indigo-300">C</kbd></div>
-                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">重設番茄鐘</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">R</kbd></div>
-                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">跳過目前階段</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">N</kbd></div>
-                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">Zen 沉浸模式</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">Z</kbd></div>
-                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">總聲音靜音</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">M</kbd></div>
-                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">任務與草稿</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">T</kbd></div>
-                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">專注音效</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">A</kbd></div>
-                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">開啟進階設定</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">S</kbd></div>
+                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span id="scPlayPause" class="text-white/80">開始 / 暫停倒數</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">Space</kbd></div>
+                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span id="scPip" class="text-white/80">子母畫面時鐘</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-indigo-300">Alt + P</kbd></div>
+                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span id="scBreath" class="text-white/80">正念呼吸引導</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-sky-300">B</kbd></div>
+                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span id="scFold" class="text-white/80">折疊 / 展開按鈕</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-indigo-300">C</kbd></div>
+                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span id="scReset" class="text-white/80">重設番茄鐘</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">R</kbd></div>
+                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span id="scSkip" class="text-white/80">跳過目前階段</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">N</kbd></div>
+                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span id="scZen" class="text-white/80">Zen 沉浸模式</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">Z</kbd></div>
+                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span id="scMute" class="text-white/80">總聲音靜音</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">M</kbd></div>
+                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span id="scTask" class="text-white/80">任務與草稿</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">T</kbd></div>
+                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span id="scAudio" class="text-white/80">專注音效</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">A</kbd></div>
+                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span id="scSettings" class="text-white/80">開啟進階設定</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">S</kbd></div>
                         </div>
                     </div>
                 </div>
@@ -420,11 +629,10 @@
     <div id="iosThemeModal" class="fixed inset-0 z-30 flex flex-col justify-between items-center py-6 sm:py-8 opacity-0 pointer-events-none transition-all duration-500 select-none overflow-hidden">
         
         <div id="iosTopHeader" class="flex flex-col items-center justify-center space-y-1 transition-transform duration-500 transform -translate-y-8 opacity-0 z-50">
-            <span class="text-xs font-mono text-indigo-300 tracking-widest uppercase bg-indigo-500/20 border border-indigo-400/30 px-3.5 py-1 rounded-full backdrop-blur-md"><i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>鎖定畫面主題</span>
-            <span class="text-[11px] text-white/50">左右滑動或點擊兩側按鈕切換專注主題氛圍</span>
+            <span id="lblThemeHeaderTag" class="text-xs font-mono text-indigo-300 tracking-widest uppercase bg-indigo-500/20 border border-indigo-400/30 px-3.5 py-1 rounded-full backdrop-blur-md"><i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>鎖定畫面主題</span>
+            <span id="lblThemeHeaderSub" class="text-[11px] text-white/50">左右滑動或點擊兩側按鈕切換專注主題氛圍</span>
         </div>
 
-        <!-- 螢幕兩側懸浮切換按鈕 -->
         <button id="iosPrevThemeBtn" class="absolute left-3 sm:left-8 top-1/2 -translate-y-1/2 z-50 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/10 hover:bg-white/25 active:scale-90 text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all duration-500 transform -translate-x-8 opacity-0 shadow-2xl cursor-pointer group" title="上一張主題">
             <i class="fa-solid fa-chevron-left text-sm sm:text-base group-hover:-translate-x-0.5 transition-transform"></i>
         </button>
@@ -435,7 +643,6 @@
 
         <div id="iosCardsContainer" class="w-full flex items-center space-x-6 sm:space-x-12 overflow-x-auto px-[calc(50vw-39vw)] sm:px-[calc(50vw-31vw)] py-4 snap-x snap-mandatory custom-scrollbar my-auto z-40">
             
-            <!-- 淺色主題 1 - 晨霧雨露 -->
             <div data-ios-theme="morning_mist" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-slate-100/90 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
                 <canvas class="card-bg-canvas"></canvas>
                 <div class="flex justify-between items-center text-sky-900 text-xs sm:text-sm font-semibold z-10">
@@ -444,7 +651,7 @@
                 </div>
                 <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
                     <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-slate-800 text-shadow-glow">00:00:00</div>
-                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-sky-800 uppercase tracking-wider">2026年9月8日</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-sky-800 uppercase tracking-wider">2026年10月8日</div>
                 </div>
                 <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
                     <div class="text-[11px] sm:text-xs text-slate-700 text-center font-serif italic">晨光微熹，清爽水氣</div>
@@ -452,7 +659,6 @@
                 </div>
             </div>
 
-            <!-- 淺色主題 2 - 日光溫室 -->
             <div data-ios-theme="sunlit_shower" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-amber-50/90 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
                 <canvas class="card-bg-canvas"></canvas>
                 <div class="flex justify-between items-center text-amber-950 text-xs sm:text-sm font-semibold z-10">
@@ -461,7 +667,7 @@
                 </div>
                 <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
                     <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-slate-800 text-shadow-glow">00:00:00</div>
-                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-amber-900 uppercase tracking-wider">2026年9月8日</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-amber-900 uppercase tracking-wider">2026年10月8日</div>
                 </div>
                 <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
                     <div class="text-[11px] sm:text-xs text-amber-900/90 text-center font-serif italic">午後陽光，暖心白晝</div>
@@ -469,7 +675,6 @@
                 </div>
             </div>
 
-            <!-- 淺色主題 3 - 雲海白晝 -->
             <div data-ios-theme="cloudy_daylight" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-slate-100/90 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
                 <canvas class="card-bg-canvas"></canvas>
                 <div class="flex justify-between items-center text-slate-800 text-xs sm:text-sm font-semibold z-10">
@@ -478,7 +683,7 @@
                 </div>
                 <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
                     <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-slate-800 text-shadow-glow">00:00:00</div>
-                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-slate-700 uppercase tracking-wider">2026年9月8日</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-slate-700 uppercase tracking-wider">2026年10月8日</div>
                 </div>
                 <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
                     <div class="text-[11px] sm:text-xs text-slate-600 text-center font-serif italic">極簡純白，澄澈思緒</div>
@@ -486,7 +691,6 @@
                 </div>
             </div>
 
-            <!-- 預設主題卡片 (第 4 張) - 深夜圖書館 -->
             <div data-ios-theme="night_library" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-black/80 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
                 <canvas class="card-bg-canvas"></canvas>
                 <div class="flex justify-between items-center text-amber-200/90 text-xs sm:text-sm font-semibold z-10">
@@ -495,7 +699,7 @@
                 </div>
                 <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
                     <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
-                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年10月8日</div>
                 </div>
                 <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
                     <div class="text-[11px] sm:text-xs text-amber-200/70 text-center font-serif italic">暖黃燈光，沉靜書香</div>
@@ -503,7 +707,6 @@
                 </div>
             </div>
 
-            <!-- 第 5 張 - 雨夜咖啡館 -->
             <div data-ios-theme="cozy_cafe" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-black/80 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
                 <canvas class="card-bg-canvas"></canvas>
                 <div class="flex justify-between items-center text-purple-200/90 text-xs sm:text-sm font-semibold z-10">
@@ -512,7 +715,7 @@
                 </div>
                 <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
                     <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
-                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年10月8日</div>
                 </div>
                 <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
                     <div class="text-[11px] sm:text-xs text-purple-200/70 text-center font-serif italic">爵士雨音，微醺咖啡</div>
@@ -520,7 +723,6 @@
                 </div>
             </div>
 
-            <!-- 第 6 張 - 靜謐森林 -->
             <div data-ios-theme="deep_emerald" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-black/80 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
                 <canvas class="card-bg-canvas"></canvas>
                 <div class="flex justify-between items-center text-emerald-200/90 text-xs sm:text-sm font-semibold z-10">
@@ -529,7 +731,7 @@
                 </div>
                 <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
                     <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
-                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年10月8日</div>
                 </div>
                 <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
                     <div class="text-[11px] sm:text-xs text-emerald-200/70 text-center font-serif italic">綠意盎然，深呼吸平靜</div>
@@ -545,7 +747,7 @@
                 </div>
                 <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
                     <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
-                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年10月8日</div>
                 </div>
                 <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
                     <div class="text-[11px] sm:text-xs text-cyan-200/70 text-center font-serif italic">霓虹閃爍，科幻專注</div>
@@ -561,7 +763,7 @@
                 </div>
                 <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
                     <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
-                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年10月8日</div>
                 </div>
                 <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
                     <div class="text-[11px] sm:text-xs text-blue-200/70 text-center font-serif italic">波光粼粼，深海沉靜</div>
@@ -577,7 +779,7 @@
                 </div>
                 <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
                     <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
-                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年10月8日</div>
                 </div>
                 <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
                     <div class="text-[11px] sm:text-xs text-rose-200/70 text-center font-serif italic">黃昏暖陽，柔和晚霞</div>
@@ -593,7 +795,7 @@
                 </div>
                 <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
                     <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
-                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年10月8日</div>
                 </div>
                 <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
                     <div class="text-[11px] sm:text-xs text-teal-200/70 text-center font-serif italic">冷冽極光，奇幻空靈</div>
@@ -609,7 +811,7 @@
                 </div>
                 <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
                     <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-white/95 text-shadow-glow">00:00:00</div>
-                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年9月8日</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-indigo-300/80 uppercase tracking-wider">2026年10月8日</div>
                 </div>
                 <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
                     <div class="text-[11px] sm:text-xs text-indigo-200/70 text-center font-serif italic">繁星璀璨，宇宙浩瀚</div>
@@ -620,7 +822,7 @@
 
         <div id="iosBottomFooter" class="flex items-center justify-center transition-transform duration-500 transform translate-y-8 opacity-0 z-50">
             <button id="openSettingsFromIosModalBtn" class="bg-white/15 hover:bg-white/25 text-white font-semibold px-8 py-2.5 rounded-full shadow-2xl backdrop-blur-md border border-white/20 transition text-xs sm:text-sm active:scale-95 flex items-center space-x-2 cursor-pointer">
-                <i class="fa-solid fa-sliders text-xs text-indigo-300"></i><span>開啟進階設定</span>
+                <i class="fa-solid fa-sliders text-xs text-indigo-300"></i><span id="lblOpenAdvSettings">開啟進階設定</span>
             </button>
         </div>
     </div>
@@ -629,11 +831,11 @@
     <div id="pomoCustomModal" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-4 overflow-hidden">
         <div class="modal-slide-up glass-panel w-full max-w-sm rounded-3xl p-6 flex flex-col space-y-4 border border-white/15 shadow-2xl">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
-                <h3 class="font-bold text-white text-sm">自訂專注倒數時間</h3>
+                <h3 id="lblCustomPomoTitle" class="font-bold text-white text-sm">自訂專注倒數時間</h3>
                 <button id="closePomoModalBtn" class="text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="space-y-3 text-xs">
-                <div><label class="block text-white/60 mb-1">設定分鐘數：</label><input id="customMinutesInput" type="number" min="1" max="180" value="25" class="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-indigo-500"></div>
+                <div><label id="lblCustomPomoMinutes" class="block text-white/60 mb-1">設定分鐘數：</label><input id="customMinutesInput" type="number" min="1" max="180" value="25" class="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-indigo-500"></div>
                 <div class="flex gap-2">
                     <button onclick="setQuickPomo(15)" class="flex-1 bg-white/5 hover:bg-white/15 py-1.5 rounded-xl transition">15m</button>
                     <button onclick="setQuickPomo(25)" class="flex-1 bg-white/5 hover:bg-white/15 py-1.5 rounded-xl transition">25m</button>
@@ -645,40 +847,534 @@
         </div>
     </div>
 
-    <!-- What's New 升級提示彈窗 -->
+    <!-- What's New 升級提示彈窗 (v1.0.3) -->
     <div id="whatsNewModal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-4 overflow-hidden">
         <div class="modal-slide-up glass-panel w-full max-w-md rounded-3xl p-6 sm:p-7 flex flex-col space-y-5 max-h-[90vh] overflow-y-auto custom-scrollbar border border-indigo-500/30 shadow-2xl">
             <div class="flex justify-between items-center border-b border-white/10 pb-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-9 h-9 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-base border border-indigo-500/30 shadow-lg shadow-indigo-500/10"><i class="fa-solid fa-sparkles"></i></div>
-                    <div><h3 class="font-bold text-white text-base">AURA Studio v1.0.2 正式版</h3><p class="text-[10px] text-indigo-300/80 font-mono uppercase tracking-wider">v1.0.2 Official Release Notes</p></div>
+                    <div><h3 id="lblVersionTitle" class="font-bold text-white text-base">AURA Studio v1.0.3 正式版</h3><p class="text-[10px] text-indigo-300/80 font-mono uppercase tracking-wider">v1.0.3 Official Release Notes</p></div>
                 </div>
                 <button id="closeWhatsNewModalBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="space-y-3 text-xs">
                 <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
                     <div class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-stopwatch text-xs"></i></div>
-                    <div><h4 class="font-semibold text-white/90 mb-0.5">1. 更準確的番茄鐘</h4><p class="text-white/60 leading-relaxed text-[11px]">倒數改以結束時間計算，切到其他分頁也不會變慢；自動連播會沿用你自訂的時間，並在每 4 次專注後進入長休息。</p></div>
+                    <div><h4 id="lblFeature1Title" class="font-semibold text-white/90 mb-0.5">1. 更準確的番茄鐘</h4><p id="lblFeature1Desc" class="text-white/60 leading-relaxed text-[11px]">倒數改以結束時間計算，切到其他分頁也不會變慢；自動連播會沿用你自訂的時間，並在每 4 次專注後進入長休息。</p></div>
                 </div>
                 <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
                     <div class="w-7 h-7 rounded-xl bg-teal-500/20 text-teal-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-layer-group text-xs"></i></div>
-                    <div><h4 class="font-semibold text-white/90 mb-0.5">2. 控制列與 FPS 更順手</h4><p class="text-white/60 leading-relaxed text-[11px]">番茄鐘展開後，控制按鈕會移到工具列上方的第二行；即時 FPS 顯示器固定在最上層，不會被視窗蓋住。</p></div>
+                    <div><h4 id="lblFeature2Title" class="font-semibold text-white/90 mb-0.5">2. 控制列與 FPS 更順手</h4><p id="lblFeature2Desc" class="text-white/60 leading-relaxed text-[11px]">番茄鐘展開後，控制按鈕會移到工具列上方的第二行；即時 FPS 顯示器固定在最上層，不會被視窗蓋住。</p></div>
                 </div>
                 <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
                     <div class="w-7 h-7 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-screwdriver-wrench text-xs"></i></div>
-                    <div><h4 class="font-semibold text-white/90 mb-0.5">3. 穩定性與相容性修正</h4><p class="text-white/60 leading-relaxed text-[11px]">雙耳節律會遵守總聲音開關、Ctrl / Cmd 組合鍵不再被快捷鍵攔截、全螢幕圖示同步，並修正手機底部列被遮住與 Safari 輸入框無法輸入的問題。</p></div>
+                    <div><h4 id="lblFeature3Title" class="font-semibold text-white/90 mb-0.5">3. 穩定性與相容性修正</h4><p id="lblFeature3Desc" class="text-white/60 leading-relaxed text-[11px]">雙耳節律會遵守總聲音開關、Ctrl / Cmd 組合鍵不再被快捷鍵攔截、全螢幕圖示同步，並修正手機底部列被遮住與 Safari 輸入框無法輸入的問題。</p></div>
+                </div>
+                <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
+                    <div class="w-7 h-7 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-globe text-xs"></i></div>
+                    <div><h4 id="lblFeature4Title" class="font-semibold text-white/90 mb-0.5">4. 英文版本：點擊右上角來切換語言</h4><p id="lblFeature4Desc" class="text-white/60 leading-relaxed text-[11px]">全面支援繁體中文與英文雙語介面，點擊右上角「EN / 中文」按鈕即可即時切換整個 App 的文字說明與提示。</p></div>
                 </div>
             </div>
             <div class="pt-2 border-t border-white/10 flex items-center gap-2">
-                <a href="https://youtu.be/vtaEw41lo4E?si=h4T_9XmVIBRTNOWT" target="_blank" rel="noopener noreferrer" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center space-x-1.5 shadow-md shadow-red-600/20 active:scale-95"><i class="fa-brands fa-youtube text-sm"></i><span>YouTube 影片展示</span></a>
-                <a href="https://github.com/henry01151111/AURA-Studio/" target="_blank" rel="noopener noreferrer" class="flex-1 bg-white hover:bg-slate-100 text-slate-900 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-md active:scale-95"><i class="fa-brands fa-github text-sm"></i><span>GitHub 開源專案</span></a>
+                <a href="https://youtu.be/vtaEw41lo4E?si=h4T_9XmVIBRTNOWT" target="_blank" rel="noopener noreferrer" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center space-x-1.5 shadow-md shadow-red-600/20 active:scale-95"><i class="fa-brands fa-youtube text-sm"></i><span id="lblYtWatch">YouTube 影片展示</span></a>
+                <a href="https://github.com/henry01151111/AURA-Studio/" target="_blank" rel="noopener noreferrer" class="flex-1 bg-white hover:bg-slate-100 text-slate-900 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-md active:scale-95"><i class="fa-brands fa-github text-sm"></i><span id="lblGhRepo">GitHub 開源專案</span></a>
             </div>
             <div class="pt-1 flex flex-col space-y-2.5">
-                <button id="startFocusBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i><span>探索 v1.0.2 正式版，開始使用</span></button>
+                <button id="startFocusBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i><span id="lblExploreBtn">探索 v1.0.3 正式版，開始使用</span></button>
             </div>
         </div>
     </div>
 
-    <script src="js/app.js"></script>
+    <script>
+        const STORAGE_KEY = 'aura_focus_studio_settings';
+        const MEMO_STORAGE_KEY = 'aura_focus_studio_memo';
+        const WHATS_NEW_KEY = 'aura_whats_new_seen_v1_0_3';
+
+        // 精準檢查：舊訪客但還沒閱讀過 v1.0.3 更新
+        const hadPriorVisit = (() => { try { return !!localStorage.getItem(STORAGE_KEY); } catch (e) { return false; } })();
+        function hasSeenWhatsNew() { try { return localStorage.getItem(WHATS_NEW_KEY) === 'true'; } catch (e) { return true; } }
+
+        let currentLang = 'zh-TW';
+
+        const state = {
+            lowPerformance: false, thunderEnabled: false, autoHideUI: false, glassInteraction: false, showFps: false,
+            speed: 1.0, density: 1.0, windAngle: -2.5, clock24h: true, showSeconds: true, showQuote: false, autoPomo: false, soundChime: true,
+            customQuoteText: "", clockFont: 'sans', clockScale: 1.0, ringStyle: 'simple', theme: 'night_library', youtubeVideoId: '',
+            pomoMode: 'work', pomoRunning: false, pomoSecondsLeft: 25 * 60, pomoTotalSeconds: 25 * 60, pomoInterval: null,
+            masterAudioOn: false, volumes: { rain: 0.7, alpha: 0.3, fire: 0.2, chime: 0.4 }, tasks: [{ id: 1, text: '範例事項', done: false }],
+            pipWindow: null, isPipActive: false,
+            pomoDurations: { work: 25 * 60, shortBreak: 5 * 60, longBreak: 15 * 60 }, pomoEndAt: 0, pomoWorkDone: 0
+        };
+
+        const themePalettes = {
+            morning_mist: { stops: ['#e2e8f0', '#cbd5e1', '#94a3b8'], bokeh: 'rgba(56, 189, 248, 0.35)', streak: 'rgba(51, 65, 85, 0.45)', isLight: true },
+            sunlit_shower: { stops: ['#fef3c7', '#fde68a', '#f59e0b'], bokeh: 'rgba(245, 158, 11, 0.35)', streak: 'rgba(120, 53, 15, 0.45)', isLight: true },
+            cloudy_daylight: { stops: ['#f1f5f9', '#e2e8f0', '#cbd5e1'], bokeh: 'rgba(99, 102, 241, 0.25)', streak: 'rgba(71, 85, 105, 0.45)', isLight: true },
+            night_library: { stops: ['#1c130d', '#0d0908', '#030202'], bokeh: 'rgba(251, 146, 60, 0.25)', streak: 'rgba(254, 215, 170, 0.4)', isLight: false },
+            cozy_cafe: { stops: ['#1a1024', '#0b0814', '#030208'], bokeh: 'rgba(192, 132, 252, 0.25)', streak: 'rgba(233, 213, 255, 0.4)', isLight: false },
+            deep_emerald: { stops: ['#0a1a15', '#050d0b', '#020504'], bokeh: 'rgba(52, 211, 153, 0.25)', streak: 'rgba(167, 243, 208, 0.4)', isLight: false },
+            cyber_tokyo: { stops: ['#051024', '#030814', '#010205'], bokeh: 'rgba(56, 189, 248, 0.25)', streak: 'rgba(186, 230, 253, 0.4)', isLight: false },
+            midnight_ocean: { stops: ['#031026', '#020814', '#010205'], bokeh: 'rgba(96, 165, 250, 0.25)', streak: 'rgba(191, 219, 254, 0.4)', isLight: false },
+            sunset_glow: { stops: ['#260d10', '#140608', '#050102'], bokeh: 'rgba(244, 63, 94, 0.25)', streak: 'rgba(254, 205, 211, 0.4)', isLight: false },
+            nordic_aurora: { stops: ['#041c1c', '#020f0f', '#010505'], bokeh: 'rgba(45, 212, 191, 0.25)', streak: 'rgba(153, 246, 228, 0.4)', isLight: false },
+            starlight_zen: { stops: ['#10121c', '#08090f', '#020205'], bokeh: 'rgba(129, 140, 248, 0.25)', streak: 'rgba(199, 210, 254, 0.4)', isLight: false }
+        };
+
+        const breathingState = { active: false, technique: 'box', phaseIndex: 0, timer: 0, completedCycles: 0, interval: null, soundEnabled: true };
+
+        const breathingTechniques = {
+            box: {
+                name: '4-4-4-4 箱式呼吸', nameEn: '4-4-4-4 Box Breathing',
+                subtitle: '美國海堡部隊專用，快速平復高壓與焦慮', subtitleEn: 'Used by Navy SEALs — quickly calms stress & anxiety',
+                phases: [
+                    { _zh: '吸氣', _en: 'Inhale', duration: 4, scale: 1.25, glow: 'rgba(56, 189, 248, 0.4)', textCls: 'text-sky-200' },
+                    { _zh: '屏息', _en: 'Hold', duration: 4, scale: 1.25, glow: 'rgba(168, 85, 247, 0.4)', textCls: 'text-purple-200' },
+                    { _zh: '呼氣', _en: 'Exhale', duration: 4, scale: 0.75, glow: 'rgba(99, 102, 241, 0.4)', textCls: 'text-indigo-200' },
+                    { _zh: '屏息', _en: 'Hold', duration: 4, scale: 0.75, glow: 'rgba(45, 212, 191, 0.4)', textCls: 'text-teal-200' }
+                ]
+            },
+            relax: {
+                name: '4-7-8 放鬆呼吸', nameEn: '4-7-8 Relaxing Breath',
+                subtitle: '哈佛醫師推薦，深層放鬆大腦與助眠減壓', subtitleEn: 'Harvard-recommended — deep brain relaxation & sleep aid',
+                phases: [
+                    { _zh: '吸氣', _en: 'Inhale', duration: 4, scale: 1.3, glow: 'rgba(56, 189, 248, 0.4)', textCls: 'text-sky-200' },
+                    { _zh: '屏息', _en: 'Hold', duration: 7, scale: 1.3, glow: 'rgba(251, 146, 60, 0.4)', textCls: 'text-amber-200' },
+                    { _zh: '呼氣', _en: 'Exhale', duration: 8, scale: 0.7, glow: 'rgba(244, 63, 94, 0.4)', textCls: 'text-rose-200' }
+                ]
+            },
+            calm: {
+                name: '5-5 均勻呼吸', nameEn: '5-5 Coherent Breathing',
+                subtitle: '和諧安穩節奏，引導進入深層心流冥想', subtitleEn: 'Harmonious rhythm — guides you into deep flow meditation',
+                phases: [
+                    { _zh: '吸氣', _en: 'Inhale', duration: 5, scale: 1.2, glow: 'rgba(52, 211, 153, 0.4)', textCls: 'text-emerald-200' },
+                    { _zh: '呼氣', _en: 'Exhale', duration: 5, scale: 0.8, glow: 'rgba(99, 102, 241, 0.4)', textCls: 'text-indigo-200' }
+                ]
+            }
+        };
+
+        const studyQuotes = {
+            'zh-TW': [
+                "「專注於眼前的小事，平靜是進入高效流道的鑰匙。」",
+                "「大腦就像肌肉，每一次抗拒分心都是一次深層強化。」",
+                "「寧靜並非沒有噪音，而是心靈於風浪中的安定。」",
+                "「不積跬步，無以至千里;不積小流，無以成江海。」",
+                "「享受深層專注的當下，結果自然隨之而來。」"
+            ],
+            'en': [
+                "\"Focus on the small task at hand — calm is the key to entering flow.\"",
+                "\"Your brain is like a muscle; every time you resist distraction, it gets stronger.\"",
+                "\"Peace is not the absence of noise, but the calm of your heart amid the storm.\"",
+                "\"A journey of a thousand miles begins with a single step; the ocean is made of small streams.\"",
+                "\"Enjoy the deep focus now; the results will follow naturally.\""
+            ]
+        };
+        let quoteIndex = 0;
+
+        const i18n = {
+            'zh-TW': {
+                docTitle: "AURA Studio - 一個專注時鐘。",
+                lblTasksBtn: "任務與草稿", lblInstallApp: "安裝 App", lblFocusSoundsBtn: "專注音效",
+                lblTaskDrawerTitle: "任務與隨手筆記", lblMemoTitle: "專注草稿備忘錄 (自動儲存)",
+                lblMixerTitle: "多軌專注音效混音器", lblMasterSound: "總聲音開關", lblRainSound: "真實溫馨雨聲",
+                lblBinauralFocus: "雙耳節律 (Binaural Focus)", lblBinauralFreqLabel: "雙耳節律頻段：",
+                lblFireplaceSound: "溫馨柴火噼啪聲", lblChimeSound: "微風與靜心磬音", lblYtMusic: "YouTube 專注音樂",
+                lblQuickThemeHint: "長按背景來切換主題", ttPip: "子母畫面", ttBreath: "正念呼吸", ttZen: "Zen 模式",
+                ttThunder: "打雷效果", ttSettings: "進階設定", ttFullscreen: "全螢幕",
+                zenModeBanner: "已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）",
+                lblBreathingTitle: "正念沉浸呼吸", lblChimeToggleOn: "提示音：開", lblChimeToggleOff: "提示音：關",
+                settingsHeaderTitle: "專注與顯示進階設定", tabTitleVisual: "視覺與特效", tabSubVisual: "雨速、密度、玻璃水滴互動",
+                tabTitleClock: "時鐘與外觀", tabSubClock: "字體風格、尺寸、進度圓環", tabTitleFocus: "專注與系統", tabSubFocus: "自訂語錄、自動連播、提醒音效",
+                tabTitleShortcuts: "快捷鍵指南", tabSubShortcuts: "高效全鍵盤快速鍵操控表", whatsNewBtnTextNormal: "最新升級特色",
+                whatsNewBtnTextAlert: "發現新版本！", lblRestoreDefaults: "恢復預設值",
+                lblRainSpeed: "雨滴滑落速度", lblDropDensity: "玻璃水珠密度", lblTouchInteraction: "滑鼠/觸控與雨滴玻璃互動",
+                lblShowLiveFps: "顯示即時 FPS 影格率", lblClockFontStyle: "時鐘字體風格", lblRingStyle: "時鐘圓環樣式",
+                lblClockScale: "時鐘與進度圓環整體尺寸", lblUse24h: "顯示 24 小時制時鐘", lblShowSeconds: "顯示即時秒數",
+                lblCustomMotto: "自訂專注格言 / 座右銘", lblShowQuote: "顯示專注語錄", lblAutoPomo: "番茄鐘階段自動連播",
+                lblSoundChime: "倒數結束播放提醒聲音", lblAutoHideUI: "無操作 5 秒後自動隱藏介面",
+                lblThemeHeaderTag: "鎖定畫面主題", lblThemeHeaderSub: "左右滑動或點擊兩側按鈕切換專注主題氛圍",
+                lblOpenAdvSettings: "開啟進階設定", lblCustomPomoTitle: "自訂專注倒數時間", lblCustomPomoMinutes: "設定分鐘數：",
+                saveCustomPomoBtn: "確認設定", lblVersionTitle: "AURA Studio v1.0.3 正式版",
+                lblFeature1Title: "1. 更準確的番茄鐘", lblFeature1Desc: "倒數改以結束時間計算，切到其他分頁也不會變慢；自動連播會沿用你自訂的時間，並在每 4 次專注後進入長休息。",
+                lblFeature2Title: "2. 控制列與 FPS 更順手", lblFeature2Desc: "番茄鐘展開後，控制按鈕會移到工具列上方的第二行；即時 FPS 顯示器固定在最上層，不會被視窗蓋住。",
+                lblFeature3Title: "3. 穩定性與相容性修正", lblFeature3Desc: "雙耳節律會遵守總聲音開關、Ctrl / Cmd 組合鍵不再被快捷鍵攔截、全螢幕圖示同步，並修正手機底部列被遮住與 Safari 輸入框無法輸入的問題。",
+                lblFeature4Title: "4. 英文版本：點擊右上角來切換語言", lblFeature4Desc: "全面支援繁體中文與英文雙語介面，點擊右上角「EN / 中文」按鈕即可即時切換整個 App 的文字說明與提示。",
+                lblYtWatch: "YouTube 影片展示", lblGhRepo: "GitHub 開源專案", lblExploreBtn: "探索 v1.0.3 正式版，開始使用",
+                statusLoading: "未載入", statusPlaying: "播放中", statusInvalid: "無效連結", masterOn: "已開啟", masterOff: "已關閉",
+                taskPlaceholder: "新增目標 (例如：完成企劃書第三章)...", addTaskBtn: "新增", memoPlaceholder: "在此記錄臨時想法、解題算式或待查資料...",
+                scPlayPause: "開始 / 暫停倒數", scPip: "子母畫面時鐘", scBreath: "正念呼吸引導", scFold: "折疊 / 展開按鈕", scReset: "重設番茄鐘",
+                scSkip: "跳過目前階段", scZen: "Zen 沉浸模式", scMute: "總聲音靜音", scTask: "任務與草稿", scAudio: "專注音效", scSettings: "開啟進階設定"
+            },
+            'en': {
+                docTitle: "AURA Studio - A Focus Timer.",
+                lblTasksBtn: "Tasks & Drafts", lblInstallApp: "Install App", lblFocusSoundsBtn: "Focus Sounds",
+                lblTaskDrawerTitle: "Tasks & Quick Notes", lblMemoTitle: "Focus Memo (Auto-save)",
+                lblMixerTitle: "Multi-Track Focus Sound Mixer", lblMasterSound: "Master Sound Switch", lblRainSound: "Cozy Rain Sound",
+                lblBinauralFocus: "Binaural Focus", lblBinauralFreqLabel: "Binaural Frequency:",
+                lblFireplaceSound: "Cracking Fireplace", lblChimeSound: "Breeze & Wind Chimes", lblYtMusic: "YouTube Focus Music",
+                lblQuickThemeHint: "Press and hold background to change theme", ttPip: "Picture-in-Picture", ttBreath: "Mindful Breathing", ttZen: "Zen Mode",
+                ttThunder: "Thunder Effect", ttSettings: "Advanced Settings", ttFullscreen: "Fullscreen",
+                zenModeBanner: "Zen Mode Active — click anywhere or press ESC to exit",
+                lblBreathingTitle: "Mindful Immersive Breathing", lblChimeToggleOn: "Chime: On", lblChimeToggleOff: "Chime: Off",
+                settingsHeaderTitle: "Focus & Display Advanced Settings", tabTitleVisual: "Visuals & Effects", tabSubVisual: "Speed, density, glass-drop physics",
+                tabTitleClock: "Clock & Style", tabSubClock: "Font family, size, progress ring", tabTitleFocus: "Focus & System", tabSubFocus: "Custom motto, auto-run, chimes",
+                tabTitleShortcuts: "Shortcuts", tabSubShortcuts: "Keyboard shortcut cheat sheet", whatsNewBtnTextNormal: "What's New",
+                whatsNewBtnTextAlert: "New Version Available!", lblRestoreDefaults: "Restore Defaults",
+                lblRainSpeed: "Rain Fall Speed", lblDropDensity: "Glass Drop Density", lblTouchInteraction: "Touch/Mouse Glass Interaction",
+                lblShowLiveFps: "Show Live FPS Counter", lblClockFontStyle: "Clock Font Style", lblRingStyle: "Clock Ring Style",
+                lblClockScale: "Clock & Ring Overall Scale", lblUse24h: "24-Hour Clock", lblShowSeconds: "Show Live Seconds",
+                lblCustomMotto: "Custom Focus Motto / Quote", lblShowQuote: "Show Focus Quote", lblAutoPomo: "Auto-Advance Pomodoro Phases",
+                lblSoundChime: "Play Sound Chime On Finish", lblAutoHideUI: "Auto-Hide UI After 5s Idle",
+                lblThemeHeaderTag: "Lock Screen Themes", lblThemeHeaderSub: "Swipe or use arrows to switch focus ambience",
+                lblOpenAdvSettings: "Open Advanced Settings", lblCustomPomoTitle: "Custom Focus Timer", lblCustomPomoMinutes: "Set Minutes:",
+                saveCustomPomoBtn: "Confirm Settings", lblVersionTitle: "AURA Studio v1.0.3 Official",
+                lblFeature1Title: "1. Precise Pomodoro Engine", lblFeature1Desc: "Countdown uses target end timestamp so background tabs never lag behind; auto-run preserves custom duration.",
+                lblFeature2Title: "2. Enhanced Toolbar & FPS Layer", lblFeature2Desc: "Pomodoro controls wrap into a upper row when expanded; live FPS counter is fixed at top layer.",
+                lblFeature3Title: "3. Stability & Compatibility Fixes", lblFeature3Desc: "Binaural audio respects master toggle; Ctrl/Cmd hotkeys passed through; fullscreen state synced.",
+                lblFeature4Title: "4. Dual Language: Switch Top Right", lblFeature4Desc: "Full support for Traditional Chinese and English. Click top-right 'EN / 中文' to toggle language instantly.",
+                lblYtWatch: "Watch on YouTube", lblGhRepo: "GitHub Repository", lblExploreBtn: "Explore v1.0.3 — Start Focus",
+                statusLoading: "Not Loaded", statusPlaying: "Playing", statusInvalid: "Invalid URL", masterOn: "ON", masterOff: "OFF",
+                taskPlaceholder: "Add a goal (e.g., Finish chapter 3)...", addTaskBtn: "Add", memoPlaceholder: "Jot down ideas, equations, or notes...",
+                scPlayPause: "Start / Pause Timer", scPip: "PiP Window Clock", scBreath: "Mindful Breathing", scFold: "Collapse / Expand Bar", scReset: "Reset Pomodoro",
+                scSkip: "Skip Current Phase", scZen: "Zen Mode", scMute: "Mute Master Audio", scTask: "Tasks & Drafts", scAudio: "Focus Sounds", scSettings: "Open Settings"
+            }
+        };
+
+        function updateLanguageUI() {
+            const dict = i18n[currentLang] || i18n['zh-TW'];
+            document.documentElement.lang = currentLang;
+
+            Object.keys(dict).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (id === 'whatsNewBtnText') return; // 個別邏輯處理
+                    el.textContent = dict[id];
+                }
+            });
+
+            document.getElementById('docTitle').textContent = dict.docTitle;
+            document.getElementById('langBtnText').textContent = currentLang === 'zh-TW' ? 'EN' : '中文';
+            document.getElementById('taskInput').placeholder = dict.taskPlaceholder;
+            document.getElementById('addTaskBtn').textContent = dict.addTaskBtn;
+            document.getElementById('memoInput').placeholder = dict.memoPlaceholder;
+
+            updateBadgeDisplay();
+            updateClock();
+            updatePomoDisplay();
+            syncPomoLabels();
+        }
+
+        function updateBadgeDisplay() {
+            const hasNew = hadPriorVisit && !hasSeenWhatsNew();
+            const settingsBadge = document.getElementById('settingsBadge');
+            const whatsNewBtnText = document.getElementById('whatsNewBtnText');
+            const dict = i18n[currentLang] || i18n['zh-TW'];
+
+            if (settingsBadge) settingsBadge.classList.toggle('hidden', !hasNew);
+            if (whatsNewBtnText) {
+                whatsNewBtnText.textContent = hasNew ? dict.whatsNewBtnTextAlert : dict.whatsNewBtnTextNormal;
+                whatsNewBtnText.className = hasNew ? 'text-rose-400 font-bold animate-pulse' : '';
+            }
+        }
+
+        function clearVersionBadge() {
+            try { localStorage.setItem(WHATS_NEW_KEY, 'true'); } catch (e) {}
+            updateBadgeDisplay();
+        }
+
+        function getClockEl(id) {
+            return (state.pipWindow && state.pipWindow.document) ? (state.pipWindow.document.getElementById(id) || document.getElementById(id)) : document.getElementById(id);
+        }
+
+        function formatDate(d) {
+            if (currentLang === 'zh-TW') {
+                return d.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+            }
+            return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        }
+
+        function formatCardDate(d) {
+            if (currentLang === 'zh-TW') {
+                return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+            }
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function updateClock() {
+            const now = new Date();
+            let h = now.getHours();
+            if (!state.clock24h) h = h % 12 || 12;
+            const hStr = String(h).padStart(2, '0'), mStr = String(now.getMinutes()).padStart(2, '0'), sStr = String(now.getSeconds()).padStart(2, '0');
+            const timeStr = state.showSeconds ? `${hStr}:${mStr}:${sStr}` : `${hStr}:${mStr}`;
+            
+            const timeEl = getClockEl('timeDisplay');
+            if (timeEl) timeEl.textContent = timeStr;
+            const dateEl = getClockEl('dateDisplay');
+            if (dateEl) dateEl.textContent = formatDate(now);
+
+            document.querySelectorAll('.card-time-display').forEach(el => el.textContent = timeStr);
+            document.querySelectorAll('.card-date-display').forEach(el => el.textContent = formatCardDate(now));
+
+            const quoteEl = getClockEl('quoteDisplay');
+            if (quoteEl) {
+                const qArr = studyQuotes[currentLang] || studyQuotes['zh-TW'];
+                if (state.customQuoteText.trim()) {
+                    quoteEl.textContent = (currentLang === 'en') ? `"${state.customQuoteText}"` : `「${state.customQuoteText}」`;
+                } else if (now.getSeconds() === 0 && now.getMinutes() % 5 === 0) {
+                    quoteIndex = (quoteIndex + 1) % qArr.length;
+                    quoteEl.textContent = qArr[quoteIndex];
+                } else if (!quoteEl.textContent || quoteEl.textContent.length < 5) {
+                    quoteEl.textContent = qArr[quoteIndex];
+                }
+            }
+        }
+
+        const circumference = 2 * Math.PI * 200;
+
+        function setPomoProgress(percent) {
+            const circle = getClockEl('pomoProgressCircle');
+            if (circle) {
+                circle.style.strokeDasharray = `${circumference} ${circumference}`;
+                circle.style.strokeDashoffset = circumference - (percent / 100) * circumference;
+            }
+        }
+
+        function getModeLabel(mode) {
+            if (currentLang === 'en') {
+                return mode === 'work' ? 'Focus' : mode === 'shortBreak' ? 'Short Break' : 'Long Break';
+            }
+            return mode === 'work' ? '專注' : mode === 'shortBreak' ? '短休息' : '長休息';
+        }
+
+        function updatePomoDisplay() {
+            const m = String(Math.floor(state.pomoSecondsLeft / 60)).padStart(2, '0');
+            const s = String(state.pomoSecondsLeft % 60).padStart(2, '0');
+            setPomoProgress(((state.pomoTotalSeconds - state.pomoSecondsLeft) / state.pomoTotalSeconds) * 100);
+            
+            const statusTextEl = getClockEl('pomoStatusText');
+            if (statusTextEl) {
+                const modeName = getModeLabel(state.pomoMode);
+                statusTextEl.textContent = (currentLang === 'en') ? `${modeName} (${m}:${s})` : `${modeName}階段 (${m}:${s})`;
+            }
+
+            const foldMiniText = document.getElementById('pomoFoldMiniText');
+            if (foldMiniText) foldMiniText.textContent = `⏱️ ${m}:${s}`;
+        }
+
+        const POMO_NEXT = { work: 'shortBreak', shortBreak: 'longBreak', longBreak: 'work' };
+
+        function syncPomoLabels() {
+            const mins = m => Math.round(state.pomoDurations[m] / 60);
+            const labelEl = document.getElementById('pomoBtnLabel');
+            if (labelEl && !state.pomoRunning) {
+                const actionText = currentLang === 'en' ? 'Start' : '開始';
+                labelEl.textContent = `${actionText}${getModeLabel(state.pomoMode)} (${mins(state.pomoMode)}m)`;
+            }
+            const modeBtn = document.getElementById('pomoModeBtn'), nx = POMO_NEXT[state.pomoMode];
+            if (modeBtn) {
+                modeBtn.textContent = `${getModeLabel(nx)} (${mins(nx)}m)`;
+            }
+        }
+
+        function setPomoMode(mode) {
+            clearInterval(state.pomoInterval);
+            state.pomoRunning = false;
+            state.pomoMode = mode;
+            state.pomoSecondsLeft = state.pomoTotalSeconds = state.pomoDurations[mode];
+            const icon = document.getElementById('pomoBtnIcon');
+            if (icon) icon.className = "fa-solid fa-play";
+            syncPomoLabels();
+            updatePomoDisplay();
+        }
+
+        function startPomoTicking() {
+            state.pomoRunning = true;
+            state.pomoEndAt = Date.now() + state.pomoSecondsLeft * 1000;
+            clearInterval(state.pomoInterval);
+            state.pomoInterval = setInterval(tickPomo, 250);
+            document.getElementById('pomoBtnIcon').className = "fa-solid fa-pause";
+            const m = String(Math.floor(state.pomoSecondsLeft / 60)).padStart(2, '0');
+            const pauseText = currentLang === 'en' ? 'Pause' : '暫停倒數';
+            document.getElementById('pomoBtnLabel').textContent = `${pauseText} (${m}m)`;
+        }
+
+        function finishPomo() {
+            clearInterval(state.pomoInterval);
+            state.pomoRunning = false;
+            playCompletionChime();
+            if (state.pomoMode === 'work') state.pomoWorkDone++;
+            const next = state.pomoMode === 'work' ? (state.pomoWorkDone % 4 === 0 ? 'longBreak' : 'shortBreak') : 'work';
+            setPomoMode(next);
+            if (state.autoPomo) startPomoTicking();
+        }
+
+        function tickPomo() {
+            if (!state.pomoRunning) return;
+            const remaining = Math.max(0, Math.ceil((state.pomoEndAt - Date.now()) / 1000));
+            if (remaining !== state.pomoSecondsLeft) {
+                state.pomoSecondsLeft = remaining;
+                updatePomoDisplay();
+            }
+            if (remaining <= 0) finishPomo();
+        }
+
+        const canvas = document.getElementById('mainCanvas'), ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth, height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initRain();
+        });
+
+        let glassDrops = [], bgStreaks = [], microTrails = [], mousePos = { x: -1000, y: -1000, active: false }, mouseParticles = [];
+
+        class BackgroundStreak {
+            constructor() { this.reset(); }
+            reset() { this.x = Math.random() * (width + 300) - 150; this.y = Math.random() * -height; this.len = Math.random() * 35 + 20; this.baseVy = Math.random() * 14 + 10; this.opacity = Math.random() * 0.3 + 0.12; this.thickness = Math.random() * 1.4 + 0.7; }
+            update() { this.y += this.baseVy * state.speed; this.x += state.windAngle * state.speed; if (this.y > height) this.reset(); }
+            draw() {
+                const palette = themePalettes[state.theme] || themePalettes.night_library;
+                ctx.strokeStyle = palette.streak || `rgba(210, 230, 255, ${this.opacity})`;
+                ctx.lineWidth = this.thickness;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x + this.len * (state.windAngle / this.baseVy), this.y + this.len);
+                ctx.stroke();
+            }
+        }
+
+        class GlassDroplet {
+            constructor(isStatic = false) { this.reset(isStatic); }
+            reset(isStatic = false) {
+                this.x = Math.random() * width; this.y = Math.random() * height; this.r = Math.random() * 3.5 + 1.5; this.baseVy = 0;
+                this.isDripping = !isStatic && Math.random() < 0.25; this.dripTimer = 0;
+                if (this.isDripping) { this.r = Math.random() * 3 + 3.0; this.baseVy = Math.random() * 1.5 + 1.0; }
+            }
+            update() {
+                if (this.isDripping) {
+                    this.dripTimer++;
+                    if (Math.sin(this.dripTimer * 0.18) > -0.1) {
+                        this.y += this.baseVy * state.speed * (0.9 + Math.random() * 0.5); this.r -= 0.0025;
+                    }
+                    if (this.y > height + 20 || this.r < 0.8) { this.reset(Math.random() > 0.3); this.y = -10; }
+                }
+            }
+            draw() {
+                if (this.r <= 0.5) return;
+                const x = this.x, y = this.y, r = this.r;
+                const isLight = themePalettes[state.theme]?.isLight;
+                ctx.save();
+                if (isLight) {
+                    const grad = ctx.createRadialGradient(x - r * 0.2, y - r * 0.3, r * 0.1, x + r * 0.1, y + r * 0.2, r);
+                    grad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+                    grad.addColorStop(1, 'rgba(30, 41, 59, 0.65)');
+                    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = grad; ctx.fill();
+                } else {
+                    const grad = ctx.createRadialGradient(x - r * 0.2, y - r * 0.3, r * 0.1, x + r * 0.1, y + r * 0.2, r);
+                    grad.addColorStop(0, 'rgba(20, 30, 45, 0.75)'); grad.addColorStop(1, 'rgba(240, 250, 255, 0.9)');
+                    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = grad; ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+
+        function initRain() {
+            bgStreaks = []; glassDrops = [];
+            const multiplier = state.lowPerformance ? 0.2 : 1.0;
+            const streakCount = Math.floor(120 * state.density * multiplier), dropCount = Math.floor(130 * state.density * multiplier);
+            for (let i = 0; i < streakCount; i++) bgStreaks.push(new BackgroundStreak());
+            for (let i = 0; i < dropCount; i++) glassDrops.push(new GlassDroplet(i >= dropCount * 0.2));
+        }
+
+        function renderRain() {
+            requestAnimationFrame(renderRain);
+            const palette = themePalettes[state.theme] || themePalettes.night_library;
+            const grad = ctx.createRadialGradient(width/2, height/2, 100, width/2, height/2, Math.max(width, height));
+            grad.addColorStop(0, palette.stops[0]);
+            grad.addColorStop(0.6, palette.stops[1]);
+            grad.addColorStop(1, palette.stops[2]);
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, width, height);
+
+            bgStreaks.forEach(s => { s.update(); s.draw(); });
+            glassDrops.forEach(d => { d.update(); d.draw(); });
+        }
+
+        let audioCtx = null;
+        function initAudioEngine() {
+            if (audioCtx) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
+        }
+
+        function playCompletionChime() {
+            if (!audioCtx || !state.soundChime) return;
+            try {
+                const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.4);
+                g.gain.setValueAtTime(0.2, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 3.0);
+                osc.connect(g); g.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 3.1);
+            } catch(e){}
+        }
+
+        document.getElementById('langToggleBtn')?.addEventListener('click', () => {
+            currentLang = currentLang === 'zh-TW' ? 'en' : 'zh-TW';
+            updateLanguageUI();
+        });
+
+        document.getElementById('pomoMainBtn')?.addEventListener('click', () => {
+            initAudioEngine();
+            if (state.pomoRunning) {
+                clearInterval(state.pomoInterval); state.pomoRunning = false;
+                document.getElementById('pomoBtnIcon').className = "fa-solid fa-play";
+                const m = String(Math.floor(state.pomoSecondsLeft / 60)).padStart(2, '0');
+                const resumeText = currentLang === 'en' ? 'Resume' : '繼續';
+                document.getElementById('pomoBtnLabel').textContent = `${resumeText} (${m}m)`;
+            } else {
+                startPomoTicking();
+            }
+        });
+
+        document.getElementById('pomoModeBtn')?.addEventListener('click', () => setPomoMode(POMO_NEXT[state.pomoMode]));
+        document.getElementById('pomoResetBtn')?.addEventListener('click', () => setPomoMode(state.pomoMode));
+
+        const whatsNewModal = document.getElementById('whatsNewModal');
+        function showWhatsNewModal() { if (whatsNewModal) whatsNewModal.classList.remove('opacity-0', 'pointer-events-none'); }
+        function hideWhatsNewModal() {
+            if (!whatsNewModal || whatsNewModal.classList.contains('opacity-0')) return;
+            whatsNewModal.classList.add('opacity-0', 'pointer-events-none');
+            clearVersionBadge();
+        }
+
+        document.getElementById('closeWhatsNewModalBtn')?.addEventListener('click', hideWhatsNewModal);
+        document.getElementById('startFocusBtn')?.addEventListener('click', hideWhatsNewModal);
+        document.getElementById('openWhatsNewFromSettingsBtn')?.addEventListener('click', () => {
+            clearVersionBadge();
+            document.getElementById('settingsModal')?.classList.add('opacity-0', 'pointer-events-none');
+            showWhatsNewModal();
+        });
+
+        document.getElementById('openSettingsBtn')?.addEventListener('click', () => {
+            document.getElementById('settingsModal')?.classList.remove('opacity-0', 'pointer-events-none');
+        });
+        document.getElementById('closeSettingsBtn')?.addEventListener('click', () => {
+            document.getElementById('settingsModal')?.classList.add('opacity-0', 'pointer-events-none');
+        });
+
+        window.onload = () => {
+            initRain();
+            renderRain();
+            setInterval(updateClock, 1000);
+            updateClock();
+            updatePomoDisplay();
+            syncPomoLabels();
+            updateLanguageUI();
+
+            // 首次訪客自動開啟彈窗；舊訪客僅在圖示標示紅圈 1
+            if (!hadPriorVisit && !hasSeenWhatsNew()) {
+                setTimeout(showWhatsNewModal, 500);
+            }
+        };
+    </script>
 </body>
 </html>
