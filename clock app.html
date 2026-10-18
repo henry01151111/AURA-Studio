@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows 時鐘 - 復刻版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            user-select: none;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a6a6a6;
+        }
+
+        /* Dynamic Theme & Accent Color CSS Variables */
+        :root {
+            --accent-color: #d13438;
+            --accent-hover: #c42b1c;
+            --accent-active: #a82315;
+
+            --bg-body: #f3f3f3;
+            --bg-sidebar: #f3f3f3;
+            --bg-main: #f9f9f9;
+            --bg-card: #ffffff;
+            --bg-modal: #f0f0f0;
+            --bg-input: #ffffff;
+            --border-color: rgba(0, 0, 0, 0.08);
+
+            --text-main: #1b1b1b;
+            --text-sub: #5f5f5f;
+            --text-muted: #8e8e8e;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #202020;
+            --bg-sidebar: #202020;
+            --bg-main: #1c1c1c;
+            --bg-card: #2c2c2c;
+            --bg-modal: #2c2c2c;
+            --bg-input: #383838;
+            --border-color: rgba(255, 255, 255, 0.08);
+
+            --text-main: #f5f5f5;
+            --text-sub: #b0b0b0;
+            --text-muted: #757575;
+        }
+
+        aside {
+            background-color: var(--bg-sidebar) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        main {
+            background-color: var(--bg-main) !important;
+        }
+
+        .fluent-card {
+            background-color: var(--bg-card) !important;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+            border-radius: 12px;
+            transition: all 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
+            color: var(--text-main);
+        }
+        .fluent-card:hover {
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+        }
+
+        .modal-card {
+            background-color: var(--bg-modal) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-main);
+        }
+
+        .fs-overlay {
+            background-color: var(--bg-body) !important;
+            color: var(--text-main);
+        }
+
+        /* Primary Accent Buttons */
+        .btn-primary-red {
+            background-color: var(--accent-color);
+            color: white;
+            transition: background-color 0.15s ease, transform 0.1s ease;
+        }
+        .btn-primary-red:hover {
+            background-color: var(--accent-hover);
+        }
+        .btn-primary-red:active {
+            background-color: var(--accent-active);
+        }
+
+        .text-accent {
+            color: var(--accent-color) !important;
+        }
+
+        .bg-accent {
+            background-color: var(--accent-color) !important;
+        }
+
+        .border-accent {
+            border-color: var(--accent-color) !important;
+        }
+
+        /* Circular Progress Styling: Starts at 12 o'clock and turns counter-clockwise */
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.2s linear;
+            transform: rotate(-90deg) scaleX(-1);
+            transform-origin: 50% 50%;
+            stroke: var(--accent-color);
+        }
+
+        /* Time Spinner Box with Red Bottom Border */
+        .time-spinner-box {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-bottom: 2.5px solid var(--accent-color);
+            border-radius: 6px;
+            color: var(--text-main);
+        }
+
+        /* Modal & Fullscreen Fade Animations */
+        .modal-overlay {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.18s cubic-bezier(0.1, 0.9, 0.2, 1), visibility 0.18s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            transform: scale(0.95);
+            transition: transform 0.18s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .fs-overlay {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: scale(1.015);
+            transition: opacity 0.2s cubic-bezier(0.1, 0.9, 0.2, 1), transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1), visibility 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
+        }
+        .fs-overlay.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: scale(1);
+        }
+
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum";
+        }
+
+        .dragging {
+            opacity: 0.4;
+            transform: scale(0.97);
+            border: 2px dashed var(--accent-color) !important;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex select-none">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 border-r border-gray-200/80 flex flex-col justify-between p-2 shrink-0 z-10">
+        <div class="space-y-1">
+            <!-- App Header -->
+            <div class="flex items-center gap-3 px-3 py-3 font-semibold text-sm">
+                <i data-lucide="clock" class="w-4 h-4"></i>
+                <span>時鐘</span>
+            </div>
+
+            <!-- Nav Links -->
+            <nav class="space-y-0.5">
+                <!-- Nav Item: 專注工作階段 -->
+                <button id="navFocusBtn" onclick="switchNavTab('focus')" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-black/5 dark:hover:bg-white/5 relative transition">
+                    <div id="navFocusIndicator" class="hidden absolute left-0 top-2 bottom-2 w-1 bg-accent rounded-r"></div>
+                    <i id="navFocusIcon" data-lucide="target" class="w-4 h-4"></i>
+                    <span>專注工作階段</span>
+                </button>
+
+                <!-- Nav Item: 計時器 -->
+                <button id="navTimerBtn" onclick="switchNavTab('timer')" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-semibold bg-black/5 dark:bg-white/10 relative">
+                    <div id="navTimerIndicator" class="absolute left-0 top-2 bottom-2 w-1 bg-accent rounded-r"></div>
+                    <i id="navTimerIcon" data-lucide="timer" class="w-4 h-4 text-accent"></i>
+                    <span>計時器</span>
+                </button>
+
+                <!-- Nav Item: 碼錶 -->
+                <button id="navStopwatchBtn" onclick="switchNavTab('stopwatch')" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-black/5 dark:hover:bg-white/5 relative transition">
+                    <div id="navStopwatchIndicator" class="hidden absolute left-0 top-2 bottom-2 w-1 bg-accent rounded-r"></div>
+                    <i id="navStopwatchIcon" data-lucide="timer-reset" class="w-4 h-4"></i>
+                    <span>碼錶</span>
+                </button>
+
+                <!-- Nav Item: 本地時鐘 -->
+                <button id="navWorldClockBtn" onclick="switchNavTab('worldclock')" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-black/5 dark:hover:bg-white/5 relative transition">
+                    <div id="navWorldClockIndicator" class="hidden absolute left-0 top-2 bottom-2 w-1 bg-accent rounded-r"></div>
+                    <i id="navWorldClockIcon" data-lucide="clock" class="w-4 h-4"></i>
+                    <span>時鐘</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Sidebar Bottom Footer -->
+        <div class="space-y-1 border-t border-gray-200/60 dark:border-white/10 pt-2">
+            <div class="flex items-center gap-3 px-3 py-2 text-xs rounded-md hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer">
+                <div class="w-6 h-6 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs">
+                    用
+                </div>
+                <span class="truncate">使用者</span>
+            </div>
+            <button id="navSettingsBtn" onclick="switchNavTab('settings')" class="w-full flex items-center gap-3 px-3 py-2 text-xs rounded-md hover:bg-black/5 dark:hover:bg-white/5 relative transition cursor-pointer">
+                <div id="navSettingsIndicator" class="hidden absolute left-0 top-2 bottom-2 w-1 bg-accent rounded-r"></div>
+                <i id="navSettingsIcon" data-lucide="settings" class="w-4 h-4"></i>
+                <span>設定</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative overflow-hidden">
+
+        <!-- ==================== VIEW 0: FOCUS SESSIONS PAGE ==================== -->
+        <section id="focusViewSection" class="hidden flex-1 p-6 overflow-y-auto relative">
+            <div class="max-w-5xl mx-auto space-y-6">
+                <!-- Top Row Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Left Top Card: 準備專注 / 專注計時中 -->
+                    <div class="fluent-card p-6 flex flex-col justify-between min-h-[340px] relative">
+                        <div class="flex items-center justify-between text-gray-400">
+                            <div></div>
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="more-horizontal" class="w-4 h-4 cursor-pointer hover:text-gray-700"></i>
+                            </div>
+                        </div>
+
+                        <!-- Idle State: Setup Focus -->
+                        <div id="focusSetupState" class="flex flex-col items-center text-center my-auto space-y-4">
+                            <h2 class="text-xl font-semibold">準備專注</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 max-w-sm leading-relaxed">
+                                我們會在每個工作階段期間關閉通知與應用程式提醒。對於較長的工作階段，我們將新增一個短暫休息，讓您休息充電。
+                            </p>
+
+                            <!-- Focus Time Spinner -->
+                            <div class="flex items-center justify-center gap-3 py-2">
+                                <div class="time-spinner-box w-28 h-20 flex flex-col items-center justify-center text-3xl font-light shadow-xs relative">
+                                    <span id="focusMinsDisplay" class="font-normal text-3xl">90</span>
+                                    <span class="text-[10px] text-gray-400 -mt-1 font-sans">分鐘</span>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <button onclick="adjustFocusMins(15)" class="p-2 bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-md hover:bg-gray-50 active:scale-95 transition"><i data-lucide="chevron-up" class="w-4 h-4"></i></button>
+                                    <button onclick="adjustFocusMins(-15)" class="p-2 bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-md hover:bg-gray-50 active:scale-95 transition"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                                <span id="focusBreakText">您會有 2 次休息時間</span>
+                            </div>
+
+                            <!-- Skip Break Checkbox -->
+                            <label class="flex items-center gap-2 cursor-pointer select-none text-xs">
+                                <input id="focusSkipBreak" type="checkbox" onchange="updateFocusBreaksInfo()" class="w-4 h-4 accent-accent rounded cursor-pointer">
+                                <span>跳過休息</span>
+                            </label>
+
+                            <!-- Start Button -->
+                            <button onclick="startFocusSession()" class="w-full max-w-xs py-2.5 rounded-lg btn-primary-red text-sm font-semibold flex items-center justify-center gap-2 shadow-sm transition active:scale-98">
+                                <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                                <span>開始專注工作階段</span>
+                            </button>
+                        </div>
+
+                        <!-- Active State: Focus Timer Ring -->
+                        <div id="focusActiveState" class="hidden flex-col items-center justify-center my-auto space-y-4">
+                            <span id="focusStageLabel" class="text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full">專注工作中</span>
+                            <div class="relative w-44 h-44 flex items-center justify-center">
+                                <svg class="w-full h-full">
+                                    <circle cx="50%" cy="50%" r="78" stroke="rgba(125,125,125,0.2)" stroke-width="6" fill="transparent"/>
+                                    <circle id="focusRingCircle" cx="50%" cy="50%" r="78" stroke-width="6" fill="transparent"
+                                            stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="0" class="progress-ring-circle"/>
+                                </svg>
+                                <span id="focusActiveTimeText" class="absolute text-3xl font-light tracking-tight tabular-nums">25:00</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <button id="focusToggleBtn" onclick="toggleFocusPause()" class="w-10 h-10 rounded-full btn-primary-red flex items-center justify-center shadow-xs">
+                                    <i data-lucide="pause" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="stopFocusSession()" class="w-9 h-9 rounded-full bg-white dark:bg-white/10 hover:bg-gray-100 border border-gray-200 dark:border-white/10 flex items-center justify-center shadow-xs">
+                                    <i data-lucide="square" class="w-4 h-4 fill-current"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Top Card: 每日進度 -->
+                    <div class="fluent-card p-6 flex flex-col justify-between min-h-[340px] relative">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-sm">每日進度</span>
+                            <button onclick="promptEditDailyGoal()" title="修改每日目標" class="text-gray-400 hover:text-gray-700 p-1 rounded-md transition">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center justify-center gap-6 my-auto">
+                            <div class="text-center">
+                                <div class="text-xs text-gray-400 font-normal">昨天</div>
+                                <div id="statYesterdayMins" class="text-2xl font-light mt-1 tabular-nums">0</div>
+                                <div class="text-[10px] text-gray-400">分鐘</div>
+                            </div>
+
+                            <div class="relative w-36 h-36 flex flex-col items-center justify-center text-center">
+                                <svg class="w-full h-full absolute inset-0">
+                                    <circle cx="50%" cy="50%" r="62" stroke="rgba(125,125,125,0.2)" stroke-width="8" fill="transparent"/>
+                                    <circle id="dailyProgressCircle" cx="50%" cy="50%" r="62" stroke-width="8" fill="transparent"
+                                            stroke-linecap="round" stroke-dasharray="390" stroke-dashoffset="390" class="progress-ring-circle"/>
+                                </svg>
+                                <span class="text-[10px] text-gray-400 font-normal">每日目標</span>
+                                <span id="statGoalMins" class="text-2xl font-semibold tabular-nums">30</span>
+                                <span class="text-[10px] text-gray-400 font-normal">分鐘</span>
+                            </div>
+
+                            <div class="text-center">
+                                <div class="text-xs text-gray-400 font-normal">連續</div>
+                                <div id="statStreakDays" class="text-2xl font-light mt-1 tabular-nums">0</div>
+                                <div class="text-[10px] text-gray-400">天</div>
+                            </div>
+                        </div>
+
+                        <div class="text-center text-xs text-gray-500 dark:text-gray-400 font-normal">
+                            已完成 : <span id="statCompletedMins" class="font-semibold tabular-nums">0</span> 分鐘
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Card: Flagged Emails / 工作清單 -->
+                <div class="fluent-card p-6 flex flex-col gap-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-accent"></i>
+                            <span class="font-semibold text-sm">Flagged Emails</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="addNewTaskPrompt()" title="新增工作" class="text-gray-500 hover:text-gray-800 p-1.5 rounded-md hover:bg-black/5 transition">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                            </button>
+                            <i data-lucide="more-horizontal" class="w-4 h-4 text-gray-400 cursor-pointer hover:text-gray-700"></i>
+                        </div>
+                    </div>
+
+                    <div id="tasksListContainer" class="space-y-2"></div>
+
+                    <div id="noTasksState" class="flex flex-col items-center justify-center py-6 text-center text-gray-400 space-y-2">
+                        <span class="text-xs font-medium">隨時掌握進度</span>
+                        <p class="text-xs text-gray-400">新增工作，並將其指派給您一天中的專注工作階段。</p>
+                        <button onclick="addNewTaskPrompt()" class="mt-2 px-3 py-1.5 bg-white dark:bg-white/10 border border-gray-300 dark:border-white/10 rounded-md text-xs font-semibold hover:bg-gray-50 shadow-xs flex items-center gap-1.5">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                            <span>新增工作</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW 1: TIMER PAGE ==================== -->
+        <section id="timerViewSection" class="flex-1 flex flex-col relative h-full w-full p-6">
+            <div id="timersGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 items-start overflow-y-auto pb-24">
+                <!-- Timers injected dynamically via JS -->
+            </div>
+
+            <!-- Floating Control Buttons -->
+            <div class="absolute bottom-6 right-8 flex items-center gap-3 z-20">
+                <button id="toggleEditModeBtn" onclick="toggleEditMode()" title="編輯並重新排序" class="w-10 h-10 rounded-lg bg-white dark:bg-white/10 border border-gray-200/90 dark:border-white/10 shadow-sm hover:bg-gray-50 flex items-center justify-center transition active:scale-95">
+                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                </button>
+                <button onclick="openAddTimerModal()" title="新增計時器" class="w-10 h-10 rounded-lg bg-white dark:bg-white/10 border border-gray-200/90 dark:border-white/10 shadow-sm hover:bg-gray-50 flex items-center justify-center transition active:scale-95">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW 2: STOPWATCH PAGE ==================== -->
+        <section id="stopwatchViewSection" class="hidden flex-1 flex-col relative h-full w-full p-6 select-none overflow-y-auto">
+            <div class="flex flex-col items-center justify-center pt-8 pb-4 shrink-0">
+                <div class="relative flex flex-col items-center justify-center group">
+                    <button onclick="openStopwatchFullscreen()" title="全螢幕" class="absolute -top-1 -right-16 p-2 rounded-md hover:bg-black/5 text-gray-500 hover:text-black transition cursor-pointer">
+                        <i data-lucide="maximize-2" class="w-4 h-4"></i>
+                    </button>
+
+                    <div class="flex items-baseline font-light tracking-tight tabular-nums">
+                        <span id="swMainDigits" class="text-7xl sm:text-8xl font-light tabular-nums">00:00:00</span>
+                        <span id="swSubDigits" class="text-4xl sm:text-5xl font-light text-gray-500 ml-1 tabular-nums">.00</span>
+                    </div>
+
+                    <div class="w-full flex justify-between px-2 mt-1 text-xs text-gray-500 font-normal">
+                        <span class="w-1/3 text-center pr-6">小時</span>
+                        <span class="w-1/3 text-center">分鐘</span>
+                        <span class="w-1/3 text-center pl-6">秒</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 mt-8">
+                    <button id="swPlayBtn" onclick="toggleStopwatch()" class="w-12 h-12 rounded-full btn-primary-red flex items-center justify-center shadow-md active:scale-95 transition">
+                        <i data-lucide="play" class="w-5 h-5 fill-current translate-x-0.5"></i>
+                    </button>
+                    <button id="swLapBtn" onclick="lapStopwatch()" class="w-10 h-10 rounded-full bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center shadow-xs active:scale-95 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i data-lucide="flag" class="w-4 h-4"></i>
+                    </button>
+                    <button id="swResetBtn" onclick="resetStopwatch()" class="w-10 h-10 rounded-full bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center shadow-xs active:scale-95 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Laps Container -->
+            <div id="swLapsContainer" class="max-w-xl mx-auto w-full mt-4 pb-12 hidden">
+                <div class="flex items-center justify-between text-xs text-gray-400 border-b border-gray-200/60 dark:border-white/10 pb-2 px-4">
+                    <span class="w-20">分圈計時</span>
+                    <span class="w-32 text-center">時間</span>
+                    <span class="w-32 text-right">總計</span>
+                </div>
+                <div id="swLapsList" class="divide-y divide-gray-100 dark:divide-white/5 text-sm"></div>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW 3: LOCAL CLOCK PAGE ==================== -->
+        <section id="worldclockViewSection" class="hidden flex-1 flex-col items-center justify-center relative h-full w-full p-6 select-none">
+            <div class="flex flex-col items-center justify-center space-y-4 my-auto">
+                <div class="p-4 rounded-full bg-accent/10 text-accent mb-2">
+                    <i data-lucide="clock" class="w-12 h-12"></i>
+                </div>
+                <div id="bigLocalTimeDigits" class="text-7xl sm:text-9xl font-extralight tracking-tight tabular-nums">
+                    00:00:00
+                </div>
+                <div id="bigLocalDateText" class="text-lg sm:text-xl font-normal text-gray-500 tracking-wide">
+                    2026年10月7日 星期三
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== VIEW 4: SETTINGS PAGE ==================== -->
+        <section id="settingsViewSection" class="hidden flex-1 p-6 sm:p-10 overflow-y-auto relative select-none">
+            <div class="max-w-3xl mx-auto space-y-6">
+                <!-- Page Title -->
+                <div class="flex items-center gap-3 pb-2 border-b border-gray-200/60 dark:border-white/10">
+                    <i data-lucide="settings" class="w-6 h-6 text-accent"></i>
+                    <h1 class="text-2xl font-semibold">設定</h1>
+                </div>
+
+                <!-- Theme Options -->
+                <div class="fluent-card p-6 space-y-4">
+                    <div>
+                        <h2 class="font-semibold text-base">應用程式主題</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">選擇符合您個人偏好的顯示模式</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                        <button onclick="setAppTheme('system')" id="themeOptionSystem" class="flex flex-col items-center justify-center gap-2 p-4 rounded-lg border transition text-xs font-medium cursor-pointer">
+                            <i data-lucide="monitor" class="w-6 h-6"></i>
+                            <span>使用系統設定</span>
+                        </button>
+                        <button onclick="setAppTheme('light')" id="themeOptionLight" class="flex flex-col items-center justify-center gap-2 p-4 rounded-lg border transition text-xs font-medium cursor-pointer">
+                            <i data-lucide="sun" class="w-6 h-6"></i>
+                            <span>淺色</span>
+                        </button>
+                        <button onclick="setAppTheme('dark')" id="themeOptionDark" class="flex flex-col items-center justify-center gap-2 p-4 rounded-lg border transition text-xs font-medium cursor-pointer">
+                            <i data-lucide="moon" class="w-6 h-6"></i>
+                            <span>深色</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Accent Palette -->
+                <div class="fluent-card p-6 space-y-4">
+                    <div>
+                        <h2 class="font-semibold text-base">輔色 (主題色彩)</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">選擇套用於按鈕與強調圖示的配色</p>
+                    </div>
+                    <div id="accentPaletteGrid" class="flex flex-wrap gap-3 pt-2"></div>
+                </div>
+
+                <!-- About Section -->
+                <div class="fluent-card p-6 space-y-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center">
+                            <i data-lucide="clock" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-semibold text-base">Windows 時鐘</h2>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">版本 11.26.10 (復刻版)</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed border-t border-gray-200/50 dark:border-white/5 pt-3">
+                        本應用程式採用 Windows 11 Fluent Design 設計語彙，支援多功能計時器、碼錶、專注工作階段以及自訂主題與輔色系統。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Fullscreen Overlay View for Timer -->
+    <div id="fullscreenOverlay" class="fs-overlay fixed inset-0 z-50 flex flex-col justify-between p-6 select-none">
+        <div class="flex items-center justify-between text-sm font-medium px-2 py-1 z-50">
+            <div class="flex items-center gap-2.5">
+                <i data-lucide="clock" class="w-4 h-4"></i>
+                <span>時鐘</span>
+            </div>
+        </div>
+
+        <div class="flex-1 flex flex-col items-center justify-center -mt-4">
+            <div class="relative w-[340px] h-[340px] sm:w-[440px] sm:h-[440px] flex items-center justify-center">
+                <!-- Exit Fullscreen Button at top-right of circle -->
+                <button id="btnExitFs" type="button" onclick="closeFsTimer()" title="縮小 (Esc)" class="absolute top-2 right-2 p-3 rounded-md hover:bg-black/5 dark:hover:bg-white/10 transition z-50 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 3v3a2 2 0 0 1-2 2H3"/>
+                        <path d="M21 8h-3a2 2 0 0 1-2-2V3"/>
+                        <path d="M3 16h3a2 2 0 0 1 2 2v3"/>
+                        <path d="M16 21v-3a2 2 0 0 1 2-2h3"/>
+                    </svg>
+                </button>
+
+                <svg class="w-full h-full pointer-events-none">
+                    <circle cx="50%" cy="50%" r="42%" stroke="rgba(125,125,125,0.2)" stroke-width="6" fill="transparent"/>
+                    <circle id="fsProgressCircle" cx="50%" cy="50%" r="42%" stroke-width="6" fill="transparent"
+                            stroke-linecap="round" stroke-dasharray="1160" stroke-dashoffset="0" class="progress-ring-circle"/>
+                </svg>
+
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span id="fsTimeDisplay" class="text-6xl sm:text-7xl font-light tracking-tight tabular-nums">00:00:01</span>
+                    <span id="fsTimerTitle" class="mt-4 text-gray-500 font-normal text-base">計時器 (1)</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 mt-8 z-10">
+                <button id="fsPlayBtn" onclick="toggleFsTimer()" class="w-14 h-14 rounded-full btn-primary-red flex items-center justify-center shadow-md">
+                </button>
+                <button id="fsResetBtn" onclick="resetFsTimer()" class="w-12 h-12 rounded-full bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center shadow-xs">
+                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Overlay View for Stopwatch -->
+    <div id="stopwatchFsOverlay" class="fs-overlay fixed inset-0 z-50 flex flex-col justify-between p-6 select-none">
+        <div class="flex items-center justify-between text-sm font-medium px-2 py-1 z-50">
+            <div class="flex items-center gap-2.5">
+                <i data-lucide="clock" class="w-4 h-4"></i>
+                <span>時鐘</span>
+            </div>
+        </div>
+
+        <div class="flex-1 flex flex-col items-center justify-center my-auto">
+            <div class="relative flex flex-col items-center justify-center group">
+                <button onclick="closeStopwatchFullscreen()" title="縮小 (Esc)" class="absolute -top-8 -right-12 p-3 rounded-md hover:bg-black/5 dark:hover:bg-white/10 transition cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 3v3a2 2 0 0 1-2 2H3"/>
+                        <path d="M21 8h-3a2 2 0 0 1-2-2V3"/>
+                        <path d="M3 16h3a2 2 0 0 1 2 2v3"/>
+                        <path d="M16 21v-3a2 2 0 0 1 2-2h3"/>
+                    </svg>
+                </button>
+
+                <div class="flex items-baseline font-light tracking-tight tabular-nums">
+                    <span id="swFsMainDigits" class="text-8xl sm:text-9xl font-light tabular-nums">00:00:00</span>
+                    <span id="swFsSubDigits" class="text-5xl sm:text-6xl font-light text-gray-500 ml-1 tabular-nums">.00</span>
+                </div>
+
+                <div class="w-full flex justify-between px-4 mt-3 text-sm text-gray-500 font-normal">
+                    <span class="w-1/3 text-center pr-8">小時</span>
+                    <span class="w-1/3 text-center">分鐘</span>
+                    <span class="w-1/3 text-center pl-8">秒</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-5 mt-12 z-10">
+                <button id="swFsPlayBtn" onclick="toggleStopwatch()" class="w-16 h-16 rounded-full btn-primary-red flex items-center justify-center shadow-md">
+                    <i data-lucide="play" class="w-6 h-6 fill-current translate-x-0.5"></i>
+                </button>
+                <button onclick="resetStopwatch()" class="w-14 h-14 rounded-full bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center shadow-xs">
+                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit/Add Timer Modal -->
+    <div id="editModal" class="modal-overlay fixed inset-0 bg-black/30 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="modal-card w-full max-w-sm rounded-xl shadow-2xl border overflow-hidden flex flex-col">
+            <div class="p-4 pb-1 flex items-center justify-between">
+                <h3 id="modalHeaderTitle" class="font-semibold text-base">編輯計時器</h3>
+                <button id="modalDeleteBtn" onclick="deleteCurrentTimerModal()" title="刪除" class="text-red-500 hover:bg-red-500/10 p-1.5 rounded-md transition">
+                    <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 pt-2 flex flex-col items-center gap-5">
+                <div class="flex items-center justify-center gap-2 select-none">
+                    <!-- Hours Spinner -->
+                    <div class="flex flex-col items-center">
+                        <button onclick="adjustModalTime('h', 1)" class="p-1 hover:opacity-75 transition"><i data-lucide="chevron-up" class="w-5 h-5"></i></button>
+                        <div class="time-spinner-box w-16 h-16 flex items-center justify-center text-2xl font-bold shadow-xs relative overflow-hidden"
+                             onwheel="handleSpinnerWheel(event, 'h')"
+                             ontouchstart="handleSpinnerTouchStart(event)"
+                             ontouchmove="handleSpinnerTouchMove(event, 'h')">
+                            <input id="modalHours" type="text" maxlength="2" inputmode="numeric"
+                                   class="w-full h-full text-center bg-transparent border-none outline-none font-bold text-2xl cursor-pointer focus:cursor-text"
+                                   value="00"
+                                   onfocus="this.select()"
+                                   oninput="handleSpinnerInput(this, 'h')"
+                                   onblur="handleSpinnerBlur(this, 'h')"
+                                   onkeydown="handleSpinnerKey(event, 'h')">
+                        </div>
+                        <button onclick="adjustModalTime('h', -1)" class="p-1 hover:opacity-75 transition"><i data-lucide="chevron-down" class="w-5 h-5"></i></button>
+                    </div>
+
+                    <span class="text-2xl font-bold text-gray-400 -mt-2">:</span>
+
+                    <!-- Minutes Spinner -->
+                    <div class="flex flex-col items-center">
+                        <button onclick="adjustModalTime('m', 1)" class="p-1 hover:opacity-75 transition"><i data-lucide="chevron-up" class="w-5 h-5"></i></button>
+                        <div class="time-spinner-box w-16 h-16 flex items-center justify-center text-2xl font-bold shadow-xs relative overflow-hidden"
+                             onwheel="handleSpinnerWheel(event, 'm')"
+                             ontouchstart="handleSpinnerTouchStart(event)"
+                             ontouchmove="handleSpinnerTouchMove(event, 'm')">
+                            <input id="modalMinutes" type="text" maxlength="2" inputmode="numeric"
+                                   class="w-full h-full text-center bg-transparent border-none outline-none font-bold text-2xl cursor-pointer focus:cursor-text"
+                                   value="00"
+                                   onfocus="this.select()"
+                                   oninput="handleSpinnerInput(this, 'm')"
+                                   onblur="handleSpinnerBlur(this, 'm')"
+                                   onkeydown="handleSpinnerKey(event, 'm')">
+                        </div>
+                        <button onclick="adjustModalTime('m', -1)" class="p-1 hover:opacity-75 transition"><i data-lucide="chevron-down" class="w-5 h-5"></i></button>
+                    </div>
+
+                    <span class="text-2xl font-bold text-gray-400 -mt-2">:</span>
+
+                    <!-- Seconds Spinner -->
+                    <div class="flex flex-col items-center">
+                        <button onclick="adjustModalTime('s', 1)" class="p-1 hover:opacity-75 transition"><i data-lucide="chevron-up" class="w-5 h-5"></i></button>
+                        <div class="time-spinner-box w-16 h-16 flex items-center justify-center text-2xl font-bold shadow-xs relative overflow-hidden"
+                             onwheel="handleSpinnerWheel(event, 's')"
+                             ontouchstart="handleSpinnerTouchStart(event)"
+                             ontouchmove="handleSpinnerTouchMove(event, 's')">
+                            <input id="modalSeconds" type="text" maxlength="2" inputmode="numeric"
+                                   class="w-full h-full text-center bg-transparent border-none outline-none font-bold text-2xl cursor-pointer focus:cursor-text"
+                                   value="01"
+                                   onfocus="this.select()"
+                                   oninput="handleSpinnerInput(this, 's')"
+                                   onblur="handleSpinnerBlur(this, 's')"
+                                   onkeydown="handleSpinnerKey(event, 's')">
+                        </div>
+                        <button onclick="adjustModalTime('s', -1)" class="p-1 hover:opacity-75 transition"><i data-lucide="chevron-down" class="w-5 h-5"></i></button>
+                    </div>
+                </div>
+
+                <div class="w-full flex items-center gap-2 bg-white dark:bg-white/5 border border-gray-300 dark:border-white/10 rounded-md px-3 py-2 focus-within:border-accent transition">
+                    <i data-lucide="pencil" class="w-4 h-4 text-gray-400 shrink-0"></i>
+                    <input id="modalTimerName" type="text" placeholder="計時器名稱" class="w-full bg-transparent text-sm focus:outline-none">
+                </div>
+            </div>
+
+            <div class="p-4 pt-3 bg-black/5 dark:bg-white/5 flex items-center gap-3 border-t border-gray-200/60 dark:border-white/10">
+                <button onclick="saveModalTimer()" class="flex-1 py-2 rounded-md btn-primary-red text-sm font-medium flex items-center justify-center gap-2 shadow-xs">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    <span>儲存</span>
+                </button>
+                <button onclick="closeEditModal()" class="flex-1 py-2 rounded-md bg-white dark:bg-white/10 border border-gray-300 dark:border-white/10 hover:bg-gray-50 text-sm font-medium flex items-center justify-center gap-2 shadow-xs">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                    <span>取消</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data State Variables
+        let currentTab = 'timer';
+        let isEditReorderMode = false;
+        let editingTimerId = null;
+
+        // Timers List
+        let timers = [
+            { id: 't1', title: '計時器 (1)', initialSecs: 1, remainingSecs: 1, isRunning: false, intervalId: null }
+        ];
+
+        // Settings State
+        let currentTheme = localStorage.getItem('winClock_theme') || 'system';
+        let currentAccentHex = localStorage.getItem('winClock_accentHex') || '#d13438';
+
+        const accentColors = [
+            { name: 'Windows 經典紅', hex: '#d13438', hover: '#c42b1c', active: '#a82315' },
+            { name: '鈷藍色', hex: '#0078d4', hover: '#006cbe', active: '#005a9e' },
+            { name: '薄荷綠', hex: '#107c41', hover: '#0e6f3b', active: '#0c5e32' },
+            { name: '紫羅蘭', hex: '#881798', hover: '#791487', active: '#671173' },
+            { name: '珊瑚橘', hex: '#d83b01', hover: '#c23501', active: '#a82e01' },
+            { name: '蒂芬妮藍', hex: '#008272', hover: '#007365', active: '#006155' },
+            { name: '桃粉色', hex: '#e3008c', hover: '#ca007d', active: '#b1006d' }
+        ];
+
+        // Stopwatch State
+        let swIsRunning = false;
+        let swStartTime = 0;
+        let swElapsedMs = 0;
+        let swIntervalId = null;
+        let swLaps = [];
+        let swLastLapMs = 0;
+
+        // Focus Session State
+        let focusMins = 90;
+        let focusIsActive = false;
+        let focusIsPaused = false;
+        let focusCurrentStage = 'work'; // 'work' | 'break'
+        let focusTotalStageSeconds = 25 * 60;
+        let focusRemainingSeconds = 25 * 60;
+        let focusIntervalId = null;
+        let focusCompletedMins = 0;
+        let focusDailyGoalMins = 30;
+        let focusYesterdayMins = 0;
+        let focusStreakDays = 0;
+        let focusTasks = [
+            { id: 'task-1', title: 'test', completed: false },
+            { id: 'task-2', title: 'test', completed: true }
+        ];
+
+        function switchNavTab(tab) {
+            currentTab = tab;
+            const focusSec = document.getElementById('focusViewSection');
+            const timerSec = document.getElementById('timerViewSection');
+            const swSec = document.getElementById('stopwatchViewSection');
+            const wcSec = document.getElementById('worldclockViewSection');
+            const setSec = document.getElementById('settingsViewSection');
+
+            const navFocusBtn = document.getElementById('navFocusBtn');
+            const navTimerBtn = document.getElementById('navTimerBtn');
+            const navSwBtn = document.getElementById('navStopwatchBtn');
+            const navWcBtn = document.getElementById('navWorldClockBtn');
+            const navSetBtn = document.getElementById('navSettingsBtn');
+
+            const navFocusInd = document.getElementById('navFocusIndicator');
+            const navTimerInd = document.getElementById('navTimerIndicator');
+            const navSwInd = document.getElementById('navStopwatchIndicator');
+            const navWcInd = document.getElementById('navWorldClockIndicator');
+            const navSetInd = document.getElementById('navSettingsIndicator');
+
+            const navFocusIcon = document.getElementById('navFocusIcon');
+            const navTimerIcon = document.getElementById('navTimerIcon');
+            const navSwIcon = document.getElementById('navStopwatchIcon');
+            const navWcIcon = document.getElementById('navWorldClockIcon');
+            const navSetIcon = document.getElementById('navSettingsIcon');
+
+            focusSec.classList.add('hidden');
+            timerSec.classList.add('hidden');
+            swSec.classList.add('hidden');
+            swSec.classList.remove('flex');
+            wcSec.classList.add('hidden');
+            wcSec.classList.remove('flex');
+            if (setSec) setSec.classList.add('hidden');
+
+            const inactiveBtnClass = "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-black/5 dark:hover:bg-white/5 relative transition";
+            const activeBtnClass = "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-semibold bg-black/5 dark:bg-white/10 relative";
+
+            navFocusBtn.className = inactiveBtnClass;
+            navTimerBtn.className = inactiveBtnClass;
+            navSwBtn.className = inactiveBtnClass;
+            navWcBtn.className = inactiveBtnClass;
+            if (navSetBtn) navSetBtn.className = "w-full flex items-center gap-3 px-3 py-2 text-xs rounded-md hover:bg-black/5 dark:hover:bg-white/5 relative transition cursor-pointer";
+
+            navFocusInd.classList.add('hidden');
+            navTimerInd.classList.add('hidden');
+            navSwInd.classList.add('hidden');
+            navWcInd.classList.add('hidden');
+            if (navSetInd) navSetInd.classList.add('hidden');
+
+            navFocusIcon.classList.remove('text-accent');
+            navTimerIcon.classList.remove('text-accent');
+            navSwIcon.classList.remove('text-accent');
+            navWcIcon.classList.remove('text-accent');
+            if (navSetIcon) navSetIcon.classList.remove('text-accent');
+
+            if (tab === 'focus') {
+                focusSec.classList.remove('hidden');
+                navFocusBtn.className = activeBtnClass;
+                navFocusInd.classList.remove('hidden');
+                navFocusIcon.classList.add('text-accent');
+                renderFocusUI();
+            } else if (tab === 'timer') {
+                timerSec.classList.remove('hidden');
+                navTimerBtn.className = activeBtnClass;
+                navTimerInd.classList.remove('hidden');
+                navTimerIcon.classList.add('text-accent');
+                renderTimers();
+            } else if (tab === 'stopwatch') {
+                swSec.classList.remove('hidden');
+                swSec.classList.add('flex');
+                navSwBtn.className = activeBtnClass;
+                navSwInd.classList.remove('hidden');
+                navSwIcon.classList.add('text-accent');
+            } else if (tab === 'worldclock') {
+                wcSec.classList.remove('hidden');
+                wcSec.classList.add('flex');
+                navWcBtn.className = activeBtnClass;
+                navWcInd.classList.remove('hidden');
+                navWcIcon.classList.add('text-accent');
+                renderBigLocalClock();
+            } else if (tab === 'settings') {
+                if (setSec) setSec.classList.remove('hidden');
+                if (navSetBtn) navSetBtn.className = "w-full flex items-center gap-3 px-3 py-2 text-xs font-semibold bg-black/5 dark:bg-white/10 rounded-md relative transition cursor-pointer";
+                if (navSetInd) navSetInd.classList.remove('hidden');
+                if (navSetIcon) navSetIcon.classList.add('text-accent');
+                renderSettingsUI();
+            }
+        }
+
+        function applyTheme(theme) {
+            currentTheme = theme;
+            localStorage.setItem('winClock_theme', theme);
+
+            let isDark = false;
+            if (theme === 'dark') {
+                isDark = true;
+            } else if (theme === 'system') {
+                isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
+
+            if (isDark) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+            renderSettingsUI();
+        }
+
+        function setAppTheme(theme) {
+            applyTheme(theme);
+        }
+
+        function setAccentColor(hex) {
+            const colorObj = accentColors.find(c => c.hex === hex) || accentColors[0];
+            currentAccentHex = colorObj.hex;
+            localStorage.setItem('winClock_accentHex', colorObj.hex);
+
+            document.documentElement.style.setProperty('--accent-color', colorObj.hex);
+            document.documentElement.style.setProperty('--accent-hover', colorObj.hover);
+            document.documentElement.style.setProperty('--accent-active', colorObj.active);
+
+            renderSettingsUI();
+        }
+
+        function renderSettingsUI() {
+            const sysBtn = document.getElementById('themeOptionSystem');
+            const lightBtn = document.getElementById('themeOptionLight');
+            const darkBtn = document.getElementById('themeOptionDark');
+
+            if (sysBtn && lightBtn && darkBtn) {
+                const activeBorder = 'border-accent ring-2 ring-accent/30 bg-accent/5';
+                const inactiveBorder = 'border-gray-200 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/30';
+
+                sysBtn.className = `flex flex-col items-center justify-center gap-2 p-4 rounded-lg border transition text-xs font-medium cursor-pointer ${currentTheme === 'system' ? activeBorder : inactiveBorder}`;
+                lightBtn.className = `flex flex-col items-center justify-center gap-2 p-4 rounded-lg border transition text-xs font-medium cursor-pointer ${currentTheme === 'light' ? activeBorder : inactiveBorder}`;
+                darkBtn.className = `flex flex-col items-center justify-center gap-2 p-4 rounded-lg border transition text-xs font-medium cursor-pointer ${currentTheme === 'dark' ? activeBorder : inactiveBorder}`;
+            }
+
+            const paletteGrid = document.getElementById('accentPaletteGrid');
+            if (paletteGrid) {
+                paletteGrid.innerHTML = accentColors.map(c => {
+                    const isSelected = c.hex.toLowerCase() === currentAccentHex.toLowerCase();
+                    return `
+                        <button onclick="setAccentColor('${c.hex}')" title="${c.name}"
+                                class="w-10 h-10 rounded-full flex items-center justify-center transition active:scale-90 relative cursor-pointer shadow-xs"
+                                style="background-color: ${c.hex}">
+                            ${isSelected ? `<i data-lucide="check" class="w-5 h-5 text-white stroke-[3]"></i>` : ''}
+                        </button>
+                    `;
+                }).join('');
+                lucide.createIcons();
+            }
+        }
+
+        function formatSeconds(secs) {
+            const h = Math.floor(secs / 3600);
+            const m = Math.floor((secs % 3600) / 60);
+            const s = secs % 60;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function renderTimers() {
+            const grid = document.getElementById('timersGrid');
+            grid.innerHTML = '';
+
+            timers.forEach((t, idx) => {
+                const card = document.createElement('div');
+                card.className = `fluent-card p-5 flex flex-col justify-between items-center relative min-h-[300px] cursor-pointer ${isEditReorderMode ? 'border-dashed border-2 border-accent' : ''}`;
+                if (isEditReorderMode) {
+                    card.setAttribute('draggable', 'true');
+                    card.ondragstart = (e) => handleDragStart(e, idx);
+                    card.ondragover = (e) => handleDragOver(e);
+                    card.ondrop = (e) => handleDrop(e, idx);
+                }
+
+                card.onclick = (e) => {
+                    if (e.target.closest('button')) return;
+                    if (!isEditReorderMode) {
+                        openEditTimerModal(t.id);
+                    }
+                };
+
+                const strokeDashOffset = t.initialSecs > 0 ? 490 - ((t.remainingSecs / t.initialSecs) * 490) : 0;
+
+                card.innerHTML = `
+                    <div class="w-full flex items-center justify-between text-xs text-gray-500 font-medium">
+                        <span class="truncate pr-2">${t.title}</span>
+                        <div class="flex items-center gap-1 shrink-0">
+                            ${isEditReorderMode ? `
+                                <button onclick="deleteTimer('${t.id}', event)" class="p-1 hover:text-red-500 rounded transition" title="刪除">
+                                    <i data-lucide="trash-2" class="w-4 h-4 text-red-500"></i>
+                                </button>
+                            ` : `
+                                <button onclick="openFsTimer('${t.id}', event)" class="p-1 hover:text-black dark:hover:text-white rounded transition" title="全螢幕">
+                                    <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            `}
+                        </div>
+                    </div>
+
+                    <div class="relative w-44 h-44 flex items-center justify-center my-3">
+                        <svg class="w-full h-full">
+                            <circle cx="50%" cy="50%" r="78" stroke="rgba(125,125,125,0.15)" stroke-width="6" fill="transparent"/>
+                            <circle id="ring-${t.id}" cx="50%" cy="50%" r="78" stroke-width="6" fill="transparent"
+                                    stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="${strokeDashOffset}"
+                                    class="progress-ring-circle"/>
+                        </svg>
+                        <span id="text-${t.id}" class="absolute text-3xl font-light tracking-tight tabular-nums">${formatSeconds(t.remainingSecs)}</span>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <button onclick="toggleTimer('${t.id}', event)" class="w-10 h-10 rounded-full btn-primary-red flex items-center justify-center shadow-xs">
+                            <i data-lucide="${t.isRunning ? 'pause' : 'play'}" class="w-4 h-4 ${t.isRunning ? '' : 'fill-current translate-x-0.5'}"></i>
+                        </button>
+                        <button onclick="resetTimer('${t.id}', event)" class="w-9 h-9 rounded-full bg-white dark:bg-white/10 border border-gray-200 dark:border-white/10 flex items-center justify-center shadow-xs">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+
+            lucide.createIcons();
+        }
+
+        function toggleTimer(id, e) {
+            if (e) e.stopPropagation();
+            const t = timers.find(item => item.id === id);
+            if (!t) return;
+
+            if (t.isRunning) {
+                clearInterval(t.intervalId);
+                t.isRunning = false;
+            } else {
+                if (t.remainingSecs <= 0) t.remainingSecs = t.initialSecs;
+                t.isRunning = true;
+                t.intervalId = setInterval(() => {
+                    if (t.remainingSecs > 0) {
+                        t.remainingSecs--;
+                        updateTimerVisuals(t);
+                    } else {
+                        clearInterval(t.intervalId);
+                        t.isRunning = false;
+                        playAlarmSound();
+                        renderTimers();
+                    }
+                }, 1000);
+            }
+            renderTimers();
+        }
+
+        function resetTimer(id, e) {
+            if (e) e.stopPropagation();
+            const t = timers.find(item => item.id === id);
+            if (!t) return;
+            clearInterval(t.intervalId);
+            t.isRunning = false;
+            t.remainingSecs = t.initialSecs;
+            renderTimers();
+        }
+
+        function updateTimerVisuals(t) {
+            const textEl = document.getElementById(`text-${t.id}`);
+            const ringEl = document.getElementById(`ring-${t.id}`);
+
+            if (textEl) textEl.innerText = formatSeconds(t.remainingSecs);
+            if (ringEl && t.initialSecs > 0) {
+                const ratio = t.remainingSecs / t.initialSecs;
+                ringEl.style.strokeDashoffset = 490 - (ratio * 490);
+            }
+
+            if (editingTimerId === t.id) {
+                updateFsVisuals(t);
+            }
+        }
+
+        function toggleEditMode() {
+            isEditReorderMode = !isEditReorderMode;
+            const btn = document.getElementById('toggleEditModeBtn');
+            btn.innerHTML = isEditReorderMode ? `<i data-lucide="check" class="w-5 h-5 text-accent"></i>` : `<i data-lucide="pencil" class="w-4 h-4"></i>`;
+            renderTimers();
+        }
+
+        function deleteTimer(id, e) {
+            if (e) e.stopPropagation();
+            const t = timers.find(item => item.id === id);
+            if (t && t.intervalId) clearInterval(t.intervalId);
+            timers = timers.filter(item => item.id !== id);
+            renderTimers();
+        }
+
+        function openFsTimer(id, e) {
+            if (e) e.stopPropagation();
+            editingTimerId = id;
+            const t = timers.find(item => item.id === id);
+            if (!t) return;
+
+            document.getElementById('fullscreenOverlay').classList.add('active');
+            updateFsVisuals(t);
+        }
+
+        function closeFsTimer() {
+            document.getElementById('fullscreenOverlay').classList.remove('active');
+            editingTimerId = null;
+        }
+
+        function updateFsVisuals(t) {
+            document.getElementById('fsTimeDisplay').innerText = formatSeconds(t.remainingSecs);
+            document.getElementById('fsTimerTitle').innerText = t.title;
+
+            const ring = document.getElementById('fsProgressCircle');
+            if (ring && t.initialSecs > 0) {
+                const ratio = t.remainingSecs / t.initialSecs;
+                ring.style.strokeDashoffset = 1160 - (ratio * 1160);
+            }
+
+            const playBtn = document.getElementById('fsPlayBtn');
+            playBtn.innerHTML = `<i data-lucide="${t.isRunning ? 'pause' : 'play'}" class="w-6 h-6 ${t.isRunning ? '' : 'fill-current translate-x-0.5'}"></i>`;
+            lucide.createIcons();
+        }
+
+        function toggleFsTimer() {
+            if (editingTimerId) {
+                toggleTimer(editingTimerId, null);
+                const t = timers.find(item => item.id === editingTimerId);
+                if (t) updateFsVisuals(t);
+            }
+        }
+
+        function resetFsTimer() {
+            if (editingTimerId) {
+                resetTimer(editingTimerId, null);
+                const t = timers.find(item => item.id === editingTimerId);
+                if (t) updateFsVisuals(t);
+            }
+        }
+
+        let touchStartY = 0;
+        function handleSpinnerTouchStart(e) {
+            touchStartY = e.touches[0].clientY;
+        }
+
+        function handleSpinnerTouchMove(e, field) {
+            const touchY = e.touches[0].clientY;
+            const deltaY = touchStartY - touchY;
+            if (Math.abs(deltaY) > 15) {
+                adjustModalTime(field, deltaY > 0 ? 1 : -1);
+                touchStartY = touchY;
+            }
+        }
+
+        function handleSpinnerWheel(e, field) {
+            e.preventDefault();
+            adjustModalTime(field, e.deltaY < 0 ? 1 : -1);
+        }
+
+        function handleSpinnerInput(input, field) {
+            input.value = input.value.replace(/[^0-9]/g, '');
+        }
+
+        function handleSpinnerBlur(input, field) {
+            let val = parseInt(input.value, 10) || 0;
+            const max = field === 'h' ? 99 : 59;
+            val = Math.max(0, Math.min(max, val));
+            input.value = String(val).padStart(2, '0');
+        }
+
+        function handleSpinnerKey(e, field) {
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                adjustModalTime(field, 1);
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                adjustModalTime(field, -1);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                saveModalTimer();
+            }
+        }
+
+        function adjustModalTime(field, delta) {
+            const inputId = field === 'h' ? 'modalHours' : (field === 'm' ? 'modalMinutes' : 'modalSeconds');
+            const input = document.getElementById(inputId);
+            let val = parseInt(input.value, 10) || 0;
+            const max = field === 'h' ? 99 : 59;
+            val = (val + delta + (max + 1)) % (max + 1);
+            input.value = String(val).padStart(2, '0');
+        }
+
+        function openAddTimerModal() {
+            editingTimerId = null;
+            document.getElementById('modalHeaderTitle').innerText = '新增計時器';
+            document.getElementById('modalDeleteBtn').classList.add('hidden');
+            document.getElementById('modalHours').value = '00';
+            document.getElementById('modalMinutes').value = '00';
+            document.getElementById('modalSeconds').value = '01';
+            document.getElementById('modalTimerName').value = `計時器 (${timers.length + 1})`;
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function openEditTimerModal(id) {
+            editingTimerId = id;
+            const t = timers.find(item => item.id === id);
+            if (!t) return;
+
+            document.getElementById('modalHeaderTitle').innerText = '編輯計時器';
+            document.getElementById('modalDeleteBtn').classList.remove('hidden');
+
+            const h = Math.floor(t.initialSecs / 3600);
+            const m = Math.floor((t.initialSecs % 3600) / 60);
+            const s = t.initialSecs % 60;
+
+            document.getElementById('modalHours').value = String(h).padStart(2, '0');
+            document.getElementById('modalMinutes').value = String(m).padStart(2, '0');
+            document.getElementById('modalSeconds').value = String(s).padStart(2, '0');
+            document.getElementById('modalTimerName').value = t.title;
+
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        function saveModalTimer() {
+            const h = parseInt(document.getElementById('modalHours').value, 10) || 0;
+            const m = parseInt(document.getElementById('modalMinutes').value, 10) || 0;
+            const s = parseInt(document.getElementById('modalSeconds').value, 10) || 0;
+            const totalSecs = Math.max(1, (h * 3600) + (m * 60) + s);
+            const title = document.getElementById('modalTimerName').value.trim() || '計時器';
+
+            if (editingTimerId) {
+                const t = timers.find(item => item.id === editingTimerId);
+                if (t) {
+                    t.title = title;
+                    t.initialSecs = totalSecs;
+                    t.remainingSecs = totalSecs;
+                    if (t.isRunning) {
+                        clearInterval(t.intervalId);
+                        t.isRunning = false;
+                    }
+                }
+            } else {
+                const newId = 't-' + Date.now();
+                timers.push({
+                    id: newId,
+                    title: title,
+                    initialSecs: totalSecs,
+                    remainingSecs: totalSecs,
+                    isRunning: false,
+                    intervalId: null
+                });
+            }
+
+            closeEditModal();
+            renderTimers();
+        }
+
+        function deleteCurrentTimerModal() {
+            if (editingTimerId) {
+                deleteTimer(editingTimerId, null);
+                closeEditModal();
+            }
+        }
+
+        function toggleStopwatch() {
+            if (swIsRunning) {
+                clearInterval(swIntervalId);
+                swIsRunning = false;
+            } else {
+                swStartTime = Date.now() - swElapsedMs;
+                swIntervalId = setInterval(() => {
+                    swElapsedMs = Date.now() - swStartTime;
+                    updateStopwatchDisplay();
+                }, 10);
+                swIsRunning = true;
+            }
+            updateStopwatchButtons();
+        }
+
+        function resetStopwatch() {
+            clearInterval(swIntervalId);
+            swIsRunning = false;
+            swElapsedMs = 0;
+            swLaps = [];
+            swLastLapMs = 0;
+            updateStopwatchDisplay();
+            updateStopwatchButtons();
+            renderSwLaps();
+        }
+
+        function lapStopwatch() {
+            if (!swIsRunning) return;
+            const currentTotal = swElapsedMs;
+            const lapTime = currentTotal - swLastLapMs;
+            swLastLapMs = currentTotal;
+
+            swLaps.unshift({
+                number: swLaps.length + 1,
+                lapMs: lapTime,
+                totalMs: currentTotal
+            });
+
+            renderSwLaps();
+        }
+
+        function formatMs(ms) {
+            const h = Math.floor(ms / 3600000);
+            const m = Math.floor((ms % 3600000) / 60000);
+            const s = Math.floor((ms % 60000) / 1000);
+            const c = Math.floor((ms % 1000) / 10);
+            return {
+                main: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`,
+                sub: `.${String(c).padStart(2, '0')}`
+            };
+        }
+
+        function updateStopwatchDisplay() {
+            const formatted = formatMs(swElapsedMs);
+            document.getElementById('swMainDigits').innerText = formatted.main;
+            document.getElementById('swSubDigits').innerText = formatted.sub;
+
+            document.getElementById('swFsMainDigits').innerText = formatted.main;
+            document.getElementById('swFsSubDigits').innerText = formatted.sub;
+        }
+
+        function updateStopwatchButtons() {
+            const btnHtml = swIsRunning ? `<i data-lucide="pause" class="w-5 h-5"></i>` : `<i data-lucide="play" class="w-5 h-5 fill-current translate-x-0.5"></i>`;
+            const fsBtnHtml = swIsRunning ? `<i data-lucide="pause" class="w-7 h-7"></i>` : `<i data-lucide="play" class="w-7 h-7 fill-current translate-x-0.5"></i>`;
+
+            document.getElementById('swPlayBtn').innerHTML = btnHtml;
+            document.getElementById('swFsPlayBtn').innerHTML = fsBtnHtml;
+
+            document.getElementById('swLapBtn').disabled = !swIsRunning;
+            document.getElementById('swResetBtn').disabled = swIsRunning && swElapsedMs === 0;
+
+            lucide.createIcons();
+        }
+
+        function renderSwLaps() {
+            const container = document.getElementById('swLapsContainer');
+            const list = document.getElementById('swLapsList');
+
+            if (swLaps.length === 0) {
+                container.classList.add('hidden');
+                list.innerHTML = '';
+                return;
+            }
+
+            container.classList.remove('hidden');
+
+            let minMs = Infinity, maxMs = -Infinity;
+            if (swLaps.length > 2) {
+                swLaps.forEach(l => {
+                    if (l.lapMs < minMs) minMs = l.lapMs;
+                    if (l.lapMs > maxMs) maxMs = l.lapMs;
+                });
+            }
+
+            list.innerHTML = swLaps.map(l => {
+                const lapF = formatMs(l.lapMs);
+                const totalF = formatMs(l.totalMs);
+                let badge = '';
+                if (swLaps.length > 2) {
+                    if (l.lapMs === minMs) badge = `<span class="text-xs text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-medium ml-2">最快</span>`;
+                    else if (l.lapMs === maxMs) badge = `<span class="text-xs text-red-600 bg-red-50 px-1.5 py-0.5 rounded font-medium ml-2">最慢</span>`;
+                }
+
+                return `
+                    <div class="flex items-center justify-between py-2.5 px-4 font-normal tabular-nums">
+                        <span class="w-20 text-gray-500 font-medium">${l.number} ${badge}</span>
+                        <span class="w-32 text-center font-mono">${lapF.main}${lapF.sub}</span>
+                        <span class="w-32 text-right text-gray-500 font-mono">${totalF.main}${totalF.sub}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openStopwatchFullscreen() {
+            document.getElementById('stopwatchFsOverlay').classList.add('active');
+        }
+
+        function closeStopwatchFullscreen() {
+            document.getElementById('stopwatchFsOverlay').classList.remove('active');
+        }
+
+        function adjustFocusMins(delta) {
+            focusMins = Math.max(15, Math.min(240, focusMins + delta));
+            document.getElementById('focusMinsDisplay').innerText = focusMins;
+            updateFocusBreaksInfo();
+        }
+
+        function updateFocusBreaksInfo() {
+            const skip = document.getElementById('focusSkipBreak').checked;
+            const breakText = document.getElementById('focusBreakText');
+            if (skip) {
+                breakText.innerText = '將不會有休息時間';
+                return;
+            }
+            const breaksCount = Math.floor(focusMins / 30);
+            breakText.innerText = breaksCount > 0 ? `您會有 ${breaksCount} 次休息時間` : '此階段時間較短，無休息時間';
+        }
+
+        function startFocusSession() {
+            focusIsActive = true;
+            focusIsPaused = false;
+            focusCurrentStage = 'work';
+            focusTotalStageSeconds = 25 * 60;
+            focusRemainingSeconds = focusTotalStageSeconds;
+
+            document.getElementById('focusSetupState').classList.add('hidden');
+            document.getElementById('focusActiveState').classList.remove('hidden');
+            document.getElementById('focusActiveState').classList.add('flex');
+
+            runFocusTimer();
+        }
+
+        function runFocusTimer() {
+            clearInterval(focusIntervalId);
+            focusIntervalId = setInterval(() => {
+                if (!focusIsPaused && focusRemainingSeconds > 0) {
+                    focusRemainingSeconds--;
+                    updateFocusVisuals();
+                } else if (focusRemainingSeconds <= 0) {
+                    playAlarmSound();
+                    focusCompletedMins += 25;
+                    updateFocusStatsUI();
+
+                    if (focusCurrentStage === 'work' && !document.getElementById('focusSkipBreak').checked) {
+                        focusCurrentStage = 'break';
+                        focusTotalStageSeconds = 5 * 60;
+                        focusRemainingSeconds = focusTotalStageSeconds;
+                        document.getElementById('focusStageLabel').innerText = '短暫休息中';
+                        document.getElementById('focusStageLabel').className = 'text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full';
+                    } else {
+                        stopFocusSession();
+                    }
+                }
+            }, 1000);
+            updateFocusVisuals();
+        }
+
+        function toggleFocusPause() {
+            focusIsPaused = !focusIsPaused;
+            const btn = document.getElementById('focusToggleBtn');
+            btn.innerHTML = focusIsPaused ? `<i data-lucide="play" class="w-4 h-4 fill-current"></i>` : `<i data-lucide="pause" class="w-4 h-4"></i>`;
+            lucide.createIcons();
+        }
+
+        function stopFocusSession() {
+            clearInterval(focusIntervalId);
+            focusIsActive = false;
+            document.getElementById('focusSetupState').classList.remove('hidden');
+            document.getElementById('focusActiveState').classList.add('hidden');
+            document.getElementById('focusActiveState').classList.remove('flex');
+            document.getElementById('focusStageLabel').innerText = '專注工作中';
+            document.getElementById('focusStageLabel').className = 'text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full';
+        }
+
+        function updateFocusVisuals() {
+            const m = Math.floor(focusRemainingSeconds / 60);
+            const s = focusRemainingSeconds % 60;
+            document.getElementById('focusActiveTimeText').innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+            const ring = document.getElementById('focusRingCircle');
+            if (ring) {
+                const ratio = focusTotalStageSeconds > 0 ? (focusRemainingSeconds / focusTotalStageSeconds) : 0;
+                ring.style.strokeDashoffset = 490 - (ratio * 490);
+            }
+        }
+
+        function updateFocusStatsUI() {
+            document.getElementById('statGoalMins').innerText = focusDailyGoalMins;
+            document.getElementById('statCompletedMins').innerText = focusCompletedMins;
+            document.getElementById('statYesterdayMins').innerText = focusYesterdayMins;
+            document.getElementById('statStreakDays').innerText = focusStreakDays;
+
+            const ring = document.getElementById('dailyProgressCircle');
+            if (ring) {
+                const ratio = Math.min(1, focusCompletedMins / (focusDailyGoalMins || 1));
+                ring.style.strokeDashoffset = 390 - (ratio * 390);
+            }
+        }
+
+        function promptEditDailyGoal() {
+            const newGoal = prompt('請輸入每日目標時間（分鐘）：', focusDailyGoalMins);
+            if (newGoal && !isNaN(newGoal)) {
+                focusDailyGoalMins = Math.max(5, parseInt(newGoal, 10));
+                updateFocusStatsUI();
+            }
+        }
+
+        function renderFocusTasks() {
+            const container = document.getElementById('tasksListContainer');
+            const noTasksState = document.getElementById('noTasksState');
+
+            if (focusTasks.length === 0) {
+                noTasksState.classList.remove('hidden');
+                container.innerHTML = '';
+                return;
+            } else {
+                noTasksState.classList.add('hidden');
+            }
+
+            container.innerHTML = focusTasks.map(task => `
+                <div onclick="toggleTask('${task.id}')" class="flex items-center justify-between p-3 border border-gray-200/80 dark:border-white/10 rounded-lg hover:border-gray-300 cursor-pointer transition select-none">
+                    <div class="flex items-center gap-3">
+                        <div class="w-5 h-5 rounded-full border ${task.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-gray-400'} flex items-center justify-center transition shrink-0">
+                            ${task.completed ? `<i data-lucide="check" class="w-3.5 h-3.5"></i>` : ''}
+                        </div>
+                        <span class="text-xs ${task.completed ? 'line-through text-gray-400' : 'font-medium'}">${task.title}</span>
+                    </div>
+                    <button onclick="deleteTask('${task.id}', event)" class="text-gray-400 hover:text-red-500 p-1 rounded-md transition">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        function addNewTaskPrompt() {
+            const title = prompt('請輸入新工作名稱：');
+            if (title && title.trim()) {
+                focusTasks.push({ id: 'task-' + Date.now(), title: title.trim(), completed: false });
+                renderFocusTasks();
+            }
+        }
+
+        function toggleTask(id) {
+            const task = focusTasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                renderFocusTasks();
+            }
+        }
+
+        function deleteTask(id, event) {
+            if (event) event.stopPropagation();
+            focusTasks = focusTasks.filter(t => t.id !== id);
+            renderFocusTasks();
+        }
+
+        function renderFocusUI() {
+            updateFocusBreaksInfo();
+            updateFocusStatsUI();
+            renderFocusTasks();
+        }
+
+        function renderBigLocalClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+
+            const digitsEl = document.getElementById('bigLocalTimeDigits');
+            if (digitsEl) digitsEl.innerText = `${h}:${m}:${s}`;
+
+            const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const date = now.getDate();
+            const dayName = days[now.getDay()];
+
+            const dateEl = document.getElementById('bigLocalDateText');
+            if (dateEl) dateEl.innerText = `${year}年${month}月${date}日 ${dayName}`;
+        }
+
+        // Drag and Drop
+        let dragSrcIndex = null;
+        function handleDragStart(e, index) {
+            dragSrcIndex = index;
+            e.currentTarget.classList.add('dragging');
+        }
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+        function handleDrop(e, index) {
+            e.preventDefault();
+            if (dragSrcIndex !== null && dragSrcIndex !== index) {
+                const movedItem = timers.splice(dragSrcIndex, 1)[0];
+                timers.splice(index, 0, movedItem);
+                renderTimers();
+            }
+        }
+
+        // Alarm Beep Sound Helper
+        function playAlarmSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.6);
+            } catch (e) {}
+        }
+
+        // ESC key to exit fullscreens
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeFsTimer();
+                closeStopwatchFullscreen();
+            }
+        });
+
+        window.onload = function() {
+            applyTheme(currentTheme);
+            setAccentColor(currentAccentHex);
+            renderTimers();
+            lucide.createIcons();
+
+            setInterval(() => {
+                if (currentTab === 'worldclock') {
+                    renderBigLocalClock();
+                }
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
