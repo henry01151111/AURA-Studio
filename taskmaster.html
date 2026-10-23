@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskMaster Pro - 多功能待辦事項總管</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Sortable.js for Drag and Drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+        }
+        .dark .glass-panel {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors duration-200 font-sans antialiased">
+
+    <div class="flex h-full flex-col md:flex-row overflow-hidden relative">
+        
+        <!-- Mobile Sidebar Overlay -->
+        <div id="sidebarOverlay" onclick="toggleMobileSidebar(false)" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-30 hidden md:hidden transition-opacity"></div>
+
+        <!-- Sidebar Navigation (Drawer on Mobile, Static on MD+) -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col justify-between shrink-0 transform -translate-x-full md:translate-x-0 md:static transition-transform duration-300 ease-in-out">
+            <div>
+                <!-- App Header / Logo -->
+                <div class="p-5 flex items-center justify-between border-b border-slate-100 dark:border-slate-700">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                            <i class="fa-solid font-bold fa-check-double text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="font-bold text-lg tracking-tight leading-tight">TaskMaster</h1>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button id="themeToggle" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                            <i class="fa-solid fa-moon dark:hidden"></i>
+                            <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+                        </button>
+                        <button onclick="toggleMobileSidebar(false)" class="md:hidden p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Nav Filter Options -->
+                <nav class="p-4 space-y-1">
+                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">檢視模式</div>
+                    
+                    <button onclick="switchView('all')" id="nav-all" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-inbox text-base"></i>
+                            <span>全部任務</span>
+                        </div>
+                        <span id="count-all" class="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-200">0</span>
+                    </button>
+
+                    <button onclick="switchView('today')" id="nav-today" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-regular fa-calendar-check text-base text-amber-500"></i>
+                            <span>今天到期</span>
+                        </div>
+                        <span id="count-today" class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">0</span>
+                    </button>
+
+                    <button onclick="switchView('important')" id="nav-important" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-star text-base text-rose-500"></i>
+                            <span>重要/高優先</span>
+                        </div>
+                        <span id="count-important" class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">0</span>
+                    </button>
+
+                    <button onclick="switchView('completed')" id="nav-completed" class="nav-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                        <div class="flex items-center gap-3">
+                            <i class="fa-solid fa-[#10b981] fa-circle-check text-base text-emerald-500"></i>
+                            <span>已完成</span>
+                        </div>
+                        <span id="count-completed" class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">0</span>
+                    </button>
+
+                    <!-- Categories Section -->
+                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 pt-5 mb-2">分類</div>
+                    <div id="categoryNavList" class="space-y-1">
+                        <!-- Dynamically generated categories -->
+                    </div>
+
+                    <!-- Tools Section -->
+                    <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 pt-5 mb-2">效能工具</div>
+                    <button onclick="switchView('analytics')" id="nav-analytics" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                        <i class="fa-solid fa-chart-pie text-base text-teal-500"></i>
+                        <span>統計報表</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- User Productivity Widget -->
+            <div class="p-4 border-t border-slate-100 dark:border-slate-700">
+                <div class="p-3 bg-slate-50 dark:bg-slate-700/40 rounded-xl">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-medium text-slate-500 dark:text-slate-400">今日完成率</span>
+                        <span id="todayProgressPercent" class="text-xs font-bold text-blue-600 dark:text-blue-400">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-600 rounded-full h-2">
+                        <div id="todayProgressBar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 dark:bg-slate-900 w-full min-w-0">
+            
+            <!-- Top Search & Quick Actions -->
+            <header class="p-3 sm:p-4 md:px-8 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2 flex-1 min-w-[200px]">
+                    <!-- Mobile Hamburger Button -->
+                    <button onclick="toggleMobileSidebar(true)" class="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition shrink-0">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋任務或標籤..." class="w-full pl-9 pr-4 py-2 bg-slate-100 dark:bg-slate-700 border-none rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 placeholder-slate-400">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                    <select id="sortBy" onchange="renderTasks()" class="bg-slate-100 dark:bg-slate-700 border-none text-xs font-medium rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="dueDate">按到期日排序</option>
+                        <option value="priority">按優先級排序</option>
+                        <option value="title">按標題排序</option>
+                        <option value="createdAt">按建立時間排序</option>
+                    </select>
+
+                    <button onclick="openAddTaskModal()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-3.5 py-2 rounded-xl shadow-md shadow-blue-500/20 transition active:scale-95 shrink-0">
+                        <i class="fa-solid fa-plus"></i>
+                        <span class="hidden sm:inline">新增任務</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dynamic Views Container -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-8" id="viewContainer">
+                
+                <!-- TASK LIST VIEW (Default) -->
+                <div id="taskListView" class="max-w-4xl mx-auto space-y-6">
+                    <!-- Section Title & Quick Add -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 id="currentViewTitle" class="text-2xl font-bold tracking-tight">全部任務</h2>
+                            <p id="currentViewSubtitle" class="text-xs text-slate-500 dark:text-slate-400 mt-1">管理您的每日待辦與目標</p>
+                        </div>
+                        <button onclick="clearCompletedTasks()" class="text-xs text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition flex items-center gap-1">
+                            <i class="fa-regular fa-trash-can"></i>
+                            清除已完成
+                        </button>
+                    </div>
+
+                    <!-- Quick Task Input Box -->
+                    <form onsubmit="handleQuickAdd(event)" class="flex flex-col sm:flex-row gap-2">
+                        <input type="text" id="quickInput" placeholder="快速新增任務，按 Enter 儲存..." class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+                        <button type="submit" class="bg-slate-800 dark:bg-slate-700 text-white px-5 py-2.5 rounded-xl font-medium text-sm hover:bg-slate-700 transition">快速新增</button>
+                    </form>
+
+                    <!-- Task List Items -->
+                    <div id="taskList" class="space-y-3">
+                        <!-- Tasks dynamically inserted here -->
+                    </div>
+
+                    <!-- Empty State View -->
+                    <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
+                        <div class="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-400 text-3xl mb-4">
+                            <i class="fa-regular fa-clipboard"></i>
+                        </div>
+                        <h3 class="font-semibold text-lg text-slate-600 dark:text-slate-300">目前沒有相關任務</h3>
+                        <p class="text-xs text-slate-400 mt-1 max-w-xs">享受這輕鬆的一刻，或者點擊上方按鈕新增任務。</p>
+                    </div>
+                </div>
+
+                <!-- ANALYTICS VIEW -->
+                <div id="analyticsView" class="hidden max-w-4xl mx-auto space-y-6">
+                    <h2 class="text-2xl font-bold tracking-tight">任務統計數據</h2>
+                    
+                    <!-- Stats Grid Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                            <div class="text-xs font-medium text-slate-400">總任務數</div>
+                            <div id="statTotal" class="text-3xl font-black mt-2">0</div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                            <div class="text-xs font-medium text-emerald-500">已完成任務</div>
+                            <div id="statCompleted" class="text-3xl font-black mt-2 text-emerald-500">0</div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                            <div class="text-xs font-medium text-amber-500">進行中/待完成</div>
+                            <div id="statPending" class="text-3xl font-black mt-2 text-amber-500">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                            <h3 class="text-sm font-semibold mb-4">分類占比分析</h3>
+                            <div class="h-64 relative flex items-center justify-center">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                            <h3 class="text-sm font-semibold mb-4">優先級分布</h3>
+                            <div class="h-64 relative flex items-center justify-center">
+                                <canvas id="priorityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Task Modal (Add/Edit) -->
+    <div id="taskModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-700 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-5">
+                <h3 id="modalTitle" class="text-lg font-bold">新增任務</h3>
+                <button onclick="closeTaskModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="taskForm" onsubmit="saveTask(event)" class="space-y-4">
+                <input type="hidden" id="taskId">
+                
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">任務標題 *</label>
+                    <input type="text" id="taskTitle" required placeholder="準備會議簡報資料..." class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">詳細說明</label>
+                    <textarea id="taskDesc" rows="3" placeholder="補充說明或注意事項..." class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">分類</label>
+                        <select id="taskCategory" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="work">工作 Work</option>
+                            <option value="personal">個人 Personal</option>
+                            <option value="shopping">購物 Shopping</option>
+                            <option value="health">健康 Health</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">優先級</label>
+                        <select id="taskPriority" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="low">低 (Low)</option>
+                            <option value="medium" selected>中 (Medium)</option>
+                            <option value="high">高 (High)</option>
+                            <option value="urgent">緊急 (Urgent)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">截止日期</label>
+                    <input type="date" id="taskDueDate" class="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <!-- Subtasks Management Section -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2">子任務拆解</label>
+                    <div id="subtasksList" class="space-y-2 mb-2"></div>
+                    <div class="flex gap-2">
+                        <input type="text" id="newSubtaskInput" placeholder="新增子項目..." class="flex-1 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl px-3 py-1.5 text-xs">
+                        <button type="button" onclick="addSubtaskFromModal()" class="px-3 py-1.5 bg-slate-200 dark:bg-slate-600 text-xs font-medium rounded-xl hover:bg-slate-300 transition">添加</button>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" onclick="closeTaskModal()" class="px-4 py-2 text-sm text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl">取消</button>
+                    <button type="submit" class="px-5 py-2 text-sm bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 shadow-md shadow-blue-500/20">儲存任務</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2"></div>
+
+    <!-- Main Logic Script -->
+    <script>
+        // State Management - Empty default task list
+        let tasks = JSON.parse(localStorage.getItem('tm_tasks')) || [];
+
+        let currentView = 'all';
+        let searchQuery = '';
+        let modalSubtasks = [];
+        let categoryChartInstance = null;
+        let priorityChartInstance = null;
+
+        const categories = {
+            work: { name: '工作', color: 'bg-blue-500', text: 'text-blue-500' },
+            personal: { name: '個人', color: 'bg-purple-500', text: 'text-purple-500' },
+            shopping: { name: '購物', color: 'bg-emerald-500', text: 'text-emerald-500' },
+            health: { name: '健康', color: 'bg-rose-500', text: 'text-rose-500' }
+        };
+
+        const priorityConfig = {
+            low: { name: '低', badge: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300' },
+            medium: { name: '中', badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' },
+            high: { name: '高', badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300' },
+            urgent: { name: '緊急', badge: 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300' }
+        };
+
+        // Mobile Sidebar Controls
+        function toggleMobileSidebar(open) {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (!sidebar || !overlay) return;
+
+            if (open) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // App Initialization
+        window.onload = function() {
+            initTheme();
+            renderCategoryNav();
+            renderTasks();
+            updateStats();
+            initSortable();
+        };
+
+        // Storage Save Helper
+        function saveToStorage() {
+            localStorage.setItem('tm_tasks', JSON.stringify(tasks));
+            updateStats();
+        }
+
+        // Theme Switcher
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+
+            document.getElementById('themeToggle').onclick = () => {
+                document.documentElement.classList.toggle('dark');
+                localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            };
+        }
+
+        // Navigation Management
+        function renderCategoryNav() {
+            const container = document.getElementById('categoryNavList');
+            container.innerHTML = Object.keys(categories).map(catKey => {
+                const cat = categories[catKey];
+                return `
+                    <button onclick="switchView('cat-${catKey}')" id="nav-cat-${catKey}" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                        <div class="flex items-center gap-3">
+                            <span class="w-2.5 h-2.5 rounded-full ${cat.color}"></span>
+                            <span>${cat.name}</span>
+                        </div>
+                        <span id="count-cat-${catKey}" class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500">0</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function switchView(view) {
+            currentView = view;
+            toggleMobileSidebar(false); // Auto-close drawer on mobile selection
+
+            // Update UI Active State for Navigation
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('bg-blue-50', 'dark:bg-blue-900/40', 'text-blue-600', 'dark:text-blue-400');
+                el.classList.add('text-slate-600', 'dark:text-slate-300');
+            });
+
+            const activeNav = document.getElementById(`nav-${view}`);
+            if (activeNav) {
+                activeNav.classList.add('bg-blue-50', 'dark:bg-blue-900/40', 'text-blue-600', 'dark:text-blue-400');
+            }
+
+            // Hide/Show View Panels
+            document.getElementById('taskListView').classList.add('hidden');
+            document.getElementById('analyticsView').classList.add('hidden');
+
+            if (view === 'analytics') {
+                document.getElementById('analyticsView').classList.remove('hidden');
+                renderCharts();
+            } else {
+                document.getElementById('taskListView').classList.remove('hidden');
+                updateViewTitle(view);
+                renderTasks();
+            }
+        }
+
+        function updateViewTitle(view) {
+            const titleEl = document.getElementById('currentViewTitle');
+            if (view === 'all') titleEl.innerText = '全部任務';
+            else if (view === 'today') titleEl.innerText = '今天到期';
+            else if (view === 'important') titleEl.innerText = '重要/高優先';
+            else if (view === 'completed') titleEl.innerText = '已完成任務';
+            else if (view.startsWith('cat-')) {
+                const catKey = view.replace('cat-', '');
+                titleEl.innerText = `${categories[catKey].name} 分類`;
+            }
+        }
+
+        // Filtering & Sorting Logic
+        function getFilteredTasks() {
+            let result = [...tasks];
+
+            // Filter by search query
+            if (searchQuery.trim() !== '') {
+                const q = searchQuery.toLowerCase();
+                result = result.filter(t => t.title.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q));
+            }
+
+            // Filter by view
+            const todayStr = new Date().toISOString().split('T')[0];
+            if (currentView === 'today') {
+                result = result.filter(t => t.dueDate === todayStr);
+            } else if (currentView === 'important') {
+                result = result.filter(t => t.priority === 'high' || t.priority === 'urgent');
+            } else if (currentView === 'completed') {
+                result = result.filter(t => t.completed);
+            } else if (currentView.startsWith('cat-')) {
+                const catKey = currentView.replace('cat-', '');
+                result = result.filter(t => t.category === catKey);
+            }
+
+            // Sort
+            const sortBy = document.getElementById('sortBy')?.value || 'dueDate';
+            result.sort((a, b) => {
+                if (a.completed !== b.completed) return a.completed ? 1 : -1; // Uncompleted first
+                if (sortBy === 'priority') {
+                    const pMap = { urgent: 4, high: 3, medium: 2, low: 1 };
+                    return pMap[b.priority] - pMap[a.priority];
+                } else if (sortBy === 'title') {
+                    return a.title.localeCompare(b.title);
+                } else if (sortBy === 'createdAt') {
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+                } else {
+                    if (!a.dueDate) return 1;
+                    if (!b.dueDate) return -1;
+                    return new Date(a.dueDate) - new Date(b.dueDate);
+                }
+            });
+
+            return result;
+        }
+
+        // Task Rendering
+        function renderTasks() {
+            const taskListContainer = document.getElementById('taskList');
+            const emptyState = document.getElementById('emptyState');
+            const filteredTasks = getFilteredTasks();
+
+            if (filteredTasks.length === 0) {
+                taskListContainer.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+
+                taskListContainer.innerHTML = filteredTasks.map(task => {
+                    const category = categories[task.category] || categories.work;
+                    const priority = priorityConfig[task.priority] || priorityConfig.medium;
+                    const completedSubtasks = task.subtasks.filter(s => s.completed).length;
+                    const totalSubtasks = task.subtasks.length;
+                    const progress = totalSubtasks > 0 ? Math.round((completedSubtasks / totalSubtasks) * 100) : 0;
+
+                    return `
+                        <div data-id="${task.id}" class="task-item bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm transition hover:shadow-md ${task.completed ? 'opacity-60 bg-slate-50 dark:bg-slate-800/50' : ''}">
+                            <div class="flex items-start justify-between gap-3">
+                                
+                                <div class="flex items-start gap-3 flex-1 min-w-0">
+                                    <button onclick="toggleTaskComplete('${task.id}')" class="mt-1 text-slate-300 dark:text-slate-600 hover:text-emerald-500 dark:hover:text-emerald-400 transition">
+                                        <i class="fa-${task.completed ? 'solid fa-circle-check text-emerald-500 text-xl' : 'regular fa-circle text-xl'}"></i>
+                                    </button>
+                                    
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                                            <span class="text-xs px-2 py-0.5 rounded-md ${priority.badge} font-medium">${priority.name}優</span>
+                                            <span class="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 font-medium">
+                                                <span class="inline-block w-1.5 h-1.5 rounded-full ${category.color} mr-1"></span>${category.name}
+                                            </span>
+                                            ${task.dueDate ? `<span class="text-xs text-slate-400"><i class="fa-regular fa-clock mr-1"></i>${task.dueDate}</span>` : ''}
+                                        </div>
+
+                                        <h4 class="font-semibold text-slate-800 dark:text-slate-100 text-base leading-snug ${task.completed ? 'line-through text-slate-400 dark:text-slate-500' : ''}">
+                                            ${escapeHtml(task.title)}
+                                        </h4>
+
+                                        ${task.desc ? `<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">${escapeHtml(task.desc)}</p>` : ''}
+
+                                        <!-- Subtasks Progress -->
+                                        ${totalSubtasks > 0 ? `
+                                            <div class="mt-3 bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded-xl">
+                                                <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+                                                    <span>子任務 (${completedSubtasks}/${totalSubtasks})</span>
+                                                    <span>${progress}%</span>
+                                                </div>
+                                                <div class="w-full bg-slate-200 dark:bg-slate-600 rounded-full h-1.5 mb-2">
+                                                    <div class="bg-blue-500 h-1.5 rounded-full" style="width: ${progress}%"></div>
+                                                </div>
+                                                <div class="space-y-1">
+                                                    ${task.subtasks.map(st => `
+                                                        <div class="flex items-center gap-2 text-xs">
+                                                            <button onclick="toggleSubtask('${task.id}', '${st.id}')" class="text-slate-400 hover:text-blue-500">
+                                                                <i class="fa-${st.completed ? 'solid fa-square-check text-blue-500' : 'regular fa-square'}"></i>
+                                                            </button>
+                                                            <span class="${st.completed ? 'line-through text-slate-400' : 'text-slate-700 dark:text-slate-300'}">${escapeHtml(st.title)}</span>
+                                                        </div>
+                                                    `).join('')}
+                                                </div>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="flex items-center gap-1">
+                                    <button onclick="openEditTaskModal('${task.id}')" class="p-2 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button onclick="deleteTask('${task.id}')" class="p-2 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Task CRUD Actions
+        function handleQuickAdd(e) {
+            e.preventDefault();
+            const input = document.getElementById('quickInput');
+            const title = input.value.trim();
+            if (!title) return;
+
+            const newTask = {
+                id: Date.now().toString(),
+                title: title,
+                desc: '',
+                category: 'work',
+                priority: 'medium',
+                dueDate: new Date().toISOString().split('T')[0],
+                completed: false,
+                subtasks: [],
+                createdAt: new Date().toISOString()
+            };
+
+            tasks.unshift(newTask);
+            saveToStorage();
+            renderTasks();
+            input.value = '';
+            showToast('已新增任務');
+        }
+
+        function toggleTaskComplete(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveToStorage();
+                renderTasks();
+                showToast(task.completed ? '任務已完成！🎉' : '標記為未完成');
+            }
+        }
+
+        function toggleSubtask(taskId, subtaskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                const st = task.subtasks.find(s => s.id === subtaskId);
+                if (st) {
+                    st.completed = !st.completed;
+                    saveToStorage();
+                    renderTasks();
+                }
+            }
+        }
+
+        function deleteTask(id) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveToStorage();
+            renderTasks();
+            showToast('已刪除任務');
+        }
+
+        function clearCompletedTasks() {
+            const count = tasks.filter(t => t.completed).length;
+            if (count === 0) return showToast('沒有可清除的完成任務');
+            
+            tasks = tasks.filter(t => !t.completed);
+            saveToStorage();
+            renderTasks();
+            showToast(`已清除 ${count} 項完成任務`);
+        }
+
+        // Modal Management
+        function openAddTaskModal() {
+            document.getElementById('modalTitle').innerText = '新增任務';
+            document.getElementById('taskId').value = '';
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDesc').value = '';
+            document.getElementById('taskCategory').value = 'work';
+            document.getElementById('taskPriority').value = 'medium';
+            document.getElementById('taskDueDate').value = new Date().toISOString().split('T')[0];
+            modalSubtasks = [];
+            renderModalSubtasks();
+            document.getElementById('taskModal').classList.remove('hidden');
+            document.getElementById('taskModal').classList.add('flex');
+        }
+
+        function openEditTaskModal(id) {
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            document.getElementById('modalTitle').innerText = '編輯任務';
+            document.getElementById('taskId').value = task.id;
+            document.getElementById('taskTitle').value = task.title;
+            document.getElementById('taskDesc').value = task.desc || '';
+            document.getElementById('taskCategory').value = task.category;
+            document.getElementById('taskPriority').value = task.priority;
+            document.getElementById('taskDueDate').value = task.dueDate || '';
+            modalSubtasks = [...(task.subtasks || [])];
+            renderModalSubtasks();
+
+            document.getElementById('taskModal').classList.remove('hidden');
+            document.getElementById('taskModal').classList.add('flex');
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').classList.add('hidden');
+            document.getElementById('taskModal').classList.remove('flex');
+        }
+
+        function addSubtaskFromModal() {
+            const input = document.getElementById('newSubtaskInput');
+            const title = input.value.trim();
+            if (!title) return;
+
+            modalSubtasks.push({
+                id: Date.now().toString(),
+                title: title,
+                completed: false
+            });
+            input.value = '';
+            renderModalSubtasks();
+        }
+
+        function removeModalSubtask(id) {
+            modalSubtasks = modalSubtasks.filter(s => s.id !== id);
+            renderModalSubtasks();
+        }
+
+        function renderModalSubtasks() {
+            const container = document.getElementById('subtasksList');
+            container.innerHTML = modalSubtasks.map(s => `
+                <div class="flex items-center justify-between bg-slate-100 dark:bg-slate-700/60 px-3 py-1.5 rounded-xl text-xs">
+                    <span>${escapeHtml(s.title)}</span>
+                    <button type="button" onclick="removeModalSubtask('${s.id}')" class="text-slate-400 hover:text-rose-500">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function saveTask(e) {
+            e.preventDefault();
+            const id = document.getElementById('taskId').value;
+            const title = document.getElementById('taskTitle').value.trim();
+            if (!title) return;
+
+            const taskData = {
+                title,
+                desc: document.getElementById('taskDesc').value.trim(),
+                category: document.getElementById('taskCategory').value,
+                priority: document.getElementById('taskPriority').value,
+                dueDate: document.getElementById('taskDueDate').value,
+                subtasks: modalSubtasks
+            };
+
+            if (id) {
+                // Edit existing
+                const taskIndex = tasks.findIndex(t => t.id === id);
+                if (taskIndex !== -1) {
+                    tasks[taskIndex] = { ...tasks[taskIndex], ...taskData };
+                }
+            } else {
+                // Add new
+                tasks.unshift({
+                    id: Date.now().toString(),
+                    ...taskData,
+                    completed: false,
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            saveToStorage();
+            renderTasks();
+            closeTaskModal();
+            showToast('任務儲存成功！');
+        }
+
+        // Stats Updates
+        function updateStats() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todayTasks = tasks.filter(t => t.dueDate === todayStr);
+            const todayCompleted = todayTasks.filter(t => t.completed).length;
+            const todayPercent = todayTasks.length > 0 ? Math.round((todayCompleted / todayTasks.length) * 100) : 0;
+
+            document.getElementById('todayProgressPercent').innerText = `${todayPercent}%`;
+            document.getElementById('todayProgressBar').style.width = `${todayPercent}%`;
+
+            // Navigation Badge Counts
+            document.getElementById('count-all').innerText = tasks.length;
+            document.getElementById('count-today').innerText = todayTasks.length;
+            document.getElementById('count-important').innerText = tasks.filter(t => t.priority === 'high' || t.priority === 'urgent').length;
+            document.getElementById('count-completed').innerText = tasks.filter(t => t.completed).length;
+
+            Object.keys(categories).forEach(catKey => {
+                const el = document.getElementById(`count-cat-${catKey}`);
+                if (el) {
+                    el.innerText = tasks.filter(t => t.category === catKey).length;
+                }
+            });
+
+            // Analytics Panel Stats
+            document.getElementById('statTotal').innerText = tasks.length;
+            document.getElementById('statCompleted').innerText = tasks.filter(t => t.completed).length;
+            document.getElementById('statPending').innerText = tasks.filter(t => !t.completed).length;
+        }
+
+        // Search Handling
+        function handleSearch() {
+            searchQuery = document.getElementById('searchInput').value;
+            renderTasks();
+        }
+
+        // Analytics Charts (Chart.js)
+        function renderCharts() {
+            // Category Chart
+            const catCounts = Object.keys(categories).map(k => tasks.filter(t => t.category === k).length);
+            const catCtx = document.getElementById('categoryChart').getContext('2d');
+
+            if (categoryChartInstance) categoryChartInstance.destroy();
+            categoryChartInstance = new Chart(catCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categories).map(k => categories[k].name),
+                    datasets: [{
+                        data: catCounts,
+                        backgroundColor: ['#3b82f6', '#a855f7', '#10b981', '#f43f5e']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Priority Chart
+            const prioCounts = ['low', 'medium', 'high', 'urgent'].map(p => tasks.filter(t => t.priority === p).length);
+            const prioCtx = document.getElementById('priorityChart').getContext('2d');
+
+            if (priorityChartInstance) priorityChartInstance.destroy();
+            priorityChartInstance = new Chart(prioCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['低', '中', '高', '緊急'],
+                    datasets: [{
+                        label: '任務數',
+                        data: prioCounts,
+                        backgroundColor: ['#94a3b8', '#60a5fa', '#f59e0b', '#f43f5e']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // Drag & Drop Sorting Initialization
+        function initSortable() {
+            const el = document.getElementById('taskList');
+            Sortable.create(el, {
+                animation: 150,
+                onEnd: function (evt) {
+                    // Update array order based on DOM
+                    const itemIds = Array.from(el.children).map(child => child.getAttribute('data-id'));
+                    tasks.sort((a, b) => itemIds.indexOf(a.id) - itemIds.indexOf(b.id));
+                    saveToStorage();
+                }
+            });
+        }
+
+        // UI Helpers & Toasts
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-800 px-4 py-3 rounded-2xl shadow-xl text-xs font-medium flex items-center gap-2 transform transition-all duration-300 translate-y-full opacity-0';
+            toast.innerHTML = `<i class="fa-solid fa-circle-info text-blue-400"></i> ${escapeHtml(message)}`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-full', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    </script>
+</body>
+</html>
