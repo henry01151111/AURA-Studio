@@ -9,7 +9,7 @@ OR https://aura-studio-8yn.pages.dev/
 
 https://github.com/henry01151111/AURA-Studio/releases/latest
 
-[繁體中文](./README.md) | **English**
+[查看即將新增功能Upcoming features](./todo.md) | **English**
 
 # AURA Studio
 
