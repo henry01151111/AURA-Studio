@@ -35,6 +35,12 @@
 * { user-select: none; -webkit-user-select: none; box-sizing: border-box; }
 input, textarea, select { user-select: text; -webkit-user-select: text; }
 body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #030712; color: #ffffff; transition: background-color 0.8s ease; }
+#splashScreen { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background: #030712; transition: opacity 0.7s ease, visibility 0.7s ease; }
+#splashScreen.splash-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+#splashScreen .splash-title { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(2rem, 6vw, 3.25rem); letter-spacing: 0.08em; color: #ffffff; opacity: 0; animation: splashFadeIn 1s ease forwards, splashGlow 2.6s ease-in-out 1s infinite; }
+#splashScreen .splash-sub { margin-top: 0.75rem; font-size: 0.72rem; letter-spacing: 0.35em; text-transform: uppercase; color: rgba(255, 255, 255, 0.35); opacity: 0; animation: splashFadeIn 1s ease 0.3s forwards; }
+@keyframes splashFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes splashGlow { 0%, 100% { text-shadow: 0 0 20px rgba(99, 102, 241, 0.25), 0 0 46px rgba(99, 102, 241, 0.12); } 50% { text-shadow: 0 0 34px rgba(99, 102, 241, 0.55), 0 0 70px rgba(99, 102, 241, 0.3); } }
 canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
 .canvas-layer { z-index: 2; }
 .hud-element { transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -822,6 +828,15 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
 </head>
 <body class="font-sans antialiased overflow-hidden">
 
+    <!-- 開場畫面 -->
+    <div id="splashScreen" data-no-i18n>
+        <div style="text-align:center;">
+            <div class="splash-title">AURA Studio</div>
+            <div class="splash-sub">Focus Timer</div>
+        </div>
+    </div>
+    <script>window.__splashStart = Date.now();</script>
+
     <!-- iOS 底層深色背景 -->
     <div id="iosBackdrop" class="ios-mode-backdrop"></div>
 
@@ -855,24 +870,13 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         <!-- 頂部工具列 -->
         <header id="topHud" class="hud-element absolute top-0 left-0 right-0 z-20 flex justify-between items-center p-4 sm:p-6 text-xs sm:text-sm">
             <div class="flex items-center space-x-3">
-                <button id="toggleTaskDrawerBtn" title="任務與草稿" class="group flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 hover:border-indigo-400/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.25)] hover:scale-105 active:scale-95 text-white/90 transition-all duration-300 shadow-lg cursor-pointer">
-                    <i class="fa-solid fa-list-check text-indigo-400 group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-300"></i>
-                    <span class="hud-label font-medium">任務與草稿</span>
-                    <span id="taskCountBadge" class="bg-indigo-600 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold group-hover:scale-110 transition-transform duration-300">0</span>
-                </button>
-                <button id="toggleWinClockBtn" class="group flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 hover:border-sky-400/50 hover:shadow-[0_0_15px_rgba(56,189,248,0.25)] hover:scale-105 active:scale-95 text-white/90 transition-all duration-300 shadow-lg cursor-pointer" title="開啟擴充功能 (Alt + C)">
-                    <i class="fa-solid fa-table-cells-large text-sky-400 group-hover:scale-110 transition-transform duration-300"></i>
-                    <span class="hud-label font-medium">擴充功能</span>
-                </button>
-            </div>
-            <div class="flex items-center space-x-3">
                 <div id="langDropdownWrap" class="relative">
                     <button id="langToggleBtn" title="切換語言" class="group flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/15 hover:border-indigo-400/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.25)] hover:scale-105 active:scale-95 text-white/90 transition-all duration-300 shadow-lg cursor-pointer">
                         <i class="fa-solid fa-globe text-indigo-400 group-hover:rotate-45 transition-transform duration-300"></i>
                         <span id="langBtnText" class="hud-label font-medium">繁中</span>
                         <i class="fa-solid fa-chevron-down text-[9px] text-white/40 transition-transform duration-200"></i>
                     </button>
-                    <div id="langDropdownMenu" data-no-i18n class="hidden absolute right-0 top-[calc(100%+8px)] min-w-[9rem] bg-black/85 backdrop-blur-md border border-white/15 rounded-xl shadow-xl py-1.5 z-50 overflow-hidden">
+                    <div id="langDropdownMenu" data-no-i18n class="hidden absolute left-0 top-[calc(100%+8px)] min-w-[9rem] max-h-[70vh] overflow-y-auto bg-black/85 backdrop-blur-md border border-white/15 rounded-xl shadow-xl py-1.5 z-50">
                         <button type="button" data-lang="zh-TW" class="lang-option w-full text-left px-4 py-2 text-xs sm:text-sm text-white/90 hover:bg-white/10 transition-colors flex items-center justify-between">
                             <span>繁體中文</span><i class="fa-solid fa-check text-[10px] text-indigo-400 lang-check hidden"></i>
                         </button>
@@ -882,11 +886,39 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                         <button type="button" data-lang="ja" class="lang-option w-full text-left px-4 py-2 text-xs sm:text-sm text-white/90 hover:bg-white/10 transition-colors flex items-center justify-between">
                             <span>日本語</span><i class="fa-solid fa-check text-[10px] text-indigo-400 lang-check hidden"></i>
                         </button>
+                        <button type="button" data-lang="ko" class="lang-option w-full text-left px-4 py-2 text-xs sm:text-sm text-white/90 hover:bg-white/10 transition-colors flex items-center justify-between">
+                            <span>한국어</span><i class="fa-solid fa-check text-[10px] text-indigo-400 lang-check hidden"></i>
+                        </button>
+                        <button type="button" data-lang="fr" class="lang-option w-full text-left px-4 py-2 text-xs sm:text-sm text-white/90 hover:bg-white/10 transition-colors flex items-center justify-between">
+                            <span>Français</span><i class="fa-solid fa-check text-[10px] text-indigo-400 lang-check hidden"></i>
+                        </button>
+                        <button type="button" data-lang="ru" class="lang-option w-full text-left px-4 py-2 text-xs sm:text-sm text-white/90 hover:bg-white/10 transition-colors flex items-center justify-between">
+                            <span>Русский</span><i class="fa-solid fa-check text-[10px] text-indigo-400 lang-check hidden"></i>
+                        </button>
+                        <button type="button" data-lang="es" class="lang-option w-full text-left px-4 py-2 text-xs sm:text-sm text-white/90 hover:bg-white/10 transition-colors flex items-center justify-between">
+                            <span>Español</span><i class="fa-solid fa-check text-[10px] text-indigo-400 lang-check hidden"></i>
+                        </button>
+                        <button type="button" data-lang="hi" class="lang-option w-full text-left px-4 py-2 text-xs sm:text-sm text-white/90 hover:bg-white/10 transition-colors flex items-center justify-between">
+                            <span>हिन्दी</span><i class="fa-solid fa-check text-[10px] text-indigo-400 lang-check hidden"></i>
+                        </button>
+                        <button type="button" data-lang="pt" class="lang-option w-full text-left px-4 py-2 text-xs sm:text-sm text-white/90 hover:bg-white/10 transition-colors flex items-center justify-between">
+                            <span>Português</span><i class="fa-solid fa-check text-[10px] text-indigo-400 lang-check hidden"></i>
+                        </button>
                         <button type="button" data-lang="en" class="lang-option w-full text-left px-4 py-2 text-xs sm:text-sm text-white/90 hover:bg-white/10 transition-colors flex items-center justify-between">
                             <span>English</span><i class="fa-solid fa-check text-[10px] text-indigo-400 lang-check hidden"></i>
                         </button>
                     </div>
                 </div>
+                <button id="toggleTaskDrawerBtn" title="任務與草稿" class="group flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 hover:border-indigo-400/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.25)] hover:scale-105 active:scale-95 text-white/90 transition-all duration-300 shadow-lg cursor-pointer">
+                    <i class="fa-solid fa-list-check text-indigo-400 group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-300"></i>
+                    <span class="hud-label font-medium">任務與草稿</span>
+                </button>
+                <button id="toggleWinClockBtn" class="group flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 hover:border-sky-400/50 hover:shadow-[0_0_15px_rgba(56,189,248,0.25)] hover:scale-105 active:scale-95 text-white/90 transition-all duration-300 shadow-lg cursor-pointer" title="開啟擴充功能 (Alt + C)">
+                    <i class="fa-solid fa-table-cells-large text-sky-400 group-hover:scale-110 transition-transform duration-300"></i>
+                    <span class="hud-label font-medium">擴充功能</span>
+                </button>
+            </div>
+            <div class="flex items-center space-x-3">
                 <button id="pwaInstallBtn" title="安裝 App" class="flex items-center space-x-2 cursor-pointer bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-full border border-indigo-400/30 transition shadow-lg text-xs font-semibold">
                     <i class="fa-solid fa-download"></i><span class="hud-label">安裝 App</span>
                 </button>
@@ -904,13 +936,8 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 </div>
                 <button id="closeTaskDrawerBtn" class="text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div id="taskDeprecationNotice" class="flex items-start space-x-2 mb-4 px-3 py-2.5 rounded-xl bg-amber-500/10 border border-amber-400/30 text-amber-200 text-[11px] leading-relaxed">
-                <i class="fa-solid fa-triangle-exclamation mt-0.5 shrink-0"></i><span>此功能即將淘汰，請打開擴充功能中的待辦事項繼續使用</span>
-            </div>
-            <div id="taskList" class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1 mb-4"></div>
-            <div class="pt-3 border-t border-white/10">
-                <label class="block text-[11px] text-white/50 uppercase font-semibold mb-1.5">專注草稿備忘錄 (自動儲存)</label>
-                <textarea id="memoInput" rows="4" class="w-full bg-black/40 border border-white/15 rounded-xl p-3 text-xs text-white placeholder-white/25 focus:outline-none focus:border-indigo-500 transition resize-none custom-scrollbar" placeholder="在此記錄臨時想法、解題算式或待查資料..."></textarea>
+            <div id="taskDeprecationNotice" class="flex items-start space-x-2 px-3 py-2.5 rounded-xl bg-amber-500/10 border border-amber-400/30 text-amber-200 text-[11px] leading-relaxed">
+                <i class="fa-solid fa-triangle-exclamation mt-0.5 shrink-0"></i><span>此功能已淘汰，請打開擴充功能中的待辦事項或記事本繼續使用</span>
             </div>
         </div>
 
@@ -918,52 +945,12 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         <div id="audioMixerDrawer" class="drawer-slide absolute top-20 right-4 z-30 w-80 glass-panel rounded-3xl p-5 border border-white/15 shadow-2xl opacity-0 pointer-events-none translate-x-full max-h-[85vh] overflow-y-auto custom-scrollbar">
             <div class="flex justify-between items-center pb-3 border-b border-white/10 mb-4">
                 <div class="flex items-center space-x-2 text-teal-300 font-semibold text-sm">
-                    <i class="fa-solid fa-sliders"></i><span>多軌專注音效混音器</span>
+                    <i class="fa-brands fa-youtube"></i><span>YouTube 專注音樂</span>
                 </div>
                 <button id="closeAudioMixerBtn" class="text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="space-y-4 text-xs">
-                <div class="flex items-center justify-between bg-white/5 p-3 rounded-2xl">
-                    <span class="text-white/80 font-medium">總聲音開關</span>
-                    <button id="masterAudioToggle" class="bg-indigo-600 text-white px-3 py-1 rounded-xl font-semibold transition">已開啟</button>
-                </div>
                 <div>
-                    <div class="flex justify-between text-white/70 font-medium mb-1">
-                        <span><i class="fa-solid fa-cloud-rain text-blue-400 mr-1.5"></i>真實溫馨雨聲</span>
-                        <span id="rainVolVal" class="text-indigo-300">70%</span>
-                    </div>
-                    <input id="rainVolSlider" type="range" min="0" max="1" step="0.05" value="0.7" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
-                </div>
-                <div>
-                    <div class="flex justify-between text-white/70 font-medium mb-1">
-                        <span><i class="fa-solid fa-brain text-purple-400 mr-1.5"></i>雙耳節律 (Binaural Focus)</span>
-                        <span id="alphaVolVal" class="text-indigo-300">30%</span>
-                    </div>
-                    <input id="alphaVolSlider" type="range" min="0" max="1" step="0.05" value="0.3" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
-                </div>
-                <div class="pl-2 border-l-2 border-indigo-500/40 my-2">
-                    <label class="block text-white/60 mb-1 font-medium">雙耳節律頻段：</label>
-                    <select id="binauralSelect" class="w-full bg-black/50 border border-white/15 rounded-xl px-2.5 py-1.5 text-white focus:outline-none focus:border-indigo-500 transition cursor-pointer">
-                        <option value="10">α 波 (10Hz) - 深層專注與平靜</option>
-                        <option value="18">β 波 (18Hz) - 高強度運算與邏輯</option>
-                        <option value="6">θ 波 (6Hz) - 靈感發想與冥想</option>
-                    </select>
-                </div>
-                <div>
-                    <div class="flex justify-between text-white/70 font-medium mb-1">
-                        <span><i class="fa-solid fa-fire text-amber-400 mr-1.5"></i>溫馨柴火噼啪聲</span>
-                        <span id="fireVolVal" class="text-indigo-300">20%</span>
-                    </div>
-                    <input id="fireVolSlider" type="range" min="0" max="1" step="0.05" value="0.2" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
-                </div>
-                <div>
-                    <div class="flex justify-between text-white/70 font-medium mb-1">
-                        <span><i class="fa-solid fa-wind text-teal-300 mr-1.5"></i>微風與靜心磬音</span>
-                        <span id="chimeVolVal" class="text-indigo-300">40%</span>
-                    </div>
-                    <input id="chimeVolSlider" type="range" min="0" max="1" step="0.05" value="0.4" class="w-full accent-indigo-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
-                </div>
-                <div class="pt-3 border-t border-white/10 mt-3">
                     <div class="flex items-center justify-between text-white/80 font-medium mb-1.5">
                         <span><i class="fa-brands fa-youtube text-red-500 mr-1.5"></i>YouTube 專注音樂</span>
                         <span id="ytStatusBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-white/40">未載入</span>
@@ -1574,34 +1561,34 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         <div class="flex justify-between items-center border-b border-white/10 pb-4">
             <div class="flex items-center space-x-3">
                 <div class="w-9 h-9 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-base border border-indigo-500/30 shadow-lg shadow-indigo-500/10"><i class="fa-solid fa-sparkles"></i></div>
-                <div><h3 class="font-bold text-white text-base">AURA Studio v1.1.1 正式版</h3><p class="text-[10px] text-indigo-300/80 font-mono uppercase tracking-wider">v1.1.1 Official Release Notes</p></div>
+                <div><h3 class="font-bold text-white text-base">AURA Studio v1.2.0 正式版</h3><p class="text-[10px] text-indigo-300/80 font-mono uppercase tracking-wider">v1.2.0 Official Release Notes</p></div>
             </div>
             <button id="closeWhatsNewModalBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-3 text-xs">
             <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                <div class="w-7 h-7 rounded-xl bg-teal-500/20 text-teal-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-table-cells-large text-xs"></i></div>
-                <div><h4 class="font-semibold text-white/90 mb-0.5">1. 擴充功能商店與待辦事項</h4><p class="text-white/60 leading-relaxed text-[11px]">左上角改為「擴充功能」，在右側分割畫面打開商店介面。內建桌面時鐘套件，以及全新的待辦事項：分類、優先順序、子任務、統計圖表與拖曳排序。</p></div>
-            </div>
-            <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                <div class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-arrows-left-right text-xs"></i></div>
-                <div><h4 class="font-semibold text-white/90 mb-0.5">2. 自由調整的分割畫面</h4><p class="text-white/60 leading-relaxed text-[11px]">拖曳中間的分割線就能調整左右比例，雙擊可還原一半一半；新增放大鍵可讓擴充功能填滿整個網頁，左側的設定與主題視窗也不再蓋住右側。</p></div>
-            </div>
-            <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                <div class="w-7 h-7 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-download text-xs"></i></div>
-                <div><h4 class="font-semibold text-white/90 mb-0.5">3. 更貼心的安裝與窄版介面</h4><p class="text-white/60 leading-relaxed text-[11px]">安裝 App 按鈕永遠顯示，可選擇安裝成 PWA，或前往 GitHub 下載可離線使用的版本；手機或分割畫面太窄時，頂部工具列會自動只顯示圖示。</p></div>
-            </div>
-            <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
                 <div class="w-7 h-7 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-globe text-xs"></i></div>
-                <div><h4 class="font-semibold text-white/90 mb-0.5">4. 全新多國語言支援</h4><p class="text-white/60 leading-relaxed text-[11px]">新增簡體中文與日文，右上角語言按鈕改為下拉選單，可在繁體中文、簡體中文、日本語、English 之間直接點選切換。</p></div>
+                <div><h4 class="font-semibold text-white/90 mb-0.5">1. 全面升級的多國語言支援</h4><p class="text-white/60 leading-relaxed text-[11px]">語言從 4 種擴增到 10 種：繁體中文、简体中文、日本語、한국어、Français、Русский、Español、हिन्दी、Português、English，左上角語言按鈕也改為下拉選單，點選即可切換。</p></div>
+            </div>
+            <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
+                <div class="w-7 h-7 rounded-xl bg-teal-500/20 text-teal-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-broom text-xs"></i></div>
+                <div><h4 class="font-semibold text-white/90 mb-0.5">2. 精簡任務與專注音效</h4><p class="text-white/60 leading-relaxed text-[11px]">左上角「任務與草稿」功能停用，請改用擴充功能中的待辦事項或記事本；右上角專注音效移除環境音軌，只保留 YouTube 專注音樂。</p></div>
+            </div>
+            <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
+                <div class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-expand text-xs"></i></div>
+                <div><h4 class="font-semibold text-white/90 mb-0.5">3. 子母畫面效果升級</h4><p class="text-white/60 leading-relaxed text-[11px]">開啟子母畫面時，背景也會顯示主題光暈與雨滴效果，不再只是單調的黑底畫面。</p></div>
+            </div>
+            <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
+                <div class="w-7 h-7 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-wand-magic-sparkles text-xs"></i></div>
+                <div><h4 class="font-semibold text-white/90 mb-0.5">4. 全新開場畫面</h4><p class="text-white/60 leading-relaxed text-[11px]">每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。</p></div>
             </div>
         </div>
         <div class="pt-2 border-t border-white/10 flex items-center gap-2">
-            <a href="https://youtu.be/vtaEw41lo4E?si=h4T_9XmVIBRTNOWT" target="_blank" rel="noopener noreferrer" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center space-x-1.5 shadow-md shadow-red-600/20 active:scale-95"><i class="fa-brands fa-youtube text-sm"></i><span>YouTube 影片展示</span></a>
+            <a href="https://www.youtube.com/channel/UCypQ1QzYiJwk9kNa9aXD6tg" target="_blank" rel="noopener noreferrer" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded-xl text-xs font-semibold transition flex items-center justify-center space-x-1.5 shadow-md shadow-red-600/20 active:scale-95"><i class="fa-brands fa-youtube text-sm"></i><span>YouTube 影片展示</span></a>
             <a href="https://github.com/henry01151111/AURA-Studio/" target="_blank" rel="noopener noreferrer" class="flex-1 bg-white hover:bg-slate-100 text-slate-900 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-md active:scale-95"><i class="fa-brands fa-github text-sm"></i><span>GitHub 開源專案</span></a>
         </div>
         <div class="pt-1 flex flex-col space-y-2.5">
-            <button id="startFocusBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i><span>探索 v1.1.1 正式版，開始使用</span></button>
+            <button id="startFocusBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i><span>探索 v1.2.0 正式版，開始使用</span></button>
         </div>
     </div>
 </div>
@@ -1727,7 +1714,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "待辦事項": "To-Do",
             "切換語言": "Switch language",
             "分類、優先順序、子任務、統計圖表與拖曳排序": "Categories, priorities, subtasks, charts and drag-to-sort",
-            "此功能即將淘汰，請打開擴充功能中的待辦事項繼續使用": "This feature is being phased out. Please open To-Do from Extensions to keep using it.",
+            "此功能已淘汰，請打開擴充功能中的待辦事項或記事本繼續使用": "This feature has been discontinued. Please open To-Do or Notepad from Extensions to keep using it.",
             "拖曳調整分割大小（雙擊還原）": "Drag to resize (double-click to reset)",
             "安裝 AURA Studio": "Install AURA Studio",
             "選擇安裝方式": "Choose how to install",
@@ -1847,14 +1834,16 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "October",
             "十一月": "November",
             "十二月": "December",
-            "AURA Studio v1.1.1 正式版": "AURA Studio v1.1.1 Official",
-            "1. 擴充功能商店與待辦事項": "1. Extensions Store & To-Do",
-            "左上角改為「擴充功能」，在右側分割畫面打開商店介面。內建桌面時鐘套件，以及全新的待辦事項：分類、優先順序、子任務、統計圖表與拖曳排序。": "The top-left button is now “Extensions” and opens a store-style panel in the split view, with the built-in Desktop Clock Suite and the new To-Do app: categories, priorities, subtasks, charts and drag-to-sort.",
-            "2. 自由調整的分割畫面": "2. Resizable Split View",
-            "拖曳中間的分割線就能調整左右比例，雙擊可還原一半一半；新增放大鍵可讓擴充功能填滿整個網頁，左側的設定與主題視窗也不再蓋住右側。": "Drag the divider to resize both sides and double-click to reset to 50:50. A new expand button fills the whole page, and the settings and theme panels no longer cover the right side.",
-            "3. 更貼心的安裝與窄版介面": "3. Smarter Install & Compact Toolbar",
-            "安裝 App 按鈕永遠顯示，可選擇安裝成 PWA，或前往 GitHub 下載可離線使用的版本；手機或分割畫面太窄時，頂部工具列會自動只顯示圖示。": "The Install App button is always visible: install as a PWA or download the offline-ready version from GitHub. On phones or narrow split views, the top toolbar automatically shows icons only.",
-            "探索 v1.1.1 正式版，開始使用": "Explore v1.1.1 — Get Started"
+            "AURA Studio v1.2.0 正式版": "AURA Studio v1.2.0 Official",
+            "1. 全面升級的多國語言支援": "1. Greatly Expanded Language Support",
+            "語言從 4 種擴增到 10 種：繁體中文、简体中文、日本語、한국어、Français、Русский、Español、हिन्दी、Português、English，左上角語言按鈕也改為下拉選單，點選即可切換。": "Languages grew from 4 to 10: Traditional Chinese, Simplified Chinese, Japanese, Korean, French, Russian, Spanish, Hindi, Portuguese, and English. The language button in the top left is now a dropdown — just pick and switch.",
+            "2. 精簡任務與專注音效": "2. Streamlined Tasks & Focus Sounds",
+            "左上角「任務與草稿」功能停用，請改用擴充功能中的待辦事項或記事本；右上角專注音效移除環境音軌，只保留 YouTube 專注音樂。": "The old \"Tasks & Drafts\" panel has been discontinued — use To-Do or Notepad from Extensions instead. The Focus Sounds panel has also been trimmed down to just YouTube focus music, with the ambient sound tracks removed.",
+            "3. 子母畫面效果升級": "3. Upgraded Picture-in-Picture",
+            "開啟子母畫面時，背景也會顯示主題光暈與雨滴效果，不再只是單調的黑底畫面。": "The floating Picture-in-Picture clock now shows the theme's background glow and rain effect too, instead of a plain dark background.",
+            "4. 全新開場畫面": "4. New Opening Splash Screen",
+            "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "AURA Studio now greets you with a simple fade-in title and a soft breathing glow every time you open it.",
+            "探索 v1.2.0 正式版，開始使用": "Explore v1.2.0 — Get Started"
         };
         const enToZhMap = Object.fromEntries(Object.entries(zhToEnMap).map(([k,v]) => [v, k]));
         const zhToCnMap = {
@@ -1955,7 +1944,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "待辦事項": "待办事项",
             "切換語言": "切换语言",
             "分類、優先順序、子任務、統計圖表與拖曳排序": "分类、优先顺序、子任务、统计图表与拖曳排序",
-            "此功能即將淘汰，請打開擴充功能中的待辦事項繼續使用": "此功能即将淘汰，请打开扩充功能中的待办事项继续使用",
+            "此功能已淘汰，請打開擴充功能中的待辦事項或記事本繼續使用": "此功能已淘汰，请打开扩充功能中的待办事项或记事本继续使用",
             "拖曳調整分割大小（雙擊還原）": "拖曳调整分割大小（双击还原）",
             "安裝 AURA Studio": "安装 AURA Studio",
             "選擇安裝方式": "选择安装方式",
@@ -2075,14 +2064,16 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "十月",
             "十一月": "十一月",
             "十二月": "十二月",
-            "AURA Studio v1.1.1 正式版": "AURA Studio v1.1.1 正式版",
-            "1. 擴充功能商店與待辦事項": "1. 扩充功能商店与待办事项",
-            "左上角改為「擴充功能」，在右側分割畫面打開商店介面。內建桌面時鐘套件，以及全新的待辦事項：分類、優先順序、子任務、統計圖表與拖曳排序。": "左上角改为「扩充功能」，在右侧分割画面打开商店介面。内建桌面时钟套件，以及全新的待办事项：分类、优先顺序、子任务、统计图表与拖曳排序。",
-            "2. 自由調整的分割畫面": "2. 自由调整的分割画面",
-            "拖曳中間的分割線就能調整左右比例，雙擊可還原一半一半；新增放大鍵可讓擴充功能填滿整個網頁，左側的設定與主題視窗也不再蓋住右側。": "拖曳中间的分割线就能调整左右比例，双击可还原一半一半；新增放大键可让扩充功能填满整个网页，左侧的设定与主题视窗也不再盖住右侧。",
-            "3. 更貼心的安裝與窄版介面": "3. 更贴心的安装与窄版介面",
-            "安裝 App 按鈕永遠顯示，可選擇安裝成 PWA，或前往 GitHub 下載可離線使用的版本；手機或分割畫面太窄時，頂部工具列會自動只顯示圖示。": "安装 App 按钮永远显示，可选择安装成 PWA，或前往 GitHub 下载可离线使用的版本；手机或分割画面太窄时，顶部工具列会自动只显示图示。",
-            "探索 v1.1.1 正式版，開始使用": "探索 v1.1.1 正式版，开始使用",
+            "AURA Studio v1.2.0 正式版": "AURA Studio v1.2.0 正式版",
+            "1. 全面升級的多國語言支援": "1. 全面升级的多国语言支持",
+            "語言從 4 種擴增到 10 種：繁體中文、简体中文、日本語、한국어、Français、Русский、Español、हिन्दी、Português、English，左上角語言按鈕也改為下拉選單，點選即可切換。": "语言从 4 种扩增到 10 种：繁体中文、简体中文、日本语、한국어、Français、Русский、Español、हिन्दी、Português、English，左上角语言按钮也改为下拉菜单，点选即可切换。",
+            "2. 精簡任務與專注音效": "2. 精简任务与专注音效",
+            "左上角「任務與草稿」功能停用，請改用擴充功能中的待辦事項或記事本；右上角專注音效移除環境音軌，只保留 YouTube 專注音樂。": "左上角「任务与草稿」功能停用，请改用扩充功能中的待办事项或记事本；右上角专注音效移除环境音轨，只保留 YouTube 专注音乐。",
+            "3. 子母畫面效果升級": "3. 子母画面效果升级",
+            "開啟子母畫面時，背景也會顯示主題光暈與雨滴效果，不再只是單調的黑底畫面。": "开启子母画面时，背景也会显示主题光晕与雨滴效果，不再只是单调的黑底画面。",
+            "4. 全新開場畫面": "4. 全新开场画面",
+            "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "每次开启 AURA Studio，都会先看到一段简约文字淡入与呼吸感光晕的开场画面。",
+            "探索 v1.2.0 正式版，開始使用": "探索 v1.2.0 正式版，开始使用",
         };
         const cnToZhMap = Object.fromEntries(Object.entries(zhToCnMap).map(([k,v]) => [v, k]));
         const zhToJaMap = {
@@ -2183,7 +2174,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "待辦事項": "ToDoリスト",
             "切換語言": "言語を切替",
             "分類、優先順序、子任務、統計圖表與拖曳排序": "カテゴリ、優先度、サブタスク、統計グラフとドラッグ並べ替え",
-            "此功能即將淘汰，請打開擴充功能中的待辦事項繼續使用": "この機能は廃止予定です。拡張機能内のToDoリストをご利用ください",
+            "此功能已淘汰，請打開擴充功能中的待辦事項或記事本繼續使用": "この機能は廃止されました。拡張機能内のToDoリストまたはメモ帳をご利用ください",
             "拖曳調整分割大小（雙擊還原）": "ドラッグしてサイズ調整（ダブルクリックでリセット）",
             "安裝 AURA Studio": "AURA Studio をインストール",
             "選擇安裝方式": "インストール方法を選択",
@@ -2303,16 +2294,1400 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "10月",
             "十一月": "11月",
             "十二月": "12月",
-            "AURA Studio v1.1.1 正式版": "AURA Studio v1.1.1 正式版",
-            "1. 擴充功能商店與待辦事項": "1. 拡張機能ストアとToDoリスト",
-            "左上角改為「擴充功能」，在右側分割畫面打開商店介面。內建桌面時鐘套件，以及全新的待辦事項：分類、優先順序、子任務、統計圖表與拖曳排序。": "左上のボタンが「拡張機能」になり、右側の分割画面でストア風パネルを開きます。内蔵のデスクトップ時計スイートと、新しいToDoアプリ：カテゴリ、優先度、サブタスク、統計グラフ、ドラッグ並べ替えに対応。",
-            "2. 自由調整的分割畫面": "2. サイズ調整可能な分割画面",
-            "拖曳中間的分割線就能調整左右比例，雙擊可還原一半一半；新增放大鍵可讓擴充功能填滿整個網頁，左側的設定與主題視窗也不再蓋住右側。": "中央の分割線をドラッグして左右の比率を調整、ダブルクリックで50:50に戻せます。拡大ボタンで拡張機能が画面全体を占有でき、設定やテーマウィンドウが右側を覆わなくなりました。",
-            "3. 更貼心的安裝與窄版介面": "3. より使いやすいインストールと省スペースUI",
-            "安裝 App 按鈕永遠顯示，可選擇安裝成 PWA，或前往 GitHub 下載可離線使用的版本；手機或分割畫面太窄時，頂部工具列會自動只顯示圖示。": "アプリをインストールボタンは常に表示され、PWAとしてインストールするか、GitHubからオフライン対応版をダウンロードできます。スマホや分割画面が狭い場合、上部ツールバーは自動的にアイコンのみ表示されます。",
-            "探索 v1.1.1 正式版，開始使用": "v1.1.1 正式版を見る、使ってみる",
+            "AURA Studio v1.2.0 正式版": "AURA Studio v1.2.0 正式版",
+            "1. 全面升級的多國語言支援": "1. 多言語対応が大幅強化",
+            "語言從 4 種擴增到 10 種：繁體中文、简体中文、日本語、한국어、Français、Русский、Español、हिन्दी、Português、English，左上角語言按鈕也改為下拉選單，點選即可切換。": "対応言語が4つから10に拡大：繁体字中国語、簡体字中国語、日本語、한국어、Français、Русский、Español、हिन्दी、Português、English。左上の言語ボタンもドロップダウンメニューになり、選ぶだけで切り替えられます。",
+            "2. 精簡任務與專注音效": "2. タスクと集中サウンドを整理",
+            "左上角「任務與草稿」功能停用，請改用擴充功能中的待辦事項或記事本；右上角專注音效移除環境音軌，只保留 YouTube 專注音樂。": "左上の「タスクとメモ」機能は廃止されました。拡張機能内のToDoリストまたはメモ帳をご利用ください。集中サウンドパネルもYouTube集中音楽のみに整理され、環境音トラックは削除されました。",
+            "3. 子母畫面效果升級": "3. ピクチャーインピクチャーが進化",
+            "開啟子母畫面時，背景也會顯示主題光暈與雨滴效果，不再只是單調的黑底畫面。": "フローティング時計のピクチャーインピクチャーにも、テーマの背景の輝きと雨のエフェクトが表示されるようになりました（これまでは単色の暗い背景のみでした）。",
+            "4. 全新開場畫面": "4. 新しいオープニング画面",
+            "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "AURA Studioを開くたびに、シンプルなタイトルのフェードインと穏やかな呼吸のような輝きで迎えてくれます。",
+            "探索 v1.2.0 正式版，開始使用": "v1.2.0 正式版を見る、使ってみる",
         };
         const jaToZhMap = Object.fromEntries(Object.entries(zhToJaMap).map(([k,v]) => [v, k]));
+        const zhToKoMap = {
+            "AURA Studio - 一個專注時鐘。": "AURA Studio - 집중을 위한 타이머.",
+            "任務與草稿": "할 일과 메모",
+            "桌面時鐘": "데스크톱 시계",
+            "桌面時鐘 - 復刻版套件": "데스크톱 시계 - 스위트",
+            "多組計時器、精確碼錶、專注階段與全功能時間管理": "여러 타이머, 스톱워치, 집중 세션, 종합 시간 관리",
+            "任務與隨手筆記": "할 일과 간단한 메모",
+            "安裝 App": "앱 설치",
+            "專注音效": "집중 사운드",
+            "多軌專注音效混音器": "멀티트랙 집중 사운드 믹서",
+            "長按背景來切換主題": "배경을 길게 눌러 테마 전환",
+            "鎖定畫面主題": "잠금 화면 테마",
+            "左右滑動或點擊兩側按鈕切換專注主題氛圍": "좌우로 스와이프하거나 양쪽 버튼을 눌러 테마 전환",
+            "上一張主題": "이전 테마",
+            "下一張主題": "다음 테마",
+            "開啟進階設定": "고급 설정 열기",
+            "晨霧雨露 (淺色)": "아침 안개와 이슬 (라이트)",
+            "晨光微熹，清爽水氣": "은은한 새벽빛, 상쾌한 물기",
+            "日光溫室 (淺色)": "햇살 온실 (라이트)",
+            "午後陽光，暖心白晝": "오후의 햇살, 따뜻한 대낮",
+            "雲海白晝 (淺色)": "구름바다의 낮 (라이트)",
+            "極簡純白，澄澈思緒": "미니멀한 순백, 맑은 생각",
+            "深夜圖書館": "한밤의 도서관",
+            "暖黃燈光，沉靜書香": "따뜻한 노란 불빛, 고요한 책 향기",
+            "雨夜咖啡館": "비 내리는 밤의 카페",
+            "爵士雨音，微醺咖啡": "재즈와 빗소리, 알딸딸한 커피",
+            "靜謐森林": "고요한 숲",
+            "綠意盎然，深呼吸平靜": "푸르른 녹음, 깊은 심호흡의 평온",
+            "賽博雨夜": "사이버 빗소리",
+            "霓虹閃爍，科幻專注": "네온 불빛의 깜빡임, SF적인 몰입",
+            "深海月光": "깊은 바다의 달빛",
+            "波光粼粼，深海沉靜": "반짝이는 물결, 깊은 바다의 고요함",
+            "落日餘暉": "노을빛",
+            "黃昏暖陽，柔和晚霞": "황혼의 따스한 햇살, 부드러운 노을",
+            "極光冰原": "오로라 빙원",
+            "冷冽極光，奇幻空靈": "차가운 오로라, 환상적인 고요함",
+            "靜謐星空": "고요한 별밤",
+            "繁星璀璨，宇宙浩瀚": "반짝이는 별들, 광활한 우주",
+            "使用中": "사용 중",
+            "套用主題": "테마 적용",
+            "自訂專注倒數時間": "집중 타이머 직접 설정",
+            "設定分鐘數：": "분 설정：",
+            "確認設定": "설정 확인",
+            "新增目標 (例如：完成企劃書第三章)...": "목표 추가 (예: 기획서 3장 완성)...",
+            "新增": "추가",
+            "專注草稿備忘錄 (自動儲存)": "집중 메모 (자동 저장)",
+            "在此記錄臨時想法、解題算式或待查資料...": "떠오르는 생각, 계산식, 찾아볼 내용을 여기에 기록하세요...",
+            "範例事項": "예시 항목",
+            "總聲音開關": "전체 소리 켜기/끄기",
+            "已開啟": "켜짐",
+            "已關閉": "꺼짐",
+            "真實溫馨雨聲": "포근한 빗소리",
+            "雙耳節律 (Binaural Focus)": "바이노럴 비트 (Binaural Focus)",
+            "雙耳節律頻段：": "바이노럴 주파수 대역：",
+            "α 波 (10Hz) - 深層專注與平靜": "α파 (10Hz) - 깊은 집중과 안정",
+            "β 波 (18Hz) - 高強度運算與邏輯": "β파 (18Hz) - 고강도 사고와 논리",
+            "θ 波 (6Hz) - 靈感發想與冥想": "θ파 (6Hz) - 영감과 명상",
+            "溫馨柴火噼啪聲": "포근한 모닥불 타는 소리",
+            "微風與靜心磬音": "산들바람과 명상 풍경 소리",
+            "YouTube 專注音樂": "YouTube 집중 음악",
+            "未載入": "불러오지 않음",
+            "播放中": "재생 중",
+            "無效連結": "잘못된 링크",
+            "貼上影片或直播網址...": "동영상 또는 스트리밍 주소 붙여넣기...",
+            "載入": "불러오기",
+            "移除音樂": "음악 제거",
+            "專注階段 (25m)": "집중 단계 (25분)",
+            "開始專注 (25m)": "집중 시작 (25분)",
+            "暫停專注 (25m)": "집중 일시정지 (25분)",
+            "短休息 (5m)": "짧은 휴식 (5분)",
+            "開始短休息 (5m)": "짧은 휴식 시작 (5분)",
+            "長休息 (15m)": "긴 휴식 (15분)",
+            "開始長休息 (15m)": "긴 휴식 시작 (15분)",
+            "切換短休息/長休息": "짧은 휴식/긴 휴식 전환",
+            "切換短休息 (5m)": "짧은 휴식으로 전환 (5분)",
+            "切換長休息 (15m)": "긴 휴식으로 전환 (15분)",
+            "切換專注 (25m)": "집중으로 전환 (25분)",
+            "重設番茄鐘": "뽀모도로 초기화",
+            "展開控制按鈕": "컨트롤 펼치기",
+            "收合控制按鈕": "컨트롤 접기",
+            "懸浮時鐘 (Alt + P)": "플로팅 시계 (Alt + P)",
+            "桌面時鐘套件": "데스크톱 시계 스위트",
+            "全螢幕顯示面板": "패널 전체화면 표시",
+            "記事本": "메모장",
+            "Markdown 筆記、即時預覽與程式碼高亮": "마크다운 메모, 실시간 미리보기와 코드 하이라이팅",
+            "擴充功能": "확장 기능",
+            "開啟擴充功能 (Alt + C)": "확장 기능 열기 (Alt + C)",
+            "返回擴充功能列表": "확장 기능 목록으로 돌아가기",
+            "為 AURA Studio 加入更多工具，並排在專注時鐘旁使用": "AURA Studio에 도구를 추가해 집중 타이머와 나란히 사용하세요",
+            "搜尋擴充功能": "확장 기능 검색",
+            "全部擴充功能": "모든 확장 기능",
+            "找不到符合的擴充功能": "일치하는 확장 기능이 없습니다",
+            "計時器、碼錶、專注工作階段與時鐘": "타이머, 스톱워치, 집중 세션과 시계",
+            "內建 · 免費": "내장 · 무료",
+            "立即開啟": "지금 열기",
+            "待辦事項": "할 일 목록",
+            "切換語言": "언어 전환",
+            "分類、優先順序、子任務、統計圖表與拖曳排序": "카테고리, 우선순위, 하위 작업, 통계 차트와 드래그 정렬",
+            "此功能已淘汰，請打開擴充功能中的待辦事項或記事本繼續使用": "이 기능은 더 이상 지원되지 않습니다. 계속 사용하시려면 확장 기능의 할 일 목록 또는 메모장을 열어주세요",
+            "拖曳調整分割大小（雙擊還原）": "드래그로 크기 조절 (더블클릭으로 초기화)",
+            "安裝 AURA Studio": "AURA Studio 설치",
+            "選擇安裝方式": "설치 방법 선택",
+            "安裝成 PWA": "PWA로 설치",
+            "加入桌面或主畫面，以獨立視窗像 App 一樣開啟": "데스크톱이나 홈 화면에 추가해 앱처럼 독립된 창으로 열기",
+            "前往 GitHub 下載": "GitHub에서 다운로드",
+            "下載完整檔案，可離線使用": "오프라인 사용이 가능한 전체 파일 다운로드",
+            "目前沒有可用的安裝提示。電腦版 Chrome／Edge 請點網址列右側的安裝圖示；iPhone／iPad 請按分享，再選「加入主畫面」。需透過 https 網站開啟才能安裝。": "현재 설치 안내가 없습니다. 데스크톱 Chrome/Edge에서는 주소창 오른쪽의 설치 아이콘을 클릭하세요. iPhone/iPad에서는 공유 버튼을 누른 뒤 '홈 화면에 추가'를 선택하세요. 설치하려면 https 사이트에서 열어야 합니다.",
+            "已經以 App 模式開啟，不需要再安裝。": "이미 앱 모드로 실행 중이므로 다시 설치할 필요가 없습니다.",
+            "還原 1:1 分割畫面": "1:1 분할 화면으로 복원",
+            "子母畫面": "PiP",
+            "切換性能模式": "성능 모드 전환",
+            "性能: 標準": "성능: 표준",
+            "性能: 節能": "성능: 절전",
+            "正念呼吸引導 (B)": "마음챙김 호흡 가이드 (B)",
+            "正念呼吸": "마음챙김 호흡",
+            "Zen 沉浸專注模式": "Zen 몰입 집중 모드",
+            "Zen 模式": "Zen 모드",
+            "打雷視覺效果": "번개 시각 효과",
+            "打雷效果": "번개 효과",
+            "進階設定": "고급 설정",
+            "全螢幕": "전체화면",
+            "FPS": "FPS",
+            "已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）": "Zen 몰입 모드에 진입했습니다 (화면 아무 곳이나 탭하거나 ESC를 누르면 종료)",
+            "正念沉浸呼吸": "마음챙김 몰입 호흡",
+            "深呼吸，調整節奏，重拾沉靜專注": "깊게 호흡하며 리듬을 맞추고, 고요한 집중을 되찾으세요",
+            "吸氣": "들이쉬기",
+            "屏息": "멈추기",
+            "呼氣": "내쉬기",
+            "4-4-4-4 箱式": "4-4-4-4 박스",
+            "4-7-8 放鬆": "4-7-8 이완",
+            "5-5 均勻": "5-5 균형",
+            "提示音：開": "알림음: 켜짐",
+            "提示音：關": "알림음: 꺼짐",
+            "已完成 0 次循環": "0 사이클 완료",
+            "專注與顯示進階設定": "집중 및 화면 고급 설정",
+            "視覺與特效": "비주얼과 이펙트",
+            "時鐘與外觀": "시계와 디자인",
+            "專注與系統": "집중과 시스템",
+            "快捷鍵指南": "단축키 안내",
+            "最新升級特色": "최신 업데이트 소식",
+            "恢復預設值": "기본값으로 복원",
+            "雨滴滑落速度": "빗방울 떨어지는 속도",
+            "玻璃水珠密度": "유리 물방울 밀도",
+            "極簡": "미니멀",
+            "標準": "표준",
+            "密集": "조밀함",
+            "滑鼠/觸控與雨滴玻璃互動": "마우스/터치와 빗물 유리 상호작용",
+            "顯示即時 FPS 影格率": "실시간 FPS 카운터 표시",
+            "時鐘字體風格": "시계 글꼴 스타일",
+            "無襯線 (Sans)": "산세리프 (Sans)",
+            "單寬碼 (Mono)": "고정폭 (Mono)",
+            "典雅 (Serif)": "고전적 (Serif)",
+            "時鐘圓環樣式": "시계 링 스타일",
+            "簡潔 (預設)": "심플 (기본값)",
+            "精緻 (磨砂)": "정교함 (프로스티드)",
+            "時鐘與進度圓環整體尺寸": "시계와 링 전체 크기",
+            "極簡 (0.75x)": "미니멀 (0.75x)",
+            "沉浸 (1.25x)": "몰입 (1.25x)",
+            "特大 (1.5x)": "특대 (1.5x)",
+            "顯示 24 小時制時鐘": "24시간제 시계 사용",
+            "顯示即時秒數": "실시간 초 표시",
+            "自訂專注格言 / 座右銘": "나만의 집중 문구 / 좌우명",
+            "輸入專屬激勵小語...": "나만의 동기부여 문구를 입력하세요...",
+            "顯示專注語錄": "집중 명언 표시",
+            "番茄鐘階段自動連播": "뽀모도로 단계 자동 진행",
+            "倒數結束播放提醒聲音": "타이머 종료 시 알림음 재생",
+            "無操作 5 秒後自動隱藏介面": "5초 동안 조작이 없으면 UI 자동 숨김",
+            "開始 / 暫停倒數": "시작 / 일시정지",
+            "子母畫面時鐘": "PiP 시계",
+            "正念呼吸引導": "마음챙김 호흡 가이드",
+            "折疊 / 展開按鈕": "접기 / 펼치기 버튼",
+            "跳過目前階段": "현재 단계 건너뛰기",
+            "YouTube 影片展示": "YouTube에서 보기",
+            "GitHub 開源專案": "GitHub 오픈소스",
+            "「專注於眼前的小事，平靜是進入高效流道的鑰匙。」": "「눈앞의 작은 일에 집중하라. 평온함이야말로 몰입으로 들어가는 열쇠다.」",
+            "「大腦就像肌肉，每一次抗拒分心都是一次深層強化。」": "「뇌는 근육과 같다. 산만함에 저항할 때마다 더 강해진다.」",
+            "「寧靜並非沒有噪音，而是心靈於風浪中的安定。」": "「고요함이란 소음의 부재가 아니라, 폭풍 속에서도 흔들리지 않는 마음이다.」",
+            "「不積跬步，無以至千里;不積小流，無以成江海。」": "「천 리 길도 한 걸음부터; 넓은 바다도 작은 물줄기들이 모여 이루어진다.」",
+            "「享受深層專注的當下，結果自然隨之而來。」": "「지금 이 순간의 깊은 몰입을 즐겨라, 결과는 자연히 따라올 것이다.」",
+            "4-4-4-4 箱式呼吸": "4-4-4-4 박스 호흡",
+            "美國海豹部隊專用，快速平復高壓與焦慮": "미 해군 특수부대가 사용하는 방법으로, 스트레스와 불안을 빠르게 진정시킵니다",
+            "4-7-8 放鬆呼吸": "4-7-8 이완 호흡",
+            "哈佛醫師推薦，深層放鬆大腦與助眠減壓": "하버드 의사들이 추천하는 방법으로, 깊은 뇌 이완과 수면에 도움을 줍니다",
+            "5-5 均勻呼吸": "5-5 균형 호흡",
+            "和諧安穩節奏，引導進入深層心流冥想": "조화롭고 안정적인 리듬으로 깊은 몰입 명상으로 이끌어줍니다",
+            "專注階段 (": "집중 단계 (",
+            "短休息 (": "짧은 휴식 (",
+            "長休息 (": "긴 휴식 (",
+            "開始專注 (": "집중 시작 (",
+            "開始短休息 (": "짧은 휴식 시작 (",
+            "開始長休息 (": "긴 휴식 시작 (",
+            "暫停專注 (": "집중 일시정지 (",
+            "暫停短休息 (": "짧은 휴식 일시정지 (",
+            "暫停長休息 (": "긴 휴식 일시정지 (",
+            "切換短休息 (": "짧은 휴식으로 전환 (",
+            "切換長休息 (": "긴 휴식으로 전환 (",
+            "切換專注 (": "집중으로 전환 (",
+            "已完成 ": "완료 ",
+            " 次循環": " 사이클",
+            "星期日": "일요일",
+            "星期一": "월요일",
+            "星期二": "화요일",
+            "星期三": "수요일",
+            "星期四": "목요일",
+            "星期五": "금요일",
+            "星期六": "토요일",
+            "一月": "1월",
+            "二月": "2월",
+            "三月": "3월",
+            "四月": "4월",
+            "五月": "5월",
+            "六月": "6월",
+            "七月": "7월",
+            "八月": "8월",
+            "九月": "9월",
+            "十月": "10월",
+            "十一月": "11월",
+            "十二月": "12월",
+            "AURA Studio v1.2.0 正式版": "AURA Studio v1.2.0 정식 버전",
+            "1. 全面升級的多國語言支援": "1. 대폭 확장된 다국어 지원",
+            "語言從 4 種擴增到 10 種：繁體中文、简体中文、日本語、한국어、Français、Русский、Español、हिन्दी、Português、English，左上角語言按鈕也改為下拉選單，點選即可切換。": "지원 언어가 4개에서 10개로 늘었습니다: 繁體中文, 简体中文, 日本語, 한국어, Français, Русский, Español, हिन्दी, Português, English. 왼쪽 상단 언어 버튼도 드롭다운 메뉴로 바뀌어 바로 선택해 전환할 수 있습니다.",
+            "2. 精簡任務與專注音效": "2. 작업과 집중 사운드 정리",
+            "左上角「任務與草稿」功能停用，請改用擴充功能中的待辦事項或記事本；右上角專注音效移除環境音軌，只保留 YouTube 專注音樂。": "왼쪽 상단의 '할 일과 메모' 기능은 더 이상 지원되지 않습니다. 확장 기능의 할 일 목록 또는 메모장을 이용해 주세요. 집중 사운드 패널도 YouTube 집중 음악만 남기고 환경음 트랙은 제거되었습니다.",
+            "3. 子母畫面效果升級": "3. 한층 업그레이드된 PiP",
+            "開啟子母畫面時，背景也會顯示主題光暈與雨滴效果，不再只是單調的黑底畫面。": "플로팅 시계 PiP 창에도 이제 테마 배경 빛과 빗방울 효과가 표시됩니다. 더 이상 단조로운 어두운 배경이 아닙니다.",
+            "4. 全新開場畫面": "4. 새로운 오프닝 화면",
+            "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "AURA Studio를 열 때마다 간결한 타이틀 페이드인과 은은한 숨 쉬는 듯한 빛 효과로 맞이합니다.",
+            "探索 v1.2.0 正式版，開始使用": "v1.2.0 정식 버전 살펴보기, 시작하기",
+        };
+        const koToZhMap = Object.fromEntries(Object.entries(zhToKoMap).map(([k,v]) => [v, k]));
+        const zhToFrMap = {
+            "AURA Studio - 一個專注時鐘。": "AURA Studio - Une minuterie de concentration.",
+            "任務與草稿": "Tâches et brouillons",
+            "桌面時鐘": "Horloge de bureau",
+            "桌面時鐘 - 復刻版套件": "Horloge de bureau - Suite",
+            "多組計時器、精確碼錶、專注階段與全功能時間管理": "Plusieurs minuteries, chronomètre, sessions de concentration et gestion du temps complète",
+            "任務與隨手筆記": "Tâches et notes rapides",
+            "安裝 App": "Installer l'application",
+            "專注音效": "Sons de concentration",
+            "多軌專注音效混音器": "Mixeur multipiste de sons de concentration",
+            "長按背景來切換主題": "Appui long sur l'arrière-plan pour changer de thème",
+            "鎖定畫面主題": "Thèmes de l'écran",
+            "左右滑動或點擊兩側按鈕切換專注主題氛圍": "Balayez ou utilisez les flèches latérales pour changer l'ambiance",
+            "上一張主題": "Thème précédent",
+            "下一張主題": "Thème suivant",
+            "開啟進階設定": "Ouvrir les réglages avancés",
+            "晨霧雨露 (淺色)": "Brume matinale (Clair)",
+            "晨光微熹，清爽水氣": "Lumière douce de l'aube, fraîcheur de la rosée",
+            "日光溫室 (淺色)": "Serre ensoleillée (Clair)",
+            "午後陽光，暖心白晝": "Soleil de l'après-midi, journée chaleureuse",
+            "雲海白晝 (淺色)": "Mer de nuages en plein jour (Clair)",
+            "極簡純白，澄澈思緒": "Blanc minimaliste, pensées limpides",
+            "深夜圖書館": "Bibliothèque de minuit",
+            "暖黃燈光，沉靜書香": "Lumière ambrée chaleureuse, calme littéraire",
+            "雨夜咖啡館": "Café sous la pluie",
+            "爵士雨音，微醺咖啡": "Jazz et pluie, ambiance café cosy",
+            "靜謐森林": "Forêt silencieuse",
+            "綠意盎然，深呼吸平靜": "Verdure luxuriante, calme des respirations profondes",
+            "賽博雨夜": "Pluie cyber",
+            "霓虹閃爍，科幻專注": "Scintillement néon, concentration futuriste",
+            "深海月光": "Clair de lune des abysses",
+            "波光粼粼，深海沉靜": "Vagues chatoyantes, calme des profondeurs",
+            "落日餘暉": "Lueur du couchant",
+            "黃昏暖陽，柔和晚霞": "Chaleur du crépuscule, doux coucher de soleil",
+            "極光冰原": "Toundra aurorale",
+            "冷冽極光，奇幻空靈": "Aurores glaciales, magie éthérée",
+            "靜謐星空": "Ciel étoilé silencieux",
+            "繁星璀璨，宇宙浩瀚": "Étoiles éblouissantes, cosmos infini",
+            "使用中": "Actif",
+            "套用主題": "Appliquer le thème",
+            "自訂專注倒數時間": "Personnaliser la minuterie de concentration",
+            "設定分鐘數：": "Définir les minutes :",
+            "確認設定": "Confirmer",
+            "新增目標 (例如：完成企劃書第三章)...": "Ajouter un objectif (ex. : terminer le chapitre 3 du projet)...",
+            "新增": "Ajouter",
+            "專注草稿備忘錄 (自動儲存)": "Mémo de concentration (sauvegarde automatique)",
+            "在此記錄臨時想法、解題算式或待查資料...": "Notez ici vos idées, calculs ou informations à vérifier...",
+            "範例事項": "Tâche exemple",
+            "總聲音開關": "Son principal",
+            "已開啟": "Activé",
+            "已關閉": "Désactivé",
+            "真實溫馨雨聲": "Pluie douce et apaisante",
+            "雙耳節律 (Binaural Focus)": "Battements binauraux (Binaural Focus)",
+            "雙耳節律頻段：": "Fréquence binaurale :",
+            "α 波 (10Hz) - 深層專注與平靜": "Onde α (10 Hz) - Concentration profonde et calme",
+            "β 波 (18Hz) - 高強度運算與邏輯": "Onde β (18 Hz) - Logique intense et travail",
+            "θ 波 (6Hz) - 靈感發想與冥想": "Onde θ (6 Hz) - Inspiration et méditation",
+            "溫馨柴火噼啪聲": "Crépitement chaleureux de cheminée",
+            "微風與靜心磬音": "Brise et carillons apaisants",
+            "YouTube 專注音樂": "Musique de concentration YouTube",
+            "未載入": "Non chargé",
+            "播放中": "En cours de lecture",
+            "無效連結": "Lien invalide",
+            "貼上影片或直播網址...": "Collez l'URL d'une vidéo ou d'un flux...",
+            "載入": "Charger",
+            "移除音樂": "Retirer la musique",
+            "專注階段 (25m)": "Phase de concentration (25 min)",
+            "開始專注 (25m)": "Démarrer la concentration (25 min)",
+            "暫停專注 (25m)": "Mettre en pause la concentration (25 min)",
+            "短休息 (5m)": "Pause courte (5 min)",
+            "開始短休息 (5m)": "Démarrer la pause courte (5 min)",
+            "長休息 (15m)": "Pause longue (15 min)",
+            "開始長休息 (15m)": "Démarrer la pause longue (15 min)",
+            "切換短休息/長休息": "Basculer pause courte/longue",
+            "切換短休息 (5m)": "Passer à la pause courte (5 min)",
+            "切換長休息 (15m)": "Passer à la pause longue (15 min)",
+            "切換專注 (25m)": "Passer à la concentration (25 min)",
+            "重設番茄鐘": "Réinitialiser le minuteur",
+            "展開控制按鈕": "Déplier les commandes",
+            "收合控制按鈕": "Replier les commandes",
+            "懸浮時鐘 (Alt + P)": "Horloge flottante (Alt + P)",
+            "桌面時鐘套件": "Suite Horloge de bureau",
+            "全螢幕顯示面板": "Afficher le panneau en plein écran",
+            "記事本": "Bloc-notes",
+            "Markdown 筆記、即時預覽與程式碼高亮": "Notes Markdown, aperçu en direct et coloration syntaxique du code",
+            "擴充功能": "Extensions",
+            "開啟擴充功能 (Alt + C)": "Ouvrir les extensions (Alt + C)",
+            "返回擴充功能列表": "Retour à la liste des extensions",
+            "為 AURA Studio 加入更多工具，並排在專注時鐘旁使用": "Ajoutez plus d'outils à AURA Studio et utilisez-les côte à côte avec la minuterie de concentration",
+            "搜尋擴充功能": "Rechercher des extensions",
+            "全部擴充功能": "Toutes les extensions",
+            "找不到符合的擴充功能": "Aucune extension correspondante trouvée",
+            "計時器、碼錶、專注工作階段與時鐘": "Minuterie, chronomètre, sessions de concentration et horloge",
+            "內建 · 免費": "Intégré · Gratuit",
+            "立即開啟": "Ouvrir maintenant",
+            "待辦事項": "Liste de tâches",
+            "切換語言": "Changer de langue",
+            "分類、優先順序、子任務、統計圖表與拖曳排序": "Catégories, priorités, sous-tâches, graphiques et tri par glisser-déposer",
+            "此功能已淘汰，請打開擴充功能中的待辦事項或記事本繼續使用": "Cette fonctionnalité a été retirée. Veuillez ouvrir « Liste de tâches » ou « Bloc-notes » dans les extensions pour continuer à l'utiliser.",
+            "拖曳調整分割大小（雙擊還原）": "Glissez pour redimensionner (double-clic pour réinitialiser)",
+            "安裝 AURA Studio": "Installer AURA Studio",
+            "選擇安裝方式": "Choisissez une méthode d'installation",
+            "安裝成 PWA": "Installer en tant que PWA",
+            "加入桌面或主畫面，以獨立視窗像 App 一樣開啟": "Ajoutez-la au bureau ou à l'écran d'accueil pour l'ouvrir comme une application dans sa propre fenêtre",
+            "前往 GitHub 下載": "Télécharger depuis GitHub",
+            "下載完整檔案，可離線使用": "Téléchargez les fichiers complets pour une utilisation hors ligne",
+            "目前沒有可用的安裝提示。電腦版 Chrome／Edge 請點網址列右側的安裝圖示；iPhone／iPad 請按分享，再選「加入主畫面」。需透過 https 網站開啟才能安裝。": "Aucune invite d'installation n'est disponible pour le moment. Sur ordinateur (Chrome/Edge), cliquez sur l'icône d'installation à droite de la barre d'adresse ; sur iPhone/iPad, appuyez sur Partager, puis « Sur l'écran d'accueil ». La page doit être ouverte depuis un site https pour pouvoir être installée.",
+            "已經以 App 模式開啟，不需要再安裝。": "L'application est déjà lancée en mode installé, inutile de la réinstaller.",
+            "還原 1:1 分割畫面": "Restaurer la vue partagée 1:1",
+            "子母畫面": "Image dans l'image",
+            "切換性能模式": "Basculer le mode de performance",
+            "性能: 標準": "Performance : Standard",
+            "性能: 節能": "Performance : Éco",
+            "正念呼吸引導 (B)": "Guide de respiration en pleine conscience (B)",
+            "正念呼吸": "Respiration en pleine conscience",
+            "Zen 沉浸專注模式": "Mode Zen immersif",
+            "Zen 模式": "Mode Zen",
+            "打雷視覺效果": "Effet visuel d'orage",
+            "打雷效果": "Effet d'orage",
+            "進階設定": "Réglages avancés",
+            "全螢幕": "Plein écran",
+            "FPS": "FPS",
+            "已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）": "Mode Zen immersif activé (appuyez n'importe où à l'écran ou sur ÉCHAP pour quitter)",
+            "正念沉浸呼吸": "Respiration immersive en pleine conscience",
+            "深呼吸，調整節奏，重拾沉靜專注": "Respirez profondément, retrouvez votre rythme, retrouvez un calme concentré",
+            "吸氣": "Inspirez",
+            "屏息": "Retenez",
+            "呼氣": "Expirez",
+            "4-4-4-4 箱式": "4-4-4-4 Carré",
+            "4-7-8 放鬆": "4-7-8 Détente",
+            "5-5 均勻": "5-5 Régulière",
+            "提示音：開": "Signal sonore : Activé",
+            "提示音：關": "Signal sonore : Désactivé",
+            "已完成 0 次循環": "0 cycle terminé",
+            "專注與顯示進階設定": "Réglages avancés de concentration et d'affichage",
+            "視覺與特效": "Visuels et effets",
+            "時鐘與外觀": "Horloge et apparence",
+            "專注與系統": "Concentration et système",
+            "快捷鍵指南": "Guide des raccourcis clavier",
+            "最新升級特色": "Nouveautés",
+            "恢復預設值": "Restaurer les valeurs par défaut",
+            "雨滴滑落速度": "Vitesse de chute des gouttes de pluie",
+            "玻璃水珠密度": "Densité des gouttes de verre",
+            "極簡": "Minimal",
+            "標準": "Standard",
+            "密集": "Dense",
+            "滑鼠/觸控與雨滴玻璃互動": "Interaction souris/tactile avec la pluie sur verre",
+            "顯示即時 FPS 影格率": "Afficher le compteur de FPS en direct",
+            "時鐘字體風格": "Style de police de l'horloge",
+            "無襯線 (Sans)": "Sans empattement (Sans)",
+            "單寬碼 (Mono)": "Chasse fixe (Mono)",
+            "典雅 (Serif)": "Élégant (Serif)",
+            "時鐘圓環樣式": "Style de l'anneau de l'horloge",
+            "簡潔 (預設)": "Simple (par défaut)",
+            "精緻 (磨砂)": "Raffiné (dépoli)",
+            "時鐘與進度圓環整體尺寸": "Taille globale de l'horloge et de l'anneau",
+            "極簡 (0.75x)": "Minimal (0,75x)",
+            "沉浸 (1.25x)": "Immersif (1,25x)",
+            "特大 (1.5x)": "Très grand (1,5x)",
+            "顯示 24 小時制時鐘": "Utiliser le format 24 heures",
+            "顯示即時秒數": "Afficher les secondes en direct",
+            "自訂專注格言 / 座右銘": "Devise / citation de concentration personnalisée",
+            "輸入專屬激勵小語...": "Saisissez vos mots motivants...",
+            "顯示專注語錄": "Afficher les citations de concentration",
+            "番茄鐘階段自動連播": "Enchaînement automatique des phases Pomodoro",
+            "倒數結束播放提醒聲音": "Jouer un son à la fin de la minuterie",
+            "無操作 5 秒後自動隱藏介面": "Masquer automatiquement l'interface après 5 s d'inactivité",
+            "開始 / 暫停倒數": "Démarrer / Mettre en pause",
+            "子母畫面時鐘": "Horloge en image dans l'image",
+            "正念呼吸引導": "Guide de respiration en pleine conscience",
+            "折疊 / 展開按鈕": "Boutons replier / déplier",
+            "跳過目前階段": "Passer la phase actuelle",
+            "YouTube 影片展示": "Voir sur YouTube",
+            "GitHub 開源專案": "Projet open source sur GitHub",
+            "「專注於眼前的小事，平靜是進入高效流道的鑰匙。」": "« Concentrez-vous sur la petite tâche présente — le calme est la clé qui ouvre la voie du flow. »",
+            "「大腦就像肌肉，每一次抗拒分心都是一次深層強化。」": "« Le cerveau est comme un muscle ; chaque fois que vous résistez à une distraction, il se renforce. »",
+            "「寧靜並非沒有噪音，而是心靈於風浪中的安定。」": "« La paix n'est pas l'absence de bruit, mais le calme du cœur au milieu de la tempête. »",
+            "「不積跬步，無以至千里;不積小流，無以成江海。」": "« Un voyage de mille lieues commence par un pas ; l'océan se forme à partir de petits ruisseaux. »",
+            "「享受深層專注的當下，結果自然隨之而來。」": "« Savourez l'instant présent de concentration profonde, les résultats suivront naturellement. »",
+            "4-4-4-4 箱式呼吸": "Respiration en carré 4-4-4-4",
+            "美國海豹部隊專用，快速平復高壓與焦慮": "Utilisée par les Navy SEALs — apaise rapidement le stress et l'anxiété",
+            "4-7-8 放鬆呼吸": "Respiration relaxante 4-7-8",
+            "哈佛醫師推薦，深層放鬆大腦與助眠減壓": "Recommandée par des médecins de Harvard — détend profondément le cerveau et aide au sommeil",
+            "5-5 均勻呼吸": "Respiration cohérente 5-5",
+            "和諧安穩節奏，引導進入深層心流冥想": "Rythme harmonieux et stable — vous guide vers une méditation profonde et le flow",
+            "專注階段 (": "Phase de concentration (",
+            "短休息 (": "Pause courte (",
+            "長休息 (": "Pause longue (",
+            "開始專注 (": "Démarrer la concentration (",
+            "開始短休息 (": "Démarrer la pause courte (",
+            "開始長休息 (": "Démarrer la pause longue (",
+            "暫停專注 (": "Mettre en pause la concentration (",
+            "暫停短休息 (": "Mettre en pause la pause courte (",
+            "暫停長休息 (": "Mettre en pause la pause longue (",
+            "切換短休息 (": "Passer à la pause courte (",
+            "切換長休息 (": "Passer à la pause longue (",
+            "切換專注 (": "Passer à la concentration (",
+            "已完成 ": "Terminé ",
+            " 次循環": " cycles",
+            "星期日": "Dimanche",
+            "星期一": "Lundi",
+            "星期二": "Mardi",
+            "星期三": "Mercredi",
+            "星期四": "Jeudi",
+            "星期五": "Vendredi",
+            "星期六": "Samedi",
+            "一月": "Janvier",
+            "二月": "Février",
+            "三月": "Mars",
+            "四月": "Avril",
+            "五月": "Mai",
+            "六月": "Juin",
+            "七月": "Juillet",
+            "八月": "Août",
+            "九月": "Septembre",
+            "十月": "Octobre",
+            "十一月": "Novembre",
+            "十二月": "Décembre",
+            "AURA Studio v1.2.0 正式版": "AURA Studio v1.2.0 Officielle",
+            "1. 全面升級的多國語言支援": "1. Prise en charge des langues largement étendue",
+            "語言從 4 種擴增到 10 種：繁體中文、简体中文、日本語、한국어、Français、Русский、Español、हिन्दी、Português、English，左上角語言按鈕也改為下拉選單，點選即可切換。": "Le nombre de langues est passé de 4 à 10 : chinois traditionnel, chinois simplifié, japonais, coréen, français, russe, espagnol, hindi, portugais et anglais. Le bouton de langue en haut à gauche est désormais un menu déroulant — il suffit de choisir pour changer.",
+            "2. 精簡任務與專注音效": "2. Tâches et sons de concentration simplifiés",
+            "左上角「任務與草稿」功能停用，請改用擴充功能中的待辦事項或記事本；右上角專注音效移除環境音軌，只保留 YouTube 專注音樂。": "L'ancien panneau « Tâches et brouillons » a été retiré — utilisez la Liste de tâches ou le Bloc-notes dans les extensions à la place. Le panneau Sons de concentration a lui aussi été réduit à la seule musique de concentration YouTube, les pistes ambiantes ayant été supprimées.",
+            "3. 子母畫面效果升級": "3. Image dans l'image améliorée",
+            "開啟子母畫面時，背景也會顯示主題光暈與雨滴效果，不再只是單調的黑底畫面。": "L'horloge flottante en image dans l'image affiche désormais aussi la lueur du thème et l'effet de pluie en arrière-plan, au lieu d'un simple fond sombre.",
+            "4. 全新開場畫面": "4. Nouvel écran d'ouverture",
+            "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "AURA Studio vous accueille désormais, à chaque ouverture, par un titre qui apparaît en fondu accompagné d'une douce lueur respirante.",
+            "探索 v1.2.0 正式版，開始使用": "Découvrir la version v1.2.0, commencer",
+        };
+        const frToZhMap = Object.fromEntries(Object.entries(zhToFrMap).map(([k,v]) => [v, k]));
+        const zhToRuMap = {
+            "AURA Studio - 一個專注時鐘。": "AURA Studio - Таймер для концентрации.",
+            "任務與草稿": "Задачи и заметки",
+            "桌面時鐘": "Настольные часы",
+            "桌面時鐘 - 復刻版套件": "Настольные часы - Набор",
+            "多組計時器、精確碼錶、專注階段與全功能時間管理": "Несколько таймеров, секундомер, сессии фокусировки и полноценное управление временем",
+            "任務與隨手筆記": "Задачи и быстрые заметки",
+            "安裝 App": "Установить приложение",
+            "專注音效": "Звуки для фокусировки",
+            "多軌專注音效混音器": "Многодорожечный микшер звуков для фокусировки",
+            "長按背景來切換主題": "Долгое нажатие на фон переключает тему",
+            "鎖定畫面主題": "Темы экрана блокировки",
+            "左右滑動或點擊兩側按鈕切換專注主題氛圍": "Проведите пальцем в стороны или используйте боковые кнопки для смены атмосферы",
+            "上一張主題": "Предыдущая тема",
+            "下一張主題": "Следующая тема",
+            "開啟進階設定": "Открыть расширенные настройки",
+            "晨霧雨露 (淺色)": "Утренний туман (светлая)",
+            "晨光微熹，清爽水氣": "Мягкий рассветный свет, свежая роса",
+            "日光溫室 (淺色)": "Солнечная оранжерея (светлая)",
+            "午後陽光，暖心白晝": "Послеполуденное солнце, тёплый день",
+            "雲海白晝 (淺色)": "Облачный день (светлая)",
+            "極簡純白，澄澈思緒": "Минималистичная белизна, ясность мыслей",
+            "深夜圖書館": "Полуночная библиотека",
+            "暖黃燈光，沉靜書香": "Тёплый янтарный свет, тихое книжное спокойствие",
+            "雨夜咖啡館": "Кафе под дождём",
+            "爵士雨音，微醺咖啡": "Джаз и дождь, уютная атмосфера кофейни",
+            "靜謐森林": "Тихий лес",
+            "綠意盎然，深呼吸平靜": "Пышная зелень, спокойствие глубокого дыхания",
+            "賽博雨夜": "Кибердождь",
+            "霓虹閃爍，科幻專注": "Мерцание неона, научно-фантастическая сосредоточенность",
+            "深海月光": "Лунный свет в глубине моря",
+            "波光粼粼，深海沉靜": "Переливающиеся волны, тишина морских глубин",
+            "落日餘暉": "Закатное сияние",
+            "黃昏暖陽，柔和晚霞": "Тепло сумерек, мягкий закат",
+            "極光冰原": "Полярная тундра",
+            "冷冽極光，奇幻空靈": "Холодное северное сияние, эфемерная магия",
+            "靜謐星空": "Звёздная тишина",
+            "繁星璀璨，宇宙浩瀚": "Сверкающие звёзды, бескрайний космос",
+            "使用中": "Активна",
+            "套用主題": "Применить тему",
+            "自訂專注倒數時間": "Настроить таймер фокусировки",
+            "設定分鐘數：": "Укажите минуты：",
+            "確認設定": "Подтвердить",
+            "新增目標 (例如：完成企劃書第三章)...": "Добавить цель (например: закончить 3-ю главу проекта)...",
+            "新增": "Добавить",
+            "專注草稿備忘錄 (自動儲存)": "Заметка для фокусировки (автосохранение)",
+            "在此記錄臨時想法、解題算式或待查資料...": "Запишите здесь мысли, расчёты или то, что нужно проверить позже...",
+            "範例事項": "Пример задачи",
+            "總聲音開關": "Общий звук",
+            "已開啟": "Включено",
+            "已關閉": "Выключено",
+            "真實溫馨雨聲": "Уютный звук дождя",
+            "雙耳節律 (Binaural Focus)": "Бинауральные ритмы (Binaural Focus)",
+            "雙耳節律頻段：": "Диапазон бинауральной частоты：",
+            "α 波 (10Hz) - 深層專注與平靜": "Альфа-волна (10 Гц) - глубокая концентрация и спокойствие",
+            "β 波 (18Hz) - 高強度運算與邏輯": "Бета-волна (18 Гц) - интенсивная логика и работа",
+            "θ 波 (6Hz) - 靈感發想與冥想": "Тета-волна (6 Гц) - вдохновение и медитация",
+            "溫馨柴火噼啪聲": "Уютное потрескивание камина",
+            "微風與靜心磬音": "Лёгкий ветер и успокаивающие колокольчики",
+            "YouTube 專注音樂": "Фоновая музыка с YouTube",
+            "未載入": "Не загружено",
+            "播放中": "Воспроизводится",
+            "無效連結": "Недействительная ссылка",
+            "貼上影片或直播網址...": "Вставьте ссылку на видео или трансляцию...",
+            "載入": "Загрузить",
+            "移除音樂": "Убрать музыку",
+            "專注階段 (25m)": "Фаза фокусировки (25 мин)",
+            "開始專注 (25m)": "Начать фокусировку (25 мин)",
+            "暫停專注 (25m)": "Пауза фокусировки (25 мин)",
+            "短休息 (5m)": "Короткий перерыв (5 мин)",
+            "開始短休息 (5m)": "Начать короткий перерыв (5 мин)",
+            "長休息 (15m)": "Длинный перерыв (15 мин)",
+            "開始長休息 (15m)": "Начать длинный перерыв (15 мин)",
+            "切換短休息/長休息": "Переключить короткий/длинный перерыв",
+            "切換短休息 (5m)": "Перейти к короткому перерыву (5 мин)",
+            "切換長休息 (15m)": "Перейти к длинному перерыву (15 мин)",
+            "切換專注 (25m)": "Перейти к фокусировке (25 мин)",
+            "重設番茄鐘": "Сбросить таймер",
+            "展開控制按鈕": "Развернуть элементы управления",
+            "收合控制按鈕": "Свернуть элементы управления",
+            "懸浮時鐘 (Alt + P)": "Плавающие часы (Alt + P)",
+            "桌面時鐘套件": "Набор «Настольные часы»",
+            "全螢幕顯示面板": "Развернуть панель на весь экран",
+            "記事本": "Блокнот",
+            "Markdown 筆記、即時預覽與程式碼高亮": "Заметки в Markdown, live-предпросмотр и подсветка кода",
+            "擴充功能": "Расширения",
+            "開啟擴充功能 (Alt + C)": "Открыть расширения (Alt + C)",
+            "返回擴充功能列表": "Назад к списку расширений",
+            "為 AURA Studio 加入更多工具，並排在專注時鐘旁使用": "Добавьте в AURA Studio больше инструментов и используйте их рядом с таймером фокусировки",
+            "搜尋擴充功能": "Поиск расширений",
+            "全部擴充功能": "Все расширения",
+            "找不到符合的擴充功能": "Подходящих расширений не найдено",
+            "計時器、碼錶、專注工作階段與時鐘": "Таймер, секундомер, сессии фокусировки и часы",
+            "內建 · 免費": "Встроено · Бесплатно",
+            "立即開啟": "Открыть сейчас",
+            "待辦事項": "Список дел",
+            "切換語言": "Сменить язык",
+            "分類、優先順序、子任務、統計圖表與拖曳排序": "Категории, приоритеты, подзадачи, графики статистики и сортировка перетаскиванием",
+            "此功能已淘汰，請打開擴充功能中的待辦事項或記事本繼續使用": "Эта функция больше не поддерживается. Пожалуйста, откройте «Список дел» или «Блокнот» в разделе расширений, чтобы продолжить пользоваться ею.",
+            "拖曳調整分割大小（雙擊還原）": "Перетащите для изменения размера (двойной клик — сброс)",
+            "安裝 AURA Studio": "Установить AURA Studio",
+            "選擇安裝方式": "Выберите способ установки",
+            "安裝成 PWA": "Установить как PWA",
+            "加入桌面或主畫面，以獨立視窗像 App 一樣開啟": "Добавьте на рабочий стол или главный экран и открывайте как приложение в собственном окне",
+            "前往 GitHub 下載": "Скачать с GitHub",
+            "下載完整檔案，可離線使用": "Скачайте полный набор файлов для автономного использования",
+            "目前沒有可用的安裝提示。電腦版 Chrome／Edge 請點網址列右側的安裝圖示；iPhone／iPad 請按分享，再選「加入主畫面」。需透過 https 網站開啟才能安裝。": "Сейчас подсказка по установке недоступна. На компьютере в Chrome/Edge нажмите значок установки справа от адресной строки; на iPhone/iPad нажмите «Поделиться», затем «На экран «Домой»». Для установки страница должна быть открыта через сайт с https.",
+            "已經以 App 模式開啟，不需要再安裝。": "Приложение уже запущено в установленном режиме, повторная установка не требуется.",
+            "還原 1:1 分割畫面": "Восстановить разделение 1:1",
+            "子母畫面": "Картинка в картинке",
+            "切換性能模式": "Переключить режим производительности",
+            "性能: 標準": "Производительность: стандартная",
+            "性能: 節能": "Производительность: энергосберегающая",
+            "正念呼吸引導 (B)": "Гид по осознанному дыханию (B)",
+            "正念呼吸": "Осознанное дыхание",
+            "Zen 沉浸專注模式": "Режим Zen (полное погружение)",
+            "Zen 模式": "Режим Zen",
+            "打雷視覺效果": "Визуальный эффект грозы",
+            "打雷效果": "Эффект грозы",
+            "進階設定": "Расширенные настройки",
+            "全螢幕": "Полноэкранный режим",
+            "FPS": "FPS",
+            "已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）": "Включён режим Zen (нажмите в любом месте экрана или ESC, чтобы выйти)",
+            "正念沉浸呼吸": "Осознанное погружённое дыхание",
+            "深呼吸，調整節奏，重拾沉靜專注": "Дышите глубоко, настройте ритм и верните себе спокойную концентрацию",
+            "吸氣": "Вдох",
+            "屏息": "Задержка",
+            "呼氣": "Выдох",
+            "4-4-4-4 箱式": "4-4-4-4 Квадрат",
+            "4-7-8 放鬆": "4-7-8 Расслабление",
+            "5-5 均勻": "5-5 Ровное",
+            "提示音：開": "Звуковой сигнал: вкл.",
+            "提示音：關": "Звуковой сигнал: выкл.",
+            "已完成 0 次循環": "Завершено 0 циклов",
+            "專注與顯示進階設定": "Расширенные настройки фокусировки и отображения",
+            "視覺與特效": "Визуальные эффекты",
+            "時鐘與外觀": "Часы и внешний вид",
+            "專注與系統": "Фокусировка и система",
+            "快捷鍵指南": "Руководство по горячим клавишам",
+            "最新升級特色": "Что нового",
+            "恢復預設值": "Восстановить значения по умолчанию",
+            "雨滴滑落速度": "Скорость падения капель дождя",
+            "玻璃水珠密度": "Плотность капель на стекле",
+            "極簡": "Минимум",
+            "標準": "Стандарт",
+            "密集": "Плотно",
+            "滑鼠/觸控與雨滴玻璃互動": "Взаимодействие мыши/касания с дождём на стекле",
+            "顯示即時 FPS 影格率": "Показывать счётчик FPS в реальном времени",
+            "時鐘字體風格": "Стиль шрифта часов",
+            "無襯線 (Sans)": "Без засечек (Sans)",
+            "單寬碼 (Mono)": "Моноширинный (Mono)",
+            "典雅 (Serif)": "С засечками (Serif)",
+            "時鐘圓環樣式": "Стиль кольца часов",
+            "簡潔 (預設)": "Простой (по умолчанию)",
+            "精緻 (磨砂)": "Утончённый (матовый)",
+            "時鐘與進度圓環整體尺寸": "Общий размер часов и кольца",
+            "極簡 (0.75x)": "Минимум (0.75x)",
+            "沉浸 (1.25x)": "Погружение (1.25x)",
+            "特大 (1.5x)": "Очень крупный (1.5x)",
+            "顯示 24 小時制時鐘": "Использовать 24-часовой формат",
+            "顯示即時秒數": "Показывать секунды в реальном времени",
+            "自訂專注格言 / 座右銘": "Собственный девиз / цитата для фокусировки",
+            "輸入專屬激勵小語...": "Введите собственные вдохновляющие слова...",
+            "顯示專注語錄": "Показывать цитаты для концентрации",
+            "番茄鐘階段自動連播": "Автоматический переход между фазами Pomodoro",
+            "倒數結束播放提醒聲音": "Воспроизводить сигнал по окончании таймера",
+            "無操作 5 秒後自動隱藏介面": "Автоматически скрывать интерфейс после 5 с бездействия",
+            "開始 / 暫停倒數": "Запуск / Пауза таймера",
+            "子母畫面時鐘": "Часы в режиме «картинка в картинке»",
+            "正念呼吸引導": "Гид по осознанному дыханию",
+            "折疊 / 展開按鈕": "Кнопки свернуть / развернуть",
+            "跳過目前階段": "Пропустить текущую фазу",
+            "YouTube 影片展示": "Смотреть на YouTube",
+            "GitHub 開源專案": "Открытый проект на GitHub",
+            "「專注於眼前的小事，平靜是進入高效流道的鑰匙。」": "«Сосредоточьтесь на небольшой задаче перед собой — спокойствие является ключом к состоянию потока.»",
+            "「大腦就像肌肉，每一次抗拒分心都是一次深層強化。」": "«Мозг подобен мышце: каждый раз, сопротивляясь отвлечению, вы делаете его сильнее.»",
+            "「寧靜並非沒有噪音，而是心靈於風浪中的安定。」": "«Покой — это не отсутствие шума, а спокойствие сердца посреди бури.»",
+            "「不積跬步，無以至千里;不積小流，無以成江海。」": "«Путь в тысячу ли начинается с одного шага; океан образуется из маленьких ручьёв.»",
+            "「享受深層專注的當下，結果自然隨之而來。」": "«Наслаждайтесь моментом глубокой концентрации сейчас — результаты придут сами собой.»",
+            "4-4-4-4 箱式呼吸": "Квадратное дыхание 4-4-4-4",
+            "美國海豹部隊專用，快速平復高壓與焦慮": "Используется морскими котиками США — быстро снимает стресс и тревожность",
+            "4-7-8 放鬆呼吸": "Расслабляющее дыхание 4-7-8",
+            "哈佛醫師推薦，深層放鬆大腦與助眠減壓": "Рекомендовано врачами Гарварда — глубоко расслабляет мозг и помогает уснуть",
+            "5-5 均勻呼吸": "Ровное дыхание 5-5",
+            "和諧安穩節奏，引導進入深層心流冥想": "Гармоничный, устойчивый ритм — ведёт к глубокой медитации в состоянии потока",
+            "專注階段 (": "Фаза фокусировки (",
+            "短休息 (": "Короткий перерыв (",
+            "長休息 (": "Длинный перерыв (",
+            "開始專注 (": "Начать фокусировку (",
+            "開始短休息 (": "Начать короткий перерыв (",
+            "開始長休息 (": "Начать длинный перерыв (",
+            "暫停專注 (": "Пауза фокусировки (",
+            "暫停短休息 (": "Пауза короткого перерыва (",
+            "暫停長休息 (": "Пауза длинного перерыва (",
+            "切換短休息 (": "Перейти к короткому перерыву (",
+            "切換長休息 (": "Перейти к длинному перерыву (",
+            "切換專注 (": "Перейти к фокусировке (",
+            "已完成 ": "Завершено ",
+            " 次循環": " циклов",
+            "星期日": "Воскресенье",
+            "星期一": "Понедельник",
+            "星期二": "Вторник",
+            "星期三": "Среда",
+            "星期四": "Четверг",
+            "星期五": "Пятница",
+            "星期六": "Суббота",
+            "一月": "Январь",
+            "二月": "Февраль",
+            "三月": "Март",
+            "四月": "Апрель",
+            "五月": "Май",
+            "六月": "Июнь",
+            "七月": "Июль",
+            "八月": "Август",
+            "九月": "Сентябрь",
+            "十月": "Октябрь",
+            "十一月": "Ноябрь",
+            "十二月": "Декабрь",
+            "AURA Studio v1.2.0 正式版": "AURA Studio v1.2.0 — официальный релиз",
+            "1. 全面升級的多國語言支援": "1. Значительно расширена поддержка языков",
+            "語言從 4 種擴增到 10 種：繁體中文、简体中文、日本語、한국어、Français、Русский、Español、हिन्दी、Português、English，左上角語言按鈕也改為下拉選單，點選即可切換。": "Количество языков выросло с 4 до 10: традиционный китайский, упрощённый китайский, японский, корейский, французский, русский, испанский, хинди, португальский и английский. Кнопка языка в левом верхнем углу теперь открывает выпадающее меню — просто выберите язык.",
+            "2. 精簡任務與專注音效": "2. Упрощены задачи и звуки для фокусировки",
+            "左上角「任務與草稿」功能停用，請改用擴充功能中的待辦事項或記事本；右上角專注音效移除環境音軌，只保留 YouTube 專注音樂。": "Старая панель «Задачи и заметки» больше не поддерживается — используйте вместо неё Список дел или Блокнот в разделе расширений. Панель звуков для фокусировки также упрощена: остался только фоновый плейлист YouTube, атмосферные звуковые дорожки удалены.",
+            "3. 子母畫面效果升級": "3. Улучшен режим «картинка в картинке»",
+            "開啟子母畫面時，背景也會顯示主題光暈與雨滴效果，不再只是單調的黑底畫面。": "Плавающие часы в режиме «картинка в картинке» теперь тоже показывают атмосферное свечение темы и эффект дождя вместо простого тёмного фона.",
+            "4. 全新開場畫面": "4. Новый экран приветствия",
+            "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "Теперь при каждом открытии AURA Studio вас встречает лаконичное название с плавным появлением и мягким дышащим свечением.",
+            "探索 v1.2.0 正式版，開始使用": "Узнать о v1.2.0, начать работу",
+        };
+        const ruToZhMap = Object.fromEntries(Object.entries(zhToRuMap).map(([k,v]) => [v, k]));
+        const zhToEsMap = {
+            "AURA Studio - 一個專注時鐘。": "AURA Studio - Un temporizador de concentración.",
+            "任務與草稿": "Tareas y borradores",
+            "桌面時鐘": "Reloj de escritorio",
+            "桌面時鐘 - 復刻版套件": "Reloj de escritorio - Edición completa",
+            "多組計時器、精確碼錶、專注階段與全功能時間管理": "Varios temporizadores, cronómetro, sesiones de concentración y gestión completa del tiempo",
+            "任務與隨手筆記": "Tareas y notas rápidas",
+            "安裝 App": "Instalar app",
+            "專注音效": "Sonidos de concentración",
+            "多軌專注音效混音器": "Mezclador multipista de sonidos de concentración",
+            "長按背景來切換主題": "Mantén pulsado el fondo para cambiar de tema",
+            "鎖定畫面主題": "Temas de pantalla",
+            "左右滑動或點擊兩側按鈕切換專注主題氛圍": "Desliza o usa los botones laterales para cambiar el ambiente",
+            "上一張主題": "Tema anterior",
+            "下一張主題": "Tema siguiente",
+            "開啟進階設定": "Abrir ajustes avanzados",
+            "晨霧雨露 (淺色)": "Niebla matinal (Claro)",
+            "晨光微熹，清爽水氣": "Luz suave del amanecer, rocío fresco",
+            "日光溫室 (淺色)": "Invernadero soleado (Claro)",
+            "午後陽光，暖心白晝": "Sol de la tarde, día cálido y luminoso",
+            "雲海白晝 (淺色)": "Mar de nubes diurno (Claro)",
+            "極簡純白，澄澈思緒": "Blanco minimalista, mente clara",
+            "深夜圖書館": "Biblioteca de medianoche",
+            "暖黃燈光，沉靜書香": "Luz ámbar cálida, calma literaria",
+            "雨夜咖啡館": "Café en noche lluviosa",
+            "爵士雨音，微醺咖啡": "Jazz y lluvia, ambiente acogedor de café",
+            "靜謐森林": "Bosque silencioso",
+            "綠意盎然，深呼吸平靜": "Verdor exuberante, calma de la respiración profunda",
+            "賽博雨夜": "Lluvia cibernética",
+            "霓虹閃爍，科幻專注": "Destellos de neón, concentración futurista",
+            "深海月光": "Luz de luna en el abismo",
+            "波光粼粼，深海沉靜": "Olas resplandecientes, quietud de las profundidades",
+            "落日餘暉": "Resplandor del atardecer",
+            "黃昏暖陽，柔和晚霞": "Calidez del crepúsculo, suave puesta de sol",
+            "極光冰原": "Tundra boreal",
+            "冷冽極光，奇幻空靈": "Aurora helada, magia etérea",
+            "靜謐星空": "Cielo estrellado silencioso",
+            "繁星璀璨，宇宙浩瀚": "Estrellas deslumbrantes, cosmos infinito",
+            "使用中": "Activo",
+            "套用主題": "Aplicar tema",
+            "自訂專注倒數時間": "Personalizar temporizador de concentración",
+            "設定分鐘數：": "Definir minutos:",
+            "確認設定": "Confirmar",
+            "新增目標 (例如：完成企劃書第三章)...": "Añadir objetivo (ej.: terminar el capítulo 3 del proyecto)...",
+            "新增": "Añadir",
+            "專注草稿備忘錄 (自動儲存)": "Nota de concentración (guardado automático)",
+            "在此記錄臨時想法、解題算式或待查資料...": "Anota aquí tus ideas, cálculos o cosas por consultar...",
+            "範例事項": "Tarea de ejemplo",
+            "總聲音開關": "Sonido general",
+            "已開啟": "Activado",
+            "已關閉": "Desactivado",
+            "真實溫馨雨聲": "Lluvia suave y acogedora",
+            "雙耳節律 (Binaural Focus)": "Ritmos binaurales (Binaural Focus)",
+            "雙耳節律頻段：": "Frecuencia binaural:",
+            "α 波 (10Hz) - 深層專注與平靜": "Onda α (10 Hz) - Concentración profunda y calma",
+            "β 波 (18Hz) - 高強度運算與邏輯": "Onda β (18 Hz) - Lógica intensa y trabajo",
+            "θ 波 (6Hz) - 靈感發想與冥想": "Onda θ (6 Hz) - Inspiración y meditación",
+            "溫馨柴火噼啪聲": "Crepitar cálido de la chimenea",
+            "微風與靜心磬音": "Brisa y campanillas relajantes",
+            "YouTube 專注音樂": "Música de concentración de YouTube",
+            "未載入": "No cargado",
+            "播放中": "Reproduciendo",
+            "無效連結": "Enlace no válido",
+            "貼上影片或直播網址...": "Pega la URL de un vídeo o directo...",
+            "載入": "Cargar",
+            "移除音樂": "Quitar música",
+            "專注階段 (25m)": "Fase de concentración (25 min)",
+            "開始專注 (25m)": "Iniciar concentración (25 min)",
+            "暫停專注 (25m)": "Pausar concentración (25 min)",
+            "短休息 (5m)": "Descanso corto (5 min)",
+            "開始短休息 (5m)": "Iniciar descanso corto (5 min)",
+            "長休息 (15m)": "Descanso largo (15 min)",
+            "開始長休息 (15m)": "Iniciar descanso largo (15 min)",
+            "切換短休息/長休息": "Alternar descanso corto/largo",
+            "切換短休息 (5m)": "Cambiar a descanso corto (5 min)",
+            "切換長休息 (15m)": "Cambiar a descanso largo (15 min)",
+            "切換專注 (25m)": "Cambiar a concentración (25 min)",
+            "重設番茄鐘": "Reiniciar temporizador",
+            "展開控制按鈕": "Expandir controles",
+            "收合控制按鈕": "Contraer controles",
+            "懸浮時鐘 (Alt + P)": "Reloj flotante (Alt + P)",
+            "桌面時鐘套件": "Edición completa del reloj de escritorio",
+            "全螢幕顯示面板": "Mostrar panel a pantalla completa",
+            "記事本": "Bloc de notas",
+            "Markdown 筆記、即時預覽與程式碼高亮": "Notas en Markdown, vista previa en vivo y resaltado de código",
+            "擴充功能": "Extensiones",
+            "開啟擴充功能 (Alt + C)": "Abrir extensiones (Alt + C)",
+            "返回擴充功能列表": "Volver a la lista de extensiones",
+            "為 AURA Studio 加入更多工具，並排在專注時鐘旁使用": "Añade más herramientas a AURA Studio y úsalas junto al temporizador de concentración",
+            "搜尋擴充功能": "Buscar extensiones",
+            "全部擴充功能": "Todas las extensiones",
+            "找不到符合的擴充功能": "No se encontraron extensiones coincidentes",
+            "計時器、碼錶、專注工作階段與時鐘": "Temporizador, cronómetro, sesiones de concentración y reloj",
+            "內建 · 免費": "Integrado · Gratis",
+            "立即開啟": "Abrir ahora",
+            "待辦事項": "Lista de tareas",
+            "切換語言": "Cambiar idioma",
+            "分類、優先順序、子任務、統計圖表與拖曳排序": "Categorías, prioridades, subtareas, gráficos y orden por arrastre",
+            "此功能已淘汰，請打開擴充功能中的待辦事項或記事本繼續使用": "Esta función ha sido descontinuada. Abre la lista de tareas o el bloc de notas en Extensiones para seguir usándola",
+            "拖曳調整分割大小（雙擊還原）": "Arrastra para cambiar el tamaño (doble clic para restablecer)",
+            "安裝 AURA Studio": "Instalar AURA Studio",
+            "選擇安裝方式": "Elige cómo instalar",
+            "安裝成 PWA": "Instalar como PWA",
+            "加入桌面或主畫面，以獨立視窗像 App 一樣開啟": "Añádela al escritorio o a la pantalla de inicio y ábrela como una app en su propia ventana",
+            "前往 GitHub 下載": "Descargar desde GitHub",
+            "下載完整檔案，可離線使用": "Descarga los archivos completos para usarlos sin conexión",
+            "目前沒有可用的安裝提示。電腦版 Chrome／Edge 請點網址列右側的安裝圖示；iPhone／iPad 請按分享，再選「加入主畫面」。需透過 https 網站開啟才能安裝。": "Ahora mismo no hay ninguna sugerencia de instalación disponible. En Chrome/Edge de escritorio, haz clic en el icono de instalación a la derecha de la barra de direcciones; en iPhone/iPad, toca Compartir y luego “Añadir a pantalla de inicio”. Debe abrirse desde un sitio https para poder instalarse.",
+            "已經以 App 模式開啟，不需要再安裝。": "Ya estás usando la app instalada; no es necesario instalarla de nuevo.",
+            "還原 1:1 分割畫面": "Restaurar vista dividida 1:1",
+            "子母畫面": "Imagen en imagen",
+            "切換性能模式": "Cambiar modo de rendimiento",
+            "性能: 標準": "Rendimiento: Estándar",
+            "性能: 節能": "Rendimiento: Ahorro",
+            "正念呼吸引導 (B)": "Guía de respiración consciente (B)",
+            "正念呼吸": "Respiración consciente",
+            "Zen 沉浸專注模式": "Modo Zen inmersivo",
+            "Zen 模式": "Modo Zen",
+            "打雷視覺效果": "Efecto visual de tormenta",
+            "打雷效果": "Efecto de tormenta",
+            "進階設定": "Ajustes avanzados",
+            "全螢幕": "Pantalla completa",
+            "FPS": "FPS",
+            "已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）": "Modo Zen activado (toca cualquier parte de la pantalla o pulsa ESC para salir)",
+            "正念沉浸呼吸": "Respiración consciente inmersiva",
+            "深呼吸，調整節奏，重拾沉靜專注": "Respira profundamente, encuentra el ritmo y recupera una concentración serena",
+            "吸氣": "Inhala",
+            "屏息": "Retén",
+            "呼氣": "Exhala",
+            "4-4-4-4 箱式": "4-4-4-4 Cuadrada",
+            "4-7-8 放鬆": "4-7-8 Relajante",
+            "5-5 均勻": "5-5 Uniforme",
+            "提示音：開": "Sonido: Activado",
+            "提示音：關": "Sonido: Desactivado",
+            "已完成 0 次循環": "0 ciclos completados",
+            "專注與顯示進階設定": "Ajustes avanzados de concentración y pantalla",
+            "視覺與特效": "Visuales y efectos",
+            "時鐘與外觀": "Reloj y apariencia",
+            "專注與系統": "Concentración y sistema",
+            "快捷鍵指南": "Guía de atajos de teclado",
+            "最新升級特色": "Novedades",
+            "恢復預設值": "Restaurar valores predeterminados",
+            "雨滴滑落速度": "Velocidad de caída de la lluvia",
+            "玻璃水珠密度": "Densidad de gotas de vidrio",
+            "極簡": "Mínima",
+            "標準": "Estándar",
+            "密集": "Densa",
+            "滑鼠/觸控與雨滴玻璃互動": "Interacción del ratón/táctil con la lluvia en el vidrio",
+            "顯示即時 FPS 影格率": "Mostrar contador de FPS en vivo",
+            "時鐘字體風格": "Estilo de fuente del reloj",
+            "無襯線 (Sans)": "Sin serifa (Sans)",
+            "單寬碼 (Mono)": "Monoespaciada (Mono)",
+            "典雅 (Serif)": "Elegante (Serif)",
+            "時鐘圓環樣式": "Estilo del anillo del reloj",
+            "簡潔 (預設)": "Simple (predeterminado)",
+            "精緻 (磨砂)": "Refinado (esmerilado)",
+            "時鐘與進度圓環整體尺寸": "Tamaño general del reloj y el anillo",
+            "極簡 (0.75x)": "Mínimo (0.75x)",
+            "沉浸 (1.25x)": "Inmersivo (1.25x)",
+            "特大 (1.5x)": "Muy grande (1.5x)",
+            "顯示 24 小時制時鐘": "Usar formato de 24 horas",
+            "顯示即時秒數": "Mostrar segundos en vivo",
+            "自訂專注格言 / 座右銘": "Lema o cita de concentración personalizada",
+            "輸入專屬激勵小語...": "Escribe tus propias palabras motivadoras...",
+            "顯示專注語錄": "Mostrar citas de concentración",
+            "番茄鐘階段自動連播": "Avanzar automáticamente las fases Pomodoro",
+            "倒數結束播放提醒聲音": "Reproducir sonido al terminar el temporizador",
+            "無操作 5 秒後自動隱藏介面": "Ocultar la interfaz tras 5 s sin actividad",
+            "開始 / 暫停倒數": "Iniciar / Pausar temporizador",
+            "子母畫面時鐘": "Reloj en imagen en imagen",
+            "正念呼吸引導": "Guía de respiración consciente",
+            "折疊 / 展開按鈕": "Botones de contraer / expandir",
+            "跳過目前階段": "Saltar fase actual",
+            "YouTube 影片展示": "Ver en YouTube",
+            "GitHub 開源專案": "Proyecto de código abierto en GitHub",
+            "「專注於眼前的小事，平靜是進入高效流道的鑰匙。」": "«Concéntrate en la pequeña tarea que tienes delante: la calma es la llave que abre el flujo.»",
+            "「大腦就像肌肉，每一次抗拒分心都是一次深層強化。」": "«El cerebro es como un músculo: cada vez que resistes una distracción, se fortalece.»",
+            "「寧靜並非沒有噪音，而是心靈於風浪中的安定。」": "«La paz no es la ausencia de ruido, sino la calma del corazón en medio de la tormenta.»",
+            "「不積跬步，無以至千里;不積小流，無以成江海。」": "«Un viaje de mil leguas comienza con un paso; el océano se forma de pequeños arroyos.»",
+            "「享受深層專注的當下，結果自然隨之而來。」": "«Disfruta este momento de concentración profunda; los resultados llegarán por sí solos.»",
+            "4-4-4-4 箱式呼吸": "Respiración cuadrada 4-4-4-4",
+            "美國海豹部隊專用，快速平復高壓與焦慮": "Usada por los Navy SEALs: calma rápidamente el estrés y la ansiedad",
+            "4-7-8 放鬆呼吸": "Respiración relajante 4-7-8",
+            "哈佛醫師推薦，深層放鬆大腦與助眠減壓": "Recomendada por médicos de Harvard: relaja profundamente el cerebro y ayuda a dormir",
+            "5-5 均勻呼吸": "Respiración uniforme 5-5",
+            "和諧安穩節奏，引導進入深層心流冥想": "Ritmo armonioso y estable que te guía hacia una meditación de flujo profundo",
+            "專注階段 (": "Fase de concentración (",
+            "短休息 (": "Descanso corto (",
+            "長休息 (": "Descanso largo (",
+            "開始專注 (": "Iniciar concentración (",
+            "開始短休息 (": "Iniciar descanso corto (",
+            "開始長休息 (": "Iniciar descanso largo (",
+            "暫停專注 (": "Pausar concentración (",
+            "暫停短休息 (": "Pausar descanso corto (",
+            "暫停長休息 (": "Pausar descanso largo (",
+            "切換短休息 (": "Cambiar a descanso corto (",
+            "切換長休息 (": "Cambiar a descanso largo (",
+            "切換專注 (": "Cambiar a concentración (",
+            "已完成 ": "Completados ",
+            " 次循環": " ciclos",
+            "星期日": "Domingo",
+            "星期一": "Lunes",
+            "星期二": "Martes",
+            "星期三": "Miércoles",
+            "星期四": "Jueves",
+            "星期五": "Viernes",
+            "星期六": "Sábado",
+            "一月": "Enero",
+            "二月": "Febrero",
+            "三月": "Marzo",
+            "四月": "Abril",
+            "五月": "Mayo",
+            "六月": "Junio",
+            "七月": "Julio",
+            "八月": "Agosto",
+            "九月": "Septiembre",
+            "十月": "Octubre",
+            "十一月": "Noviembre",
+            "十二月": "Diciembre",
+            "AURA Studio v1.2.0 正式版": "AURA Studio v1.2.0 Oficial",
+            "1. 全面升級的多國語言支援": "1. Soporte de idiomas ampliado enormemente",
+            "語言從 4 種擴增到 10 種：繁體中文、简体中文、日本語、한국어、Français、Русский、Español、हिन्दी、Português、English，左上角語言按鈕也改為下拉選單，點選即可切換。": "El número de idiomas pasó de 4 a 10: chino tradicional, chino simplificado, japonés, coreano, francés, ruso, español, hindi, portugués e inglés. El botón de idioma en la esquina superior izquierda ahora es un menú desplegable: solo elige y cambia.",
+            "2. 精簡任務與專注音效": "2. Tareas y sonidos de concentración simplificados",
+            "左上角「任務與草稿」功能停用，請改用擴充功能中的待辦事項或記事本；右上角專注音效移除環境音軌，只保留 YouTube 專注音樂。": "El antiguo panel «Tareas y borradores» ha sido descontinuado; usa la Lista de tareas o el Bloc de notas en Extensiones en su lugar. El panel de Sonidos de concentración también se redujo a solo la música de concentración de YouTube, eliminando las pistas ambientales.",
+            "3. 子母畫面效果升級": "3. Imagen en imagen mejorada",
+            "開啟子母畫面時，背景也會顯示主題光暈與雨滴效果，不再只是單調的黑底畫面。": "El reloj flotante en imagen en imagen ahora también muestra el resplandor del tema y el efecto de lluvia de fondo, en lugar de un simple fondo oscuro.",
+            "4. 全新開場畫面": "4. Nueva pantalla de bienvenida",
+            "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "Cada vez que abres AURA Studio, te recibe un título que aparece suavemente junto con un resplandor que respira con calma.",
+            "探索 v1.2.0 正式版，開始使用": "Explora la versión v1.2.0, empieza ahora",
+        };
+        const esToZhMap = Object.fromEntries(Object.entries(zhToEsMap).map(([k,v]) => [v, k]));
+        const zhToHiMap = {
+            "AURA Studio - 一個專注時鐘。": "AURA Studio - एक फ़ोकस टाइमर।",
+            "任務與草稿": "कार्य और ड्राफ़्ट",
+            "桌面時鐘": "डेस्कटॉप घड़ी",
+            "桌面時鐘 - 復刻版套件": "डेस्कटॉप घड़ी - सुइट",
+            "多組計時器、精確碼錶、專注階段與全功能時間管理": "कई टाइमर, स्टॉपवॉच, फ़ोकस सेशन और पूरा समय प्रबंधन",
+            "任務與隨手筆記": "कार्य और त्वरित नोट्स",
+            "安裝 App": "ऐप इंस्टॉल करें",
+            "專注音效": "फ़ोकस साउंड",
+            "多軌專注音效混音器": "मल्टी-ट्रैक फ़ोकस साउंड मिक्सर",
+            "長按背景來切換主題": "थीम बदलने के लिए बैकग्राउंड को देर तक दबाएँ",
+            "鎖定畫面主題": "स्क्रीन थीम",
+            "左右滑動或點擊兩側按鈕切換專注主題氛圍": "थीम बदलने के लिए स्वाइप करें या साइड बटन दबाएँ",
+            "上一張主題": "पिछली थीम",
+            "下一張主題": "अगली थीम",
+            "開啟進階設定": "उन्नत सेटिंग्स खोलें",
+            "晨霧雨露 (淺色)": "सुबह की धुंध (हल्का)",
+            "晨光微熹，清爽水氣": "भोर की हल्की रोशनी, ताज़ी ओस",
+            "日光溫室 (淺色)": "धूप भरा ग्रीनहाउस (हल्का)",
+            "午後陽光，暖心白晝": "दोपहर की धूप, गर्म उजला दिन",
+            "雲海白晝 (淺色)": "बादलों भरा दिन (हल्का)",
+            "極簡純白，澄澈思緒": "सादा सफेद, स्पष्ट विचार",
+            "深夜圖書館": "आधी रात की लाइब्रेरी",
+            "暖黃燈光，沉靜書香": "गर्म पीली रोशनी, शांत किताबी माहौल",
+            "雨夜咖啡館": "बारिश की रात का कैफ़े",
+            "爵士雨音，微醺咖啡": "जैज़ और बारिश, आरामदायक कैफ़े का माहौल",
+            "靜謐森林": "शांत जंगल",
+            "綠意盎然，深呼吸平靜": "घनी हरियाली, गहरी साँसों की शांति",
+            "賽博雨夜": "साइबर बारिश",
+            "霓虹閃爍，科幻專注": "नियॉन की चमक, भविष्यवादी फ़ोकस",
+            "深海月光": "समुद्र की गहराई में चाँदनी",
+            "波光粼粼，深海沉靜": "चमकती लहरें, गहरे समुद्र की नीरवता",
+            "落日餘暉": "सूर्यास्त की चमक",
+            "黃昏暖陽，柔和晚霞": "शाम की गर्माहट, मुलायम सूर्यास्त",
+            "極光冰原": "ध्रुवीय टुंड्रा",
+            "冷冽極光，奇幻空靈": "ठंडी ध्रुवीय रोशनी, स्वप्निल जादू",
+            "靜謐星空": "शांत तारों भरा आकाश",
+            "繁星璀璨，宇宙浩瀚": "चमकते सितारे, अनंत ब्रह्मांड",
+            "使用中": "सक्रिय",
+            "套用主題": "थीम लागू करें",
+            "自訂專注倒數時間": "फ़ोकस टाइमर कस्टमाइज़ करें",
+            "設定分鐘數：": "मिनट सेट करें：",
+            "確認設定": "पुष्टि करें",
+            "新增目標 (例如：完成企劃書第三章)...": "लक्ष्य जोड़ें (जैसे: प्रोजेक्ट का अध्याय 3 पूरा करें)...",
+            "新增": "जोड़ें",
+            "專注草稿備忘錄 (自動儲存)": "फ़ोकस नोट (ऑटो-सेव)",
+            "在此記錄臨時想法、解題算式或待查資料...": "यहाँ अपने विचार, गणना या जाँचने वाली बातें लिखें...",
+            "範例事項": "नमूना कार्य",
+            "總聲音開關": "मुख्य ध्वनि",
+            "已開啟": "चालू",
+            "已關閉": "बंद",
+            "真實溫馨雨聲": "आरामदायक बारिश की आवाज़",
+            "雙耳節律 (Binaural Focus)": "बाइनॉरल बीट्स (Binaural Focus)",
+            "雙耳節律頻段：": "बाइनॉरल फ़्रीक्वेंसी：",
+            "α 波 (10Hz) - 深層專注與平靜": "α तरंग (10Hz) - गहरा फ़ोकस और शांति",
+            "β 波 (18Hz) - 高強度運算與邏輯": "β तरंग (18Hz) - तीव्र तर्क और कार्य",
+            "θ 波 (6Hz) - 靈感發想與冥想": "θ तरंग (6Hz) - प्रेरणा और ध्यान",
+            "溫馨柴火噼啪聲": "अलाव की गर्म चटचटाहट",
+            "微風與靜心磬音": "हल्की हवा और शांत घंटियाँ",
+            "YouTube 專注音樂": "YouTube फ़ोकस संगीत",
+            "未載入": "लोड नहीं हुआ",
+            "播放中": "चल रहा है",
+            "無效連結": "अमान्य लिंक",
+            "貼上影片或直播網址...": "वीडियो या लाइव स्ट्रीम का URL पेस्ट करें...",
+            "載入": "लोड करें",
+            "移除音樂": "संगीत हटाएँ",
+            "專注階段 (25m)": "फ़ोकस चरण (25 मिनट)",
+            "開始專注 (25m)": "फ़ोकस शुरू करें (25 मिनट)",
+            "暫停專注 (25m)": "फ़ोकस रोकें (25 मिनट)",
+            "短休息 (5m)": "छोटा ब्रेक (5 मिनट)",
+            "開始短休息 (5m)": "छोटा ब्रेक शुरू करें (5 मिनट)",
+            "長休息 (15m)": "लंबा ब्रेक (15 मिनट)",
+            "開始長休息 (15m)": "लंबा ब्रेक शुरू करें (15 मिनट)",
+            "切換短休息/長休息": "छोटा/लंबा ब्रेक बदलें",
+            "切換短休息 (5m)": "छोटे ब्रेक पर जाएँ (5 मिनट)",
+            "切換長休息 (15m)": "लंबे ब्रेक पर जाएँ (15 मिनट)",
+            "切換專注 (25m)": "फ़ोकस पर जाएँ (25 मिनट)",
+            "重設番茄鐘": "टाइमर रीसेट करें",
+            "展開控制按鈕": "नियंत्रण विस्तृत करें",
+            "收合控制按鈕": "नियंत्रण संक्षिप्त करें",
+            "懸浮時鐘 (Alt + P)": "फ़्लोटिंग घड़ी (Alt + P)",
+            "桌面時鐘套件": "डेस्कटॉप घड़ी सुइट",
+            "全螢幕顯示面板": "पैनल को पूरी स्क्रीन पर दिखाएँ",
+            "記事本": "नोटपैड",
+            "Markdown 筆記、即時預覽與程式碼高亮": "Markdown नोट्स, लाइव पूर्वावलोकन और कोड हाइलाइटिंग",
+            "擴充功能": "एक्सटेंशन",
+            "開啟擴充功能 (Alt + C)": "एक्सटेंशन खोलें (Alt + C)",
+            "返回擴充功能列表": "एक्सटेंशन सूची पर लौटें",
+            "為 AURA Studio 加入更多工具，並排在專注時鐘旁使用": "AURA Studio में और टूल जोड़ें, फ़ोकस टाइमर के साथ-साथ उपयोग करें",
+            "搜尋擴充功能": "एक्सटेंशन खोजें",
+            "全部擴充功能": "सभी एक्सटेंशन",
+            "找不到符合的擴充功能": "कोई मेल खाता एक्सटेंशन नहीं मिला",
+            "計時器、碼錶、專注工作階段與時鐘": "टाइमर, स्टॉपवॉच, फ़ोकस सेशन और घड़ी",
+            "內建 · 免費": "बिल्ट-इन · मुफ़्त",
+            "立即開啟": "अभी खोलें",
+            "待辦事項": "कार्य सूची",
+            "切換語言": "भाषा बदलें",
+            "分類、優先順序、子任務、統計圖表與拖曳排序": "श्रेणियाँ, प्राथमिकताएँ, उप-कार्य, आँकड़े चार्ट और खींचकर क्रम बदलना",
+            "此功能已淘汰，請打開擴充功能中的待辦事項或記事本繼續使用": "यह सुविधा बंद कर दी गई है। कृपया जारी रखने के लिए एक्सटेंशन में कार्य सूची या नोटपैड खोलें",
+            "拖曳調整分割大小（雙擊還原）": "आकार बदलने के लिए खींचें (रीसेट के लिए डबल-क्लिक करें)",
+            "安裝 AURA Studio": "AURA Studio इंस्टॉल करें",
+            "選擇安裝方式": "इंस्टॉल करने का तरीका चुनें",
+            "安裝成 PWA": "PWA के रूप में इंस्टॉल करें",
+            "加入桌面或主畫面，以獨立視窗像 App 一樣開啟": "अपने डेस्कटॉप या होम स्क्रीन में जोड़ें और इसे ऐप की तरह अपनी अलग विंडो में खोलें",
+            "前往 GitHub 下載": "GitHub से डाउनलोड करें",
+            "下載完整檔案，可離線使用": "ऑफ़लाइन उपयोग के लिए पूरी फ़ाइलें डाउनलोड करें",
+            "目前沒有可用的安裝提示。電腦版 Chrome／Edge 請點網址列右側的安裝圖示；iPhone／iPad 請按分享，再選「加入主畫面」。需透過 https 網站開啟才能安裝。": "अभी इंस्टॉल सुझाव उपलब्ध नहीं है। डेस्कटॉप Chrome/Edge में, एड्रेस बार के दाईं ओर इंस्टॉल आइकन पर क्लिक करें; iPhone/iPad पर, शेयर बटन दबाएँ फिर “होम स्क्रीन पर जोड़ें” चुनें। इंस्टॉल करने के लिए https साइट से खोलना ज़रूरी है।",
+            "已經以 App 模式開啟，不需要再安裝。": "आप पहले से ही इंस्टॉल किए गए ऐप के रूप में चला रहे हैं, फिर से इंस्टॉल करने की ज़रूरत नहीं है।",
+            "還原 1:1 分割畫面": "1:1 स्प्लिट व्यू पुनर्स्थापित करें",
+            "子母畫面": "पिक्चर-इन-पिक्चर",
+            "切換性能模式": "परफ़ॉर्मेंस मोड बदलें",
+            "性能: 標準": "परफ़ॉर्मेंस: मानक",
+            "性能: 節能": "परफ़ॉर्मेंस: ऊर्जा-बचत",
+            "正念呼吸引導 (B)": "माइंडफुल ब्रीदिंग गाइड (B)",
+            "正念呼吸": "माइंडफुल ब्रीदिंग",
+            "Zen 沉浸專注模式": "Zen इमर्सिव मोड",
+            "Zen 模式": "Zen मोड",
+            "打雷視覺效果": "बिजली का विज़ुअल इफ़ेक्ट",
+            "打雷效果": "बिजली इफ़ेक्ट",
+            "進階設定": "उन्नत सेटिंग्स",
+            "全螢幕": "पूर्ण स्क्रीन",
+            "FPS": "FPS",
+            "已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）": "Zen इमर्सिव मोड चालू हो गया (बाहर निकलने के लिए स्क्रीन पर कहीं भी टैप करें या ESC दबाएँ)",
+            "正念沉浸呼吸": "माइंडफुल इमर्सिव ब्रीदिंग",
+            "深呼吸，調整節奏，重拾沉靜專注": "गहरी साँस लें, लय पाएँ, शांत फ़ोकस फिर से पाएँ",
+            "吸氣": "साँस लें",
+            "屏息": "रोकें",
+            "呼氣": "छोड़ें",
+            "4-4-4-4 箱式": "4-4-4-4 बॉक्स",
+            "4-7-8 放鬆": "4-7-8 रिलैक्स",
+            "5-5 均勻": "5-5 सम",
+            "提示音：開": "चाइम: चालू",
+            "提示音：關": "चाइम: बंद",
+            "已完成 0 次循環": "0 चक्र पूरे हुए",
+            "專注與顯示進階設定": "फ़ोकस और डिस्प्ले की उन्नत सेटिंग्स",
+            "視覺與特效": "विज़ुअल्स और इफ़ेक्ट्स",
+            "時鐘與外觀": "घड़ी और रूप-रंग",
+            "專注與系統": "फ़ोकस और सिस्टम",
+            "快捷鍵指南": "कीबोर्ड शॉर्टकट गाइड",
+            "最新升級特色": "नया क्या है",
+            "恢復預設值": "डिफ़ॉल्ट पर पुनर्स्थापित करें",
+            "雨滴滑落速度": "बारिश की बूंदों की गति",
+            "玻璃水珠密度": "शीशे की बूंदों का घनत्व",
+            "極簡": "न्यूनतम",
+            "標準": "मानक",
+            "密集": "घना",
+            "滑鼠/觸控與雨滴玻璃互動": "माउस/टच और बारिश वाले शीशे की परस्पर क्रिया",
+            "顯示即時 FPS 影格率": "लाइव FPS काउंटर दिखाएँ",
+            "時鐘字體風格": "घड़ी के फ़ॉन्ट की शैली",
+            "無襯線 (Sans)": "बिना सेरिफ़ (Sans)",
+            "單寬碼 (Mono)": "मोनोस्पेस (Mono)",
+            "典雅 (Serif)": "शास्त्रीय (Serif)",
+            "時鐘圓環樣式": "घड़ी के रिंग की शैली",
+            "簡潔 (預設)": "सरल (डिफ़ॉल्ट)",
+            "精緻 (磨砂)": "परिष्कृत (फ़्रॉस्टेड)",
+            "時鐘與進度圓環整體尺寸": "घड़ी और रिंग का कुल आकार",
+            "極簡 (0.75x)": "न्यूनतम (0.75x)",
+            "沉浸 (1.25x)": "इमर्सिव (1.25x)",
+            "特大 (1.5x)": "बड़ा (1.5x)",
+            "顯示 24 小時制時鐘": "24-घंटे प्रारूप का उपयोग करें",
+            "顯示即時秒數": "लाइव सेकंड दिखाएँ",
+            "自訂專注格言 / 座右銘": "कस्टम फ़ोकस आदर्श वाक्य / उद्धरण",
+            "輸入專屬激勵小語...": "अपने प्रेरक शब्द दर्ज करें...",
+            "顯示專注語錄": "फ़ोकस उद्धरण दिखाएँ",
+            "番茄鐘階段自動連播": "पोमोडोरो चरण स्वतः आगे बढ़ाएँ",
+            "倒數結束播放提醒聲音": "टाइमर खत्म होने पर ध्वनि बजाएँ",
+            "無操作 5 秒後自動隱藏介面": "5 सेकंड निष्क्रियता के बाद UI स्वतः छिपाएँ",
+            "開始 / 暫停倒數": "शुरू करें / रोकें",
+            "子母畫面時鐘": "पिक्चर-इन-पिक्चर घड़ी",
+            "正念呼吸引導": "माइंडफुल ब्रीदिंग गाइड",
+            "折疊 / 展開按鈕": "संक्षिप्त / विस्तृत बटन",
+            "跳過目前階段": "वर्तमान चरण छोड़ें",
+            "YouTube 影片展示": "YouTube पर देखें",
+            "GitHub 開源專案": "GitHub ओपन सोर्स प्रोजेक्ट",
+            "「專注於眼前的小事，平靜是進入高效流道的鑰匙。」": "“सामने के छोटे काम पर ध्यान दो। शांति ही प्रवाह (फ्लो) में प्रवेश करने की कुंजी है।”",
+            "「大腦就像肌肉，每一次抗拒分心都是一次深層強化。」": "“दिमाग़ मांसपेशी जैसा है; हर बार जब आप ध्यान भटकाने का विरोध करते हैं, तो यह और मज़बूत होता है।”",
+            "「寧靜並非沒有噪音，而是心靈於風浪中的安定。」": "“शांति शोर की अनुपस्थिति नहीं, बल्कि तूफ़ान के बीच मन की स्थिरता है।”",
+            "「不積跬步，無以至千里;不積小流，無以成江海。」": "“हज़ार मील की यात्रा एक कदम से शुरू होती है; समुद्र भी छोटी-छोटी धाराओं से बनता है।”",
+            "「享受深層專注的當下，結果自然隨之而來。」": "“इस गहरे फ़ोकस के पल का आनंद लें, परिणाम अपने आप मिलेंगे।”",
+            "4-4-4-4 箱式呼吸": "4-4-4-4 बॉक्स ब्रीदिंग",
+            "美國海豹部隊專用，快速平復高壓與焦慮": "नेवी सील्स द्वारा उपयोग की जाती है — तनाव और चिंता को तुरंत शांत करती है",
+            "4-7-8 放鬆呼吸": "4-7-8 रिलैक्सिंग ब्रीदिंग",
+            "哈佛醫師推薦，深層放鬆大腦與助眠減壓": "हार्वर्ड के डॉक्टरों द्वारा अनुशंसित — मस्तिष्क को गहराई से आराम देती है और नींद में मदद करती है",
+            "5-5 均勻呼吸": "5-5 कोहेरेंट ब्रीदिंग",
+            "和諧安穩節奏，引導進入深層心流冥想": "सामंजस्यपूर्ण, स्थिर लय — गहरे फ़्लो ध्यान की ओर ले जाती है",
+            "專注階段 (": "फ़ोकस चरण (",
+            "短休息 (": "छोटा ब्रेक (",
+            "長休息 (": "लंबा ब्रेक (",
+            "開始專注 (": "फ़ोकस शुरू करें (",
+            "開始短休息 (": "छोटा ब्रेक शुरू करें (",
+            "開始長休息 (": "लंबा ब्रेक शुरू करें (",
+            "暫停專注 (": "फ़ोकस रोकें (",
+            "暫停短休息 (": "छोटा ब्रेक रोकें (",
+            "暫停長休息 (": "लंबा ब्रेक रोकें (",
+            "切換短休息 (": "छोटे ब्रेक पर जाएँ (",
+            "切換長休息 (": "लंबे ब्रेक पर जाएँ (",
+            "切換專注 (": "फ़ोकस पर जाएँ (",
+            "已完成 ": "पूरे हुए ",
+            " 次循環": " चक्र",
+            "星期日": "रविवार",
+            "星期一": "सोमवार",
+            "星期二": "मंगलवार",
+            "星期三": "बुधवार",
+            "星期四": "गुरुवार",
+            "星期五": "शुक्रवार",
+            "星期六": "शनिवार",
+            "一月": "जनवरी",
+            "二月": "फ़रवरी",
+            "三月": "मार्च",
+            "四月": "अप्रैल",
+            "五月": "मई",
+            "六月": "जून",
+            "七月": "जुलाई",
+            "八月": "अगस्त",
+            "九月": "सितंबर",
+            "十月": "अक्टूबर",
+            "十一月": "नवंबर",
+            "十二月": "दिसंबर",
+            "AURA Studio v1.2.0 正式版": "AURA Studio v1.2.0 आधिकारिक संस्करण",
+            "1. 全面升級的多國語言支援": "1. भाषा समर्थन में बड़ा विस्तार",
+            "語言從 4 種擴增到 10 種：繁體中文、简体中文、日本語、한국어、Français、Русский、Español、हिन्दी、Português、English，左上角語言按鈕也改為下拉選單，點選即可切換。": "भाषाएँ 4 से बढ़कर 10 हो गई हैं: पारंपरिक चीनी, सरलीकृत चीनी, जापानी, कोरियाई, फ़्रेंच, रूसी, स्पेनिश, हिन्दी, पुर्तगाली और अंग्रेज़ी। ऊपर-बाईं ओर का भाषा बटन अब ड्रॉपडाउन मेनू है — बस चुनें और बदलें।",
+            "2. 精簡任務與專注音效": "2. कार्य और फ़ोकस साउंड सरल बनाए गए",
+            "左上角「任務與草稿」功能停用，請改用擴充功能中的待辦事項或記事本；右上角專注音效移除環境音軌，只保留 YouTube 專注音樂。": "पुरानी “कार्य और ड्राफ़्ट” सुविधा बंद कर दी गई है — इसकी जगह एक्सटेंशन में कार्य सूची या नोटपैड का उपयोग करें। फ़ोकस साउंड पैनल भी अब सिर्फ़ YouTube फ़ोकस संगीत तक सीमित है, एम्बिएंट साउंड ट्रैक हटा दिए गए हैं।",
+            "3. 子母畫面效果升級": "3. पिक्चर-इन-पिक्चर अपग्रेड हुआ",
+            "開啟子母畫面時，背景也會顯示主題光暈與雨滴效果，不再只是單調的黑底畫面。": "फ़्लोटिंग घड़ी वाला पिक्चर-इन-पिक्चर अब पृष्ठभूमि में थीम की चमक और बारिश का प्रभाव भी दिखाता है, न कि केवल सादा गहरा बैकग्राउंड।",
+            "4. 全新開場畫面": "4. नया ओपनिंग स्क्रीन",
+            "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "अब हर बार AURA Studio खोलने पर एक सरल शीर्षक फेड-इन और हल्की साँस जैसी चमक आपका स्वागत करती है।",
+            "探索 v1.2.0 正式版，開始使用": "v1.2.0 आधिकारिक संस्करण देखें, शुरू करें",
+        };
+        const hiToZhMap = Object.fromEntries(Object.entries(zhToHiMap).map(([k,v]) => [v, k]));
+        const zhToPtMap = {
+            "AURA Studio - 一個專注時鐘。": "AURA Studio - Um cronômetro de foco.",
+            "任務與草稿": "Tarefas e rascunhos",
+            "桌面時鐘": "Relógio de mesa",
+            "桌面時鐘 - 復刻版套件": "Relógio de mesa - Edição completa",
+            "多組計時器、精確碼錶、專注階段與全功能時間管理": "Vários cronômetros, cronômetro regressivo, sessões de foco e gestão completa do tempo",
+            "任務與隨手筆記": "Tarefas e notas rápidas",
+            "安裝 App": "Instalar app",
+            "專注音效": "Sons de foco",
+            "多軌專注音效混音器": "Mixer multifaixa de sons de foco",
+            "長按背景來切換主題": "Pressione e segure o fundo para trocar de tema",
+            "鎖定畫面主題": "Temas de tela",
+            "左右滑動或點擊兩側按鈕切換專注主題氛圍": "Deslize ou use os botões laterais para trocar o ambiente",
+            "上一張主題": "Tema anterior",
+            "下一張主題": "Próximo tema",
+            "開啟進階設定": "Abrir configurações avançadas",
+            "晨霧雨露 (淺色)": "Névoa matinal (Claro)",
+            "晨光微熹，清爽水氣": "Luz suave do amanhecer, orvalho fresco",
+            "日光溫室 (淺色)": "Estufa ensolarada (Claro)",
+            "午後陽光，暖心白晝": "Sol da tarde, dia quente e claro",
+            "雲海白晝 (淺色)": "Mar de nuvens diurno (Claro)",
+            "極簡純白，澄澈思緒": "Branco minimalista, mente clara",
+            "深夜圖書館": "Biblioteca da meia-noite",
+            "暖黃燈光，沉靜書香": "Luz âmbar quente, calma literária",
+            "雨夜咖啡館": "Café na noite chuvosa",
+            "爵士雨音，微醺咖啡": "Jazz e chuva, clima aconchegante de café",
+            "靜謐森林": "Floresta silenciosa",
+            "綠意盎然，深呼吸平靜": "Verde exuberante, calma da respiração profunda",
+            "賽博雨夜": "Chuva cibernética",
+            "霓虹閃爍，科幻專注": "Luzes de neon piscando, foco futurista",
+            "深海月光": "Luar nas profundezas do mar",
+            "波光粼粼，深海沉靜": "Ondas cintilantes, quietude abissal",
+            "落日餘暉": "Brilho do pôr do sol",
+            "黃昏暖陽，柔和晚霞": "Calor do crepúsculo, pôr do sol suave",
+            "極光冰原": "Tundra boreal",
+            "冷冽極光，奇幻空靈": "Aurora gelada, magia etérea",
+            "靜謐星空": "Céu estrelado silencioso",
+            "繁星璀璨，宇宙浩瀚": "Estrelas deslumbrantes, cosmos infinito",
+            "使用中": "Ativo",
+            "套用主題": "Aplicar tema",
+            "自訂專注倒數時間": "Personalizar cronômetro de foco",
+            "設定分鐘數：": "Definir minutos:",
+            "確認設定": "Confirmar",
+            "新增目標 (例如：完成企劃書第三章)...": "Adicionar meta (ex.: terminar o capítulo 3 do projeto)...",
+            "新增": "Adicionar",
+            "專注草稿備忘錄 (自動儲存)": "Nota de foco (salvamento automático)",
+            "在此記錄臨時想法、解題算式或待查資料...": "Anote aqui ideias, cálculos ou coisas para consultar depois...",
+            "範例事項": "Tarefa de exemplo",
+            "總聲音開關": "Som geral",
+            "已開啟": "Ativado",
+            "已關閉": "Desativado",
+            "真實溫馨雨聲": "Chuva suave e aconchegante",
+            "雙耳節律 (Binaural Focus)": "Batidas binaurais (Binaural Focus)",
+            "雙耳節律頻段：": "Frequência binaural:",
+            "α 波 (10Hz) - 深層專注與平靜": "Onda α (10 Hz) - Foco profundo e calma",
+            "β 波 (18Hz) - 高強度運算與邏輯": "Onda β (18 Hz) - Lógica intensa e trabalho",
+            "θ 波 (6Hz) - 靈感發想與冥想": "Onda θ (6 Hz) - Inspiração e meditação",
+            "溫馨柴火噼啪聲": "Crepitar aconchegante da lareira",
+            "微風與靜心磬音": "Brisa e sinos relaxantes",
+            "YouTube 專注音樂": "Música de foco do YouTube",
+            "未載入": "Não carregado",
+            "播放中": "Reproduzindo",
+            "無效連結": "Link inválido",
+            "貼上影片或直播網址...": "Cole o URL de um vídeo ou transmissão...",
+            "載入": "Carregar",
+            "移除音樂": "Remover música",
+            "專注階段 (25m)": "Fase de foco (25 min)",
+            "開始專注 (25m)": "Iniciar foco (25 min)",
+            "暫停專注 (25m)": "Pausar foco (25 min)",
+            "短休息 (5m)": "Pausa curta (5 min)",
+            "開始短休息 (5m)": "Iniciar pausa curta (5 min)",
+            "長休息 (15m)": "Pausa longa (15 min)",
+            "開始長休息 (15m)": "Iniciar pausa longa (15 min)",
+            "切換短休息/長休息": "Alternar pausa curta/longa",
+            "切換短休息 (5m)": "Mudar para pausa curta (5 min)",
+            "切換長休息 (15m)": "Mudar para pausa longa (15 min)",
+            "切換專注 (25m)": "Mudar para foco (25 min)",
+            "重設番茄鐘": "Reiniciar cronômetro",
+            "展開控制按鈕": "Expandir controles",
+            "收合控制按鈕": "Recolher controles",
+            "懸浮時鐘 (Alt + P)": "Relógio flutuante (Alt + P)",
+            "桌面時鐘套件": "Edição completa do relógio de mesa",
+            "全螢幕顯示面板": "Exibir painel em tela cheia",
+            "記事本": "Bloco de notas",
+            "Markdown 筆記、即時預覽與程式碼高亮": "Notas em Markdown, pré-visualização ao vivo e destaque de código",
+            "擴充功能": "Extensões",
+            "開啟擴充功能 (Alt + C)": "Abrir extensões (Alt + C)",
+            "返回擴充功能列表": "Voltar à lista de extensões",
+            "為 AURA Studio 加入更多工具，並排在專注時鐘旁使用": "Adicione mais ferramentas ao AURA Studio e use-as lado a lado com o cronômetro de foco",
+            "搜尋擴充功能": "Pesquisar extensões",
+            "全部擴充功能": "Todas as extensões",
+            "找不到符合的擴充功能": "Nenhuma extensão correspondente encontrada",
+            "計時器、碼錶、專注工作階段與時鐘": "Cronômetro, cronômetro regressivo, sessões de foco e relógio",
+            "內建 · 免費": "Integrado · Gratuito",
+            "立即開啟": "Abrir agora",
+            "待辦事項": "Lista de tarefas",
+            "切換語言": "Mudar idioma",
+            "分類、優先順序、子任務、統計圖表與拖曳排序": "Categorias, prioridades, subtarefas, gráficos e ordenação por arraste",
+            "此功能已淘汰，請打開擴充功能中的待辦事項或記事本繼續使用": "Este recurso foi descontinuado. Abra a Lista de tarefas ou o Bloco de notas em Extensões para continuar usando",
+            "拖曳調整分割大小（雙擊還原）": "Arraste para redimensionar (duplo clique para redefinir)",
+            "安裝 AURA Studio": "Instalar AURA Studio",
+            "選擇安裝方式": "Escolha como instalar",
+            "安裝成 PWA": "Instalar como PWA",
+            "加入桌面或主畫面，以獨立視窗像 App 一樣開啟": "Adicione à área de trabalho ou à tela inicial e abra como um app em sua própria janela",
+            "前往 GitHub 下載": "Baixar do GitHub",
+            "下載完整檔案，可離線使用": "Baixe os arquivos completos para uso offline",
+            "目前沒有可用的安裝提示。電腦版 Chrome／Edge 請點網址列右側的安裝圖示；iPhone／iPad 請按分享，再選「加入主畫面」。需透過 https 網站開啟才能安裝。": "No momento não há sugestão de instalação disponível. No Chrome/Edge para desktop, clique no ícone de instalação à direita da barra de endereço; no iPhone/iPad, toque em Compartilhar e depois em “Adicionar à Tela de Início”. É necessário abrir a partir de um site https para instalar.",
+            "已經以 App 模式開啟，不需要再安裝。": "Você já está usando o app instalado; não é necessário instalar novamente.",
+            "還原 1:1 分割畫面": "Restaurar divisão 1:1",
+            "子母畫面": "Picture-in-picture",
+            "切換性能模式": "Alternar modo de desempenho",
+            "性能: 標準": "Desempenho: Padrão",
+            "性能: 節能": "Desempenho: Economia",
+            "正念呼吸引導 (B)": "Guia de respiração consciente (B)",
+            "正念呼吸": "Respiração consciente",
+            "Zen 沉浸專注模式": "Modo Zen imersivo",
+            "Zen 模式": "Modo Zen",
+            "打雷視覺效果": "Efeito visual de tempestade",
+            "打雷效果": "Efeito de tempestade",
+            "進階設定": "Configurações avançadas",
+            "全螢幕": "Tela cheia",
+            "FPS": "FPS",
+            "已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）": "Modo Zen ativado (toque em qualquer lugar da tela ou pressione ESC para sair)",
+            "正念沉浸呼吸": "Respiração consciente imersiva",
+            "深呼吸，調整節奏，重拾沉靜專注": "Respire fundo, encontre o ritmo e recupere um foco calmo",
+            "吸氣": "Inspire",
+            "屏息": "Segure",
+            "呼氣": "Expire",
+            "4-4-4-4 箱式": "4-4-4-4 Quadrada",
+            "4-7-8 放鬆": "4-7-8 Relaxante",
+            "5-5 均勻": "5-5 Uniforme",
+            "提示音：開": "Som: Ativado",
+            "提示音：關": "Som: Desativado",
+            "已完成 0 次循環": "0 ciclos concluídos",
+            "專注與顯示進階設定": "Configurações avançadas de foco e tela",
+            "視覺與特效": "Visuais e efeitos",
+            "時鐘與外觀": "Relógio e aparência",
+            "專注與系統": "Foco e sistema",
+            "快捷鍵指南": "Guia de atalhos de teclado",
+            "最新升級特色": "Novidades",
+            "恢復預設值": "Restaurar padrões",
+            "雨滴滑落速度": "Velocidade de queda da chuva",
+            "玻璃水珠密度": "Densidade de gotas de vidro",
+            "極簡": "Mínima",
+            "標準": "Padrão",
+            "密集": "Densa",
+            "滑鼠/觸控與雨滴玻璃互動": "Interação do mouse/toque com a chuva no vidro",
+            "顯示即時 FPS 影格率": "Mostrar contador de FPS em tempo real",
+            "時鐘字體風格": "Estilo de fonte do relógio",
+            "無襯線 (Sans)": "Sem serifa (Sans)",
+            "單寬碼 (Mono)": "Monoespaçada (Mono)",
+            "典雅 (Serif)": "Elegante (Serif)",
+            "時鐘圓環樣式": "Estilo do anel do relógio",
+            "簡潔 (預設)": "Simples (padrão)",
+            "精緻 (磨砂)": "Refinado (fosco)",
+            "時鐘與進度圓環整體尺寸": "Tamanho geral do relógio e do anel",
+            "極簡 (0.75x)": "Mínimo (0,75x)",
+            "沉浸 (1.25x)": "Imersivo (1,25x)",
+            "特大 (1.5x)": "Extra grande (1,5x)",
+            "顯示 24 小時制時鐘": "Usar formato de 24 horas",
+            "顯示即時秒數": "Mostrar segundos em tempo real",
+            "自訂專注格言 / 座右銘": "Lema ou citação de foco personalizada",
+            "輸入專屬激勵小語...": "Digite suas próprias palavras motivadoras...",
+            "顯示專注語錄": "Mostrar citações de foco",
+            "番茄鐘階段自動連播": "Avançar automaticamente entre as fases Pomodoro",
+            "倒數結束播放提醒聲音": "Tocar som ao término do cronômetro",
+            "無操作 5 秒後自動隱藏介面": "Ocultar interface automaticamente após 5s sem atividade",
+            "開始 / 暫停倒數": "Iniciar / Pausar cronômetro",
+            "子母畫面時鐘": "Relógio em picture-in-picture",
+            "正念呼吸引導": "Guia de respiração consciente",
+            "折疊 / 展開按鈕": "Botões de recolher / expandir",
+            "跳過目前階段": "Pular fase atual",
+            "YouTube 影片展示": "Assistir no YouTube",
+            "GitHub 開源專案": "Projeto de código aberto no GitHub",
+            "「專注於眼前的小事，平靜是進入高效流道的鑰匙。」": "«Concentre-se na pequena tarefa à sua frente — a calma é a chave que abre o fluxo.»",
+            "「大腦就像肌肉，每一次抗拒分心都是一次深層強化。」": "«O cérebro é como um músculo: cada vez que você resiste a uma distração, ele fica mais forte.»",
+            "「寧靜並非沒有噪音，而是心靈於風浪中的安定。」": "«Paz não é a ausência de ruído, mas a calma do coração em meio à tempestade.»",
+            "「不積跬步，無以至千里;不積小流，無以成江海。」": "«Uma jornada de mil léguas começa com um único passo; o oceano é formado por pequenos riachos.»",
+            "「享受深層專注的當下，結果自然隨之而來。」": "«Aproveite este momento de foco profundo agora; os resultados virão naturalmente.»",
+            "4-4-4-4 箱式呼吸": "Respiração quadrada 4-4-4-4",
+            "美國海豹部隊專用，快速平復高壓與焦慮": "Usada pelos Navy SEALs — acalma rapidamente o estresse e a ansiedade",
+            "4-7-8 放鬆呼吸": "Respiração relaxante 4-7-8",
+            "哈佛醫師推薦，深層放鬆大腦與助眠減壓": "Recomendada por médicos de Harvard — relaxa profundamente o cérebro e ajuda a dormir",
+            "5-5 均勻呼吸": "Respiração uniforme 5-5",
+            "和諧安穩節奏，引導進入深層心流冥想": "Ritmo harmonioso e estável — conduz a uma meditação de fluxo profundo",
+            "專注階段 (": "Fase de foco (",
+            "短休息 (": "Pausa curta (",
+            "長休息 (": "Pausa longa (",
+            "開始專注 (": "Iniciar foco (",
+            "開始短休息 (": "Iniciar pausa curta (",
+            "開始長休息 (": "Iniciar pausa longa (",
+            "暫停專注 (": "Pausar foco (",
+            "暫停短休息 (": "Pausar pausa curta (",
+            "暫停長休息 (": "Pausar pausa longa (",
+            "切換短休息 (": "Mudar para pausa curta (",
+            "切換長休息 (": "Mudar para pausa longa (",
+            "切換專注 (": "Mudar para foco (",
+            "已完成 ": "Concluídos ",
+            " 次循環": " ciclos",
+            "星期日": "Domingo",
+            "星期一": "Segunda-feira",
+            "星期二": "Terça-feira",
+            "星期三": "Quarta-feira",
+            "星期四": "Quinta-feira",
+            "星期五": "Sexta-feira",
+            "星期六": "Sábado",
+            "一月": "Janeiro",
+            "二月": "Fevereiro",
+            "三月": "Março",
+            "四月": "Abril",
+            "五月": "Maio",
+            "六月": "Junho",
+            "七月": "Julho",
+            "八月": "Agosto",
+            "九月": "Setembro",
+            "十月": "Outubro",
+            "十一月": "Novembro",
+            "十二月": "Dezembro",
+            "AURA Studio v1.2.0 正式版": "AURA Studio v1.2.0 Oficial",
+            "1. 全面升級的多國語言支援": "1. Suporte a idiomas amplamente expandido",
+            "語言從 4 種擴增到 10 種：繁體中文、简体中文、日本語、한국어、Français、Русский、Español、हिन्दी、Português、English，左上角語言按鈕也改為下拉選單，點選即可切換。": "O número de idiomas passou de 4 para 10: chinês tradicional, chinês simplificado, japonês, coreano, francês, russo, espanhol, hindi, português e inglês. O botão de idioma no canto superior esquerdo agora é um menu suspenso — basta escolher e trocar.",
+            "2. 精簡任務與專注音效": "2. Tarefas e sons de foco simplificados",
+            "左上角「任務與草稿」功能停用，請改用擴充功能中的待辦事項或記事本；右上角專注音效移除環境音軌，只保留 YouTube 專注音樂。": "O antigo painel «Tarefas e rascunhos» foi descontinuado — use a Lista de tarefas ou o Bloco de notas em Extensões. O painel de Sons de foco também foi reduzido apenas à música de foco do YouTube, com as faixas ambientes removidas.",
+            "3. 子母畫面效果升級": "3. Picture-in-picture aprimorado",
+            "開啟子母畫面時，背景也會顯示主題光暈與雨滴效果，不再只是單調的黑底畫面。": "O relógio flutuante em picture-in-picture agora também exibe o brilho do tema e o efeito de chuva ao fundo, em vez de um simples fundo escuro.",
+            "4. 全新開場畫面": "4. Nova tela de abertura",
+            "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "Agora, toda vez que você abre o AURA Studio, é recebido por um título que surge suavemente com um brilho que pulsa como uma respiração.",
+            "探索 v1.2.0 正式版，開始使用": "Conheça a v1.2.0, comece agora",
+        };
+        const ptToZhMap = Object.fromEntries(Object.entries(zhToPtMap).map(([k,v]) => [v, k]));
+
+
 
 
         const i18nKeys = {
@@ -2339,7 +3714,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 switchLabel: (mode, mins) => `切換${({work:'專注',shortBreak:'短休息',longBreak:'長休息'}[mode])} (${mins}m)`,
                 foldExpand: '展開控制按鈕', foldCollapse: '收合控制按鈕',
 				zenBanner: '已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）',
-				getStarted: '探索 v1.1.1 正式版，開始使用',
+				getStarted: '探索 v1.2.0 正式版，開始使用',
             },
             'en': {
                 appTitle: 'AURA Studio - A Focus Timer.',
@@ -2364,7 +3739,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 switchLabel: (mode, mins) => `Switch ${({work:'Focus',shortBreak:'Short Break',longBreak:'Long Break'}[mode])} (${mins}m)`,
                 foldExpand: 'Expand Controls', foldCollapse: 'Collapse Controls',
 				zenBanner: 'Zen Mode On — tap anywhere or press ESC to exit',
-				getStarted: 'Explore v1.1.1 — Get Started',
+				getStarted: 'Explore v1.2.0 — Get Started',
             },
             'zh-CN': {
                 appTitle: 'AURA Studio - 一个专注时钟。',
@@ -2389,7 +3764,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 switchLabel: (mode, mins) => `切换${({work:'专注',shortBreak:'短休息',longBreak:'长休息'}[mode])} (${mins}m)`,
                 foldExpand: '展开控制按钮', foldCollapse: '收起控制按钮',
 				zenBanner: '已进入 Zen 沉浸模式（点击屏幕任意处或按 ESC 可退出）',
-				getStarted: '探索 v1.1.1 正式版，开始使用',
+				getStarted: '探索 v1.2.0 正式版，开始使用',
             },
             'ja': {
                 appTitle: 'AURA Studio - フォーカスタイマー。',
@@ -2414,7 +3789,157 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 switchLabel: (mode, mins) => `${({work:'集中',shortBreak:'短い休憩',longBreak:'長い休憩'}[mode])}に切替 (${mins}m)`,
                 foldExpand: 'コントロールを展開', foldCollapse: 'コントロールを折りたたむ',
 				zenBanner: 'Zen没入モードに入りました（画面をタップまたはESCで終了）',
-				getStarted: 'v1.1.1 正式版を見る、使ってみる',
+				getStarted: 'v1.2.0 正式版を見る、使ってみる',
+            },
+            'ko': {
+                appTitle: 'AURA Studio - 집중을 위한 타이머.',
+                inhale: '들이쉬기', hold: '멈추기', exhale: '내쉬기',
+                work: '집중', shortBreak: '짧은 휴식', longBreak: '긴 휴식',
+                startWork: '집중 시작', startShort: '짧은 휴식 시작', startLong: '긴 휴식 시작',
+                pauseWork: '집중 일시정지', pauseShort: '짧은 휴식 일시정지', pauseLong: '긴 휴식 일시정지',
+                switchTo: '전환',
+                completedCycles: (n) => `${n} 사이클 완료`,
+                masterOn: '켜짐', masterOff: '꺼짐',
+                densityMin: '미니멀', densityStd: '표준', densityMax: '조밀함',
+                perfStd: '성능: 표준', perfEco: '성능: 절전',
+                langBtn: 'Français', otherLang: '한국어',
+                chimeOn: '알림음: 켜짐', chimeOff: '알림음: 꺼짐',
+                badgeActive: '사용 중', applyTheme: '테마 적용',
+                statusLoading: '불러오지 않음', statusPlaying: '재생 중', statusInvalid: '잘못된 링크',
+                confirmBtn: '설정 확인', setMinutes: '분 설정：',
+                whatNewBtn: '최신 업데이트 소식', restoreBtn: '기본값으로 복원',
+                ytWatch: 'YouTube에서 보기', ghRepo: 'GitHub 오픈소스',
+                focusLabel: (mode, mm, ss) => ({ work: `집중 단계 (${mm}:${ss})`, shortBreak: `짧은 휴식 (${mm}:${ss})`, longBreak: `긴 휴식 (${mm}:${ss})` }[mode]),
+                startLabel: (mode, mins) => `${({work:'집중',shortBreak:'짧은 휴식',longBreak:'긴 휴식'}[mode])} 시작 (${mins}m)`,
+                switchLabel: (mode, mins) => `${({work:'집중',shortBreak:'짧은 휴식',longBreak:'긴 휴식'}[mode])}(으)로 전환 (${mins}m)`,
+                foldExpand: '컨트롤 펼치기', foldCollapse: '컨트롤 접기',
+				zenBanner: 'Zen 몰입 모드에 진입했습니다 (화면 아무 곳이나 탭하거나 ESC를 누르면 종료)',
+				getStarted: 'v1.2.0 정식 버전 살펴보기, 시작하기',
+            },
+            'fr': {
+                appTitle: "AURA Studio - Une minuterie de concentration.",
+                inhale: 'Inspirez', hold: 'Retenez', exhale: 'Expirez',
+                work: 'Concentration', shortBreak: 'Pause courte', longBreak: 'Pause longue',
+                startWork: 'Démarrer la concentration', startShort: 'Démarrer la pause courte', startLong: 'Démarrer la pause longue',
+                pauseWork: 'Mettre en pause la concentration', pauseShort: 'Mettre en pause la pause courte', pauseLong: 'Mettre en pause la pause longue',
+                switchTo: 'Passer à',
+                completedCycles: (n) => `${n} cycle(s) terminé(s)`,
+                masterOn: 'Activé', masterOff: 'Désactivé',
+                densityMin: 'Minimal', densityStd: 'Standard', densityMax: 'Dense',
+                perfStd: 'Performance : Standard', perfEco: 'Performance : Éco',
+                langBtn: 'Русский', otherLang: 'Français',
+                chimeOn: 'Signal sonore : Activé', chimeOff: 'Signal sonore : Désactivé',
+                badgeActive: 'Actif', applyTheme: 'Appliquer le thème',
+                statusLoading: 'Non chargé', statusPlaying: 'En cours de lecture', statusInvalid: 'Lien invalide',
+                confirmBtn: 'Confirmer', setMinutes: 'Définir les minutes :',
+                whatNewBtn: 'Nouveautés', restoreBtn: 'Restaurer les valeurs par défaut',
+                ytWatch: 'Voir sur YouTube', ghRepo: 'Projet open source sur GitHub',
+                focusLabel: (mode, mm, ss) => ({ work: `Phase de concentration (${mm}:${ss})`, shortBreak: `Pause courte (${mm}:${ss})`, longBreak: `Pause longue (${mm}:${ss})` }[mode]),
+                startLabel: (mode, mins) => `Démarrer ${({work:'la concentration',shortBreak:'la pause courte',longBreak:'la pause longue'}[mode])} (${mins}m)`,
+                switchLabel: (mode, mins) => `Passer à ${({work:'la concentration',shortBreak:'la pause courte',longBreak:'la pause longue'}[mode])} (${mins}m)`,
+                foldExpand: 'Déplier les commandes', foldCollapse: 'Replier les commandes',
+				zenBanner: "Mode Zen immersif activé (appuyez n'importe où à l'écran ou sur ÉCHAP pour quitter)",
+				getStarted: 'Découvrir la version v1.2.0, commencer',
+            },
+            'ru': {
+                appTitle: "AURA Studio - Таймер для концентрации.",
+                inhale: 'Вдох', hold: 'Задержка', exhale: 'Выдох',
+                work: 'Фокусировка', shortBreak: 'Короткий перерыв', longBreak: 'Длинный перерыв',
+                startWork: 'Начать фокусировку', startShort: 'Начать короткий перерыв', startLong: 'Начать длинный перерыв',
+                pauseWork: 'Пауза фокусировки', pauseShort: 'Пауза короткого перерыва', pauseLong: 'Пауза длинного перерыва',
+                switchTo: 'Перейти к',
+                completedCycles: (n) => `Завершено циклов: ${n}`,
+                masterOn: 'Включено', masterOff: 'Выключено',
+                densityMin: 'Минимум', densityStd: 'Стандарт', densityMax: 'Плотно',
+                perfStd: 'Производительность: стандартная', perfEco: 'Производительность: энергосберегающая',
+                langBtn: '繁體中文', otherLang: 'Русский',
+                chimeOn: 'Звуковой сигнал: вкл.', chimeOff: 'Звуковой сигнал: выкл.',
+                badgeActive: 'Активна', applyTheme: 'Применить тему',
+                statusLoading: 'Не загружено', statusPlaying: 'Воспроизводится', statusInvalid: 'Недействительная ссылка',
+                confirmBtn: 'Подтвердить', setMinutes: 'Укажите минуты：',
+                whatNewBtn: 'Что нового', restoreBtn: 'Восстановить значения по умолчанию',
+                ytWatch: 'Смотреть на YouTube', ghRepo: 'Открытый проект на GitHub',
+                focusLabel: (mode, mm, ss) => ({ work: `Фаза фокусировки (${mm}:${ss})`, shortBreak: `Короткий перерыв (${mm}:${ss})`, longBreak: `Длинный перерыв (${mm}:${ss})` }[mode]),
+                startLabel: (mode, mins) => `Начать: ${({work:'фокусировка',shortBreak:'короткий перерыв',longBreak:'длинный перерыв'}[mode])} (${mins}m)`,
+                switchLabel: (mode, mins) => `Перейти к: ${({work:'фокусировка',shortBreak:'короткий перерыв',longBreak:'длинный перерыв'}[mode])} (${mins}m)`,
+                foldExpand: 'Развернуть элементы управления', foldCollapse: 'Свернуть элементы управления',
+				zenBanner: 'Включён режим Zen (нажмите в любом месте экрана или ESC, чтобы выйти)',
+				getStarted: 'Узнать о v1.2.0, начать работу',
+            },
+            'es': {
+                appTitle: "AURA Studio - Un temporizador de concentración.",
+                inhale: 'Inhala', hold: 'Retén', exhale: 'Exhala',
+                work: 'Concentración', shortBreak: 'Descanso corto', longBreak: 'Descanso largo',
+                startWork: 'Iniciar concentración', startShort: 'Iniciar descanso corto', startLong: 'Iniciar descanso largo',
+                pauseWork: 'Pausar concentración', pauseShort: 'Pausar descanso corto', pauseLong: 'Pausar descanso largo',
+                switchTo: 'Cambiar a',
+                completedCycles: (n) => `${n} ciclo(s) completado(s)`,
+                masterOn: 'Activado', masterOff: 'Desactivado',
+                densityMin: 'Mínima', densityStd: 'Estándar', densityMax: 'Densa',
+                perfStd: 'Rendimiento: Estándar', perfEco: 'Rendimiento: Ahorro',
+                langBtn: 'हिन्दी', otherLang: 'Español',
+                chimeOn: 'Sonido: Activado', chimeOff: 'Sonido: Desactivado',
+                badgeActive: 'Activo', applyTheme: 'Aplicar tema',
+                statusLoading: 'No cargado', statusPlaying: 'Reproduciendo', statusInvalid: 'Enlace no válido',
+                confirmBtn: 'Confirmar', setMinutes: 'Definir minutos:',
+                whatNewBtn: 'Novedades', restoreBtn: 'Restaurar valores predeterminados',
+                ytWatch: 'Ver en YouTube', ghRepo: 'Proyecto de código abierto en GitHub',
+                focusLabel: (mode, mm, ss) => ({ work: `Fase de concentración (${mm}:${ss})`, shortBreak: `Descanso corto (${mm}:${ss})`, longBreak: `Descanso largo (${mm}:${ss})` }[mode]),
+                startLabel: (mode, mins) => `Iniciar ${({work:'concentración',shortBreak:'descanso corto',longBreak:'descanso largo'}[mode])} (${mins}m)`,
+                switchLabel: (mode, mins) => `Cambiar a ${({work:'concentración',shortBreak:'descanso corto',longBreak:'descanso largo'}[mode])} (${mins}m)`,
+                foldExpand: 'Expandir controles', foldCollapse: 'Contraer controles',
+				zenBanner: 'Modo Zen activado (toca cualquier parte de la pantalla o pulsa ESC para salir)',
+				getStarted: 'Explora la versión v1.2.0, empieza ahora',
+            },
+            'hi': {
+                appTitle: "AURA Studio - एक फ़ोकस टाइमर।",
+                inhale: 'साँस लें', hold: 'रोकें', exhale: 'छोड़ें',
+                work: 'फ़ोकस', shortBreak: 'छोटा ब्रेक', longBreak: 'लंबा ब्रेक',
+                startWork: 'फ़ोकस शुरू करें', startShort: 'छोटा ब्रेक शुरू करें', startLong: 'लंबा ब्रेक शुरू करें',
+                pauseWork: 'फ़ोकस रोकें', pauseShort: 'छोटा ब्रेक रोकें', pauseLong: 'लंबा ब्रेक रोकें',
+                switchTo: 'बदलें',
+                completedCycles: (n) => `${n} चक्र पूरे हुए`,
+                masterOn: 'चालू', masterOff: 'बंद',
+                densityMin: 'न्यूनतम', densityStd: 'मानक', densityMax: 'घना',
+                perfStd: 'परफ़ॉर्मेंस: मानक', perfEco: 'परफ़ॉर्मेंस: ऊर्जा-बचत',
+                langBtn: 'Português', otherLang: 'हिन्दी',
+                chimeOn: 'चाइम: चालू', chimeOff: 'चाइम: बंद',
+                badgeActive: 'सक्रिय', applyTheme: 'थीम लागू करें',
+                statusLoading: 'लोड नहीं हुआ', statusPlaying: 'चल रहा है', statusInvalid: 'अमान्य लिंक',
+                confirmBtn: 'पुष्टि करें', setMinutes: 'मिनट सेट करें：',
+                whatNewBtn: 'नया क्या है', restoreBtn: 'डिफ़ॉल्ट पर पुनर्स्थापित करें',
+                ytWatch: 'YouTube पर देखें', ghRepo: 'GitHub ओपन सोर्स प्रोजेक्ट',
+                focusLabel: (mode, mm, ss) => ({ work: `फ़ोकस चरण (${mm}:${ss})`, shortBreak: `छोटा ब्रेक (${mm}:${ss})`, longBreak: `लंबा ब्रेक (${mm}:${ss})` }[mode]),
+                startLabel: (mode, mins) => `${({work:'फ़ोकस',shortBreak:'छोटा ब्रेक',longBreak:'लंबा ब्रेक'}[mode])} शुरू करें (${mins}m)`,
+                switchLabel: (mode, mins) => `${({work:'फ़ोकस',shortBreak:'छोटे ब्रेक',longBreak:'लंबे ब्रेक'}[mode])} पर जाएँ (${mins}m)`,
+                foldExpand: 'नियंत्रण विस्तृत करें', foldCollapse: 'नियंत्रण संक्षिप्त करें',
+				zenBanner: 'Zen इमर्सिव मोड चालू हो गया (बाहर निकलने के लिए स्क्रीन पर कहीं भी टैप करें या ESC दबाएँ)',
+				getStarted: 'v1.2.0 आधिकारिक संस्करण देखें, शुरू करें',
+            },
+            'pt': {
+                appTitle: "AURA Studio - Um cronômetro de foco.",
+                inhale: 'Inspire', hold: 'Segure', exhale: 'Expire',
+                work: 'Foco', shortBreak: 'Pausa curta', longBreak: 'Pausa longa',
+                startWork: 'Iniciar foco', startShort: 'Iniciar pausa curta', startLong: 'Iniciar pausa longa',
+                pauseWork: 'Pausar foco', pauseShort: 'Pausar pausa curta', pauseLong: 'Pausar pausa longa',
+                switchTo: 'Mudar para',
+                completedCycles: (n) => `${n} ciclo(s) concluído(s)`,
+                masterOn: 'Ativado', masterOff: 'Desativado',
+                densityMin: 'Mínima', densityStd: 'Padrão', densityMax: 'Densa',
+                perfStd: 'Desempenho: Padrão', perfEco: 'Desempenho: Economia',
+                langBtn: '繁體中文', otherLang: 'Português',
+                chimeOn: 'Som: Ativado', chimeOff: 'Som: Desativado',
+                badgeActive: 'Ativo', applyTheme: 'Aplicar tema',
+                statusLoading: 'Não carregado', statusPlaying: 'Reproduzindo', statusInvalid: 'Link inválido',
+                confirmBtn: 'Confirmar', setMinutes: 'Definir minutos:',
+                whatNewBtn: 'Novidades', restoreBtn: 'Restaurar padrões',
+                ytWatch: 'Assistir no YouTube', ghRepo: 'Projeto de código aberto no GitHub',
+                focusLabel: (mode, mm, ss) => ({ work: `Fase de foco (${mm}:${ss})`, shortBreak: `Pausa curta (${mm}:${ss})`, longBreak: `Pausa longa (${mm}:${ss})` }[mode]),
+                startLabel: (mode, mins) => `Iniciar ${({work:'foco',shortBreak:'pausa curta',longBreak:'pausa longa'}[mode])} (${mins}m)`,
+                switchLabel: (mode, mins) => `Mudar para ${({work:'foco',shortBreak:'pausa curta',longBreak:'pausa longa'}[mode])} (${mins}m)`,
+                foldExpand: 'Expandir controles', foldCollapse: 'Recolher controles',
+				zenBanner: 'Modo Zen ativado (toque em qualquer lugar da tela ou pressione ESC para sair)',
+				getStarted: 'Conheça a v1.2.0, comece agora',
             }
         };
 
@@ -2424,10 +3949,9 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         const MONTHS_ZH = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
         const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-        const LOCALE_TAGS = { 'zh-TW': 'zh-TW', 'zh-CN': 'zh-CN', 'ja': 'ja', 'en': 'en' };
-        const MONTHS_JA = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+        const LOCALE_TAGS = { 'zh-TW': 'zh-TW', 'zh-CN': 'zh-CN', 'ja': 'ja', 'ko': 'ko', 'fr': 'fr', 'ru': 'ru', 'es': 'es', 'hi': 'hi', 'pt': 'pt', 'en': 'en' };
         function formatDate(d) {
-            if (currentLang === 'zh-TW' || currentLang === 'zh-CN' || currentLang === 'ja') {
+            if (currentLang !== 'en') {
                 return d.toLocaleDateString(LOCALE_TAGS[currentLang], { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
             }
             const wd = WEEKDAYS_EN[d.getDay()];
@@ -2438,13 +3962,19 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             if (currentLang === 'zh-TW' || currentLang === 'zh-CN' || currentLang === 'ja') {
                 return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
             }
+            if (currentLang === 'ko') {
+                return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+            }
+            if (currentLang === 'fr' || currentLang === 'ru' || currentLang === 'es' || currentLang === 'hi' || currentLang === 'pt') {
+                return d.toLocaleDateString(LOCALE_TAGS[currentLang], { year: 'numeric', month: 'long', day: 'numeric' });
+            }
             return `${MONTHS_EN[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
         }
 
         // LANG_MAPS[lang] maps the canonical zh-TW source phrase -> that language's phrase.
         // zh-TW itself has no map (it IS the source), so it's null here.
-        const LANG_ORDER = ['zh-TW', 'zh-CN', 'ja', 'en'];
-        const LANG_MAPS = { 'zh-TW': null, 'zh-CN': zhToCnMap, 'ja': zhToJaMap, 'en': zhToEnMap };
+        const LANG_ORDER = ['zh-TW', 'zh-CN', 'ja', 'ko', 'fr', 'ru', 'es', 'hi', 'pt', 'en'];
+        const LANG_MAPS = { 'zh-TW': null, 'zh-CN': zhToCnMap, 'ja': zhToJaMap, 'ko': zhToKoMap, 'fr': zhToFrMap, 'ru': zhToRuMap, 'es': zhToEsMap, 'hi': zhToHiMap, 'pt': zhToPtMap, 'en': zhToEnMap };
 
         // Builds a text->text map to translate DOM content currently shown in `fromLang` into `toLang`,
         // composing through the zh-TW pivot when neither side is zh-TW.
@@ -2529,7 +4059,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
 
             const langBtnText = document.getElementById('langBtnText');
             if (langBtnText) {
-                const BTN_LABEL = { 'zh-TW': '繁中', 'zh-CN': '简中', 'ja': '日本語', 'en': 'EN' };
+                const BTN_LABEL = { 'zh-TW': '繁中', 'zh-CN': '简中', 'ja': '日本語', 'ko': '한국어', 'fr': 'FR', 'ru': 'RU', 'es': 'ES', 'hi': 'हिन्दी', 'pt': 'PT', 'en': 'EN' };
                 langBtnText.textContent = BTN_LABEL[currentLang];
             }
             document.querySelectorAll('#langDropdownMenu .lang-option').forEach(opt => {
@@ -3378,6 +4908,48 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 "「静けさとは雑音の不在ではなく、嵐の中での心の安定である。」",
                 "「千里の道も一歩から。大海も小さな流れの積み重ねでできている。」",
                 "「今この深い集中の瞬間を楽しめば、結果は自然とついてくる。」"
+            ],
+            'ko': [
+                "「눈앞의 작은 일에 집중하라. 평온함이야말로 몰입으로 들어가는 열쇠다.」",
+                "「뇌는 근육과 같다. 산만함에 저항할 때마다 더 강해진다.」",
+                "「고요함이란 소음의 부재가 아니라, 폭풍 속에서도 흔들리지 않는 마음이다.」",
+                "「천 리 길도 한 걸음부터; 넓은 바다도 작은 물줄기들이 모여 이루어진다.」",
+                "「지금 이 순간의 깊은 몰입을 즐겨라, 결과는 자연히 따라올 것이다.」"
+            ],
+            'fr': [
+                "« Concentrez-vous sur la petite tâche présente — le calme est la clé qui ouvre la voie du flow. »",
+                "« Le cerveau est comme un muscle ; chaque fois que vous résistez à une distraction, il se renforce. »",
+                "« La paix n'est pas l'absence de bruit, mais le calme du cœur au milieu de la tempête. »",
+                "« Un voyage de mille lieues commence par un pas ; l'océan se forme à partir de petits ruisseaux. »",
+                "« Savourez l'instant présent de concentration profonde, les résultats suivront naturellement. »"
+            ],
+            'ru': [
+                "«Сосредоточьтесь на небольшой задаче перед собой — спокойствие является ключом к состоянию потока.»",
+                "«Мозг подобен мышце: каждый раз, сопротивляясь отвлечению, вы делаете его сильнее.»",
+                "«Покой — это не отсутствие шума, а спокойствие сердца посреди бури.»",
+                "«Путь в тысячу ли начинается с одного шага; океан образуется из маленьких ручьёв.»",
+                "«Наслаждайтесь моментом глубокой концентрации сейчас — результаты придут сами собой.»"
+            ],
+            'es': [
+                "«Concéntrate en la pequeña tarea que tienes delante: la calma es la llave que abre el flujo.»",
+                "«El cerebro es como un músculo: cada vez que resistes una distracción, se fortalece.»",
+                "«La paz no es la ausencia de ruido, sino la calma del corazón en medio de la tormenta.»",
+                "«Un viaje de mil leguas comienza con un paso; el océano se forma de pequeños arroyos.»",
+                "«Disfruta este momento de concentración profunda; los resultados llegarán por sí solos.»"
+            ],
+            'hi': [
+                "“सामने के छोटे काम पर ध्यान दो। शांति ही प्रवाह (फ्लो) में प्रवेश करने की कुंजी है।”",
+                "“दिमाग़ मांसपेशी जैसा है; हर बार जब आप ध्यान भटकाने का विरोध करते हैं, तो यह और मज़बूत होता है।”",
+                "“शांति शोर की अनुपस्थिति नहीं, बल्कि तूफ़ान के बीच मन की स्थिरता है।”",
+                "“हज़ार मील की यात्रा एक कदम से शुरू होती है; समुद्र भी छोटी-छोटी धाराओं से बनता है।”",
+                "“इस गहरे फ़ोकस के पल का आनंद लें, परिणाम अपने आप मिलेंगे।”"
+            ],
+            'pt': [
+                "«Concentre-se na pequena tarefa à sua frente — a calma é a chave que abre o fluxo.»",
+                "«O cérebro é como um músculo: cada vez que você resiste a uma distração, ele fica mais forte.»",
+                "«Paz não é a ausência de ruído, mas a calma do coração em meio à tempestade.»",
+                "«Uma jornada de mil léguas começa com um único passo; o oceano é formado por pequenos riachos.»",
+                "«Aproveite este momento de foco profundo agora; os resultados virão naturalmente.»"
             ]
         };
         let quoteIndex = 0;
@@ -3398,7 +4970,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             if (quoteEl) {
                 const qArr = studyQuotes[currentLang] || studyQuotes['zh-TW'];
                 if (state.customQuoteText.trim()) {
-                    quoteEl.textContent = (currentLang === 'en') ? `"${state.customQuoteText}"` : `「${state.customQuoteText}」`;
+                    quoteEl.textContent = (currentLang === 'en') ? `"${state.customQuoteText}"` : ((currentLang === 'fr' || currentLang === 'ru' || currentLang === 'es' || currentLang === 'pt') ? `« ${state.customQuoteText} »` : ((currentLang === 'hi') ? `“${state.customQuoteText}”` : `「${state.customQuoteText}」`));
                 } else if (now.getSeconds() === 0 && now.getMinutes() % 5 === 0) {
                     quoteIndex = (quoteIndex + 1) % qArr.length; quoteEl.textContent = qArr[quoteIndex];
                 } else if (!quoteEl.textContent || quoteEl.textContent.length < 5) {
@@ -3448,7 +5020,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             clearInterval(state.pomoInterval);
             state.pomoInterval = setInterval(tickPomo, 250);
             document.getElementById('pomoBtnIcon').className = "fa-solid fa-pause";
-            const PAUSE_LABELS = { 'zh-TW': '暫停倒數', 'zh-CN': '暂停倒数', 'ja': '一時停止', 'en': 'Pause' };
+            const PAUSE_LABELS = { 'zh-TW': '暫停倒數', 'zh-CN': '暂停倒数', 'ja': '一時停止', 'ko': '일시정지', 'fr': 'Pause', 'ru': 'Пауза', 'es': 'Pausa', 'hi': 'रोकें', 'pt': 'Pausar', 'en': 'Pause' };
             const pauseLabel = PAUSE_LABELS[currentLang] || PAUSE_LABELS['en'];
             const m = String(Math.floor(state.pomoSecondsLeft / 60)).padStart(2, '0');
             document.getElementById('pomoBtnLabel').textContent = `${pauseLabel} (${m}m)`;
@@ -3479,7 +5051,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 clearInterval(state.pomoInterval); state.pomoRunning = false;
                 document.getElementById('pomoBtnIcon').className = "fa-solid fa-play";
                 const mins = Math.round(state.pomoDurations[state.pomoMode] / 60);
-                const RESUME_LABELS = { 'zh-TW': '繼續', 'zh-CN': '继续', 'ja': '再開', 'en': 'Resume' };
+                const RESUME_LABELS = { 'zh-TW': '繼續', 'zh-CN': '继续', 'ja': '再開', 'ko': '계속', 'fr': 'Reprendre', 'ru': 'Продолжить', 'es': 'Reanudar', 'hi': 'फिर शुरू करें', 'pt': 'Retomar', 'en': 'Resume' };
                 const resumeBase = RESUME_LABELS[currentLang] || RESUME_LABELS['en'];
                 const modePart = t(state.pomoMode === 'work' ? 'work' : state.pomoMode === 'shortBreak' ? 'shortBreak' : 'longBreak');
                 const m = String(Math.floor(state.pomoSecondsLeft / 60)).padStart(2, '0');
@@ -3490,6 +5062,88 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         });
         document.getElementById('pomoModeBtn')?.addEventListener('click', () => setPomoMode(POMO_NEXT[state.pomoMode]));
         document.getElementById('pomoResetBtn')?.addEventListener('click', () => setPomoMode(state.pomoMode));
+
+        let pipRainState = null;
+
+        function stopPipRain() {
+            if (!pipRainState) return;
+            try { if (pipRainState.rafId != null) pipRainState.pipWin.cancelAnimationFrame(pipRainState.rafId); } catch (e) {}
+            try { pipRainState.pipWin.removeEventListener('resize', pipRainState.resizeHandler); } catch (e) {}
+            pipRainState = null;
+        }
+
+        function startPipRain(pipWin) {
+            stopPipRain();
+            const pipCanvas = pipWin.document.createElement('canvas');
+            pipCanvas.style.cssText = 'position:absolute; top:0; left:0; width:100%; height:100%; z-index:0; display:block; pointer-events:none;';
+            pipWin.document.body.insertBefore(pipCanvas, pipWin.document.body.firstChild);
+
+            const pctx = pipCanvas.getContext('2d');
+            function resizePipCanvas() {
+                pipCanvas.width = pipWin.innerWidth;
+                pipCanvas.height = pipWin.innerHeight;
+            }
+            resizePipCanvas();
+            pipWin.addEventListener('resize', resizePipCanvas);
+
+            const streaks = [];
+            for (let i = 0; i < 50; i++) {
+                streaks.push({
+                    x: Math.random() * pipCanvas.width,
+                    y: Math.random() * pipCanvas.height,
+                    len: Math.random() * 20 + 15,
+                    vy: Math.random() * 8 + 6,
+                    opacity: Math.random() * 0.4 + 0.15
+                });
+            }
+
+            pipRainState = { canvas: pipCanvas, resizeHandler: resizePipCanvas, pipWin, rafId: null };
+
+            function loop() {
+                if (!pipRainState || pipRainState.pipWin !== pipWin) return;
+                pipRainState.rafId = pipWin.requestAnimationFrame(loop);
+
+                const w = pipCanvas.width, h = pipCanvas.height;
+                if (!w || !h) return;
+                const palette = themePalettes[state.theme] || themePalettes.night_library;
+                const time = Date.now() * 0.0006 * state.speed;
+                const scale = Math.min(w, h) / 450;
+
+                const bgGrad = pctx.createRadialGradient(w / 2, h / 2, 20, w / 2, h / 2, Math.max(w, h));
+                bgGrad.addColorStop(0, palette.stops[0]);
+                bgGrad.addColorStop(0.6, palette.stops[1]);
+                bgGrad.addColorStop(1, palette.stops[2]);
+                pctx.fillStyle = bgGrad;
+                pctx.fillRect(0, 0, w, h);
+
+                const bokehCount = state.lowPerformance ? 3 : 6;
+                for (let i = 0; i < bokehCount; i++) {
+                    const bx = (Math.sin(i * 53 + time * 0.15) * 0.45 + 0.5) * w;
+                    const by = (Math.cos(i * 37 + time * 0.2) * 0.4 + 0.55) * h;
+                    const br = (40 + Math.sin(i * 3 + time * 0.8) * 15) * scale;
+                    const bokehGrad = pctx.createRadialGradient(bx, by, 0, bx, by, br * 1.8);
+                    bokehGrad.addColorStop(0, palette.bokeh);
+                    bokehGrad.addColorStop(1, 'transparent');
+                    pctx.fillStyle = bokehGrad;
+                    pctx.beginPath(); pctx.arc(bx, by, br * 1.8, 0, Math.PI * 2); pctx.fill();
+                }
+
+                if (!state.lowPerformance) {
+                    pctx.strokeStyle = palette.streak;
+                    pctx.lineWidth = 1.2;
+                    streaks.forEach(s => {
+                        s.y += s.vy * state.speed;
+                        s.x += (state.windAngle || 0) * 0.3;
+                        if (s.y > h) { s.y = -20; s.x = Math.random() * w; }
+                        pctx.beginPath();
+                        pctx.moveTo(s.x, s.y);
+                        pctx.lineTo(s.x + ((state.windAngle || 0) * 0.3), s.y + s.len);
+                        pctx.stroke();
+                    });
+                }
+            }
+            loop();
+        }
 
         async function togglePictureInPicture() {
             if (state.isPipActive) { 
@@ -3514,13 +5168,15 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                     });
 
                     const pipStyle = pipWin.document.createElement('style');
-                    pipStyle.textContent = `body { background-color: #030712 !important; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; } #clockScaleWrapper { transform: scale(0.9) !important; }`;
+                    pipStyle.textContent = `body { background-color: #030712 !important; margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; position: relative; } #clockScaleWrapper { position: relative; z-index: 1; transform: scale(0.9) !important; }`;
                     pipWin.document.head.appendChild(pipStyle);
 
                     const clockWrapper = document.getElementById('clockScaleWrapper'); 
                     pipWin.document.body.appendChild(clockWrapper);
+                    startPipRain(pipWin);
 
                     pipWin.addEventListener('pagehide', () => { 
+                        stopPipRain();
                         document.getElementById('clockContainer').appendChild(clockWrapper); 
                         state.pipWindow = null; 
                         state.isPipActive = false; 
@@ -4460,6 +6116,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             if (e.key === '?' || e.key === '/') { e.preventDefault(); settingsModal?.classList.remove('opacity-0', 'pointer-events-none'); const shortcutTab = document.querySelector('[data-tab="tab-shortcuts"]'); if (shortcutTab) shortcutTab.click(); }
         });
 
+        function hideSplashScreen() {
+            const splash = document.getElementById('splashScreen');
+            if (!splash) return;
+            const MIN_SPLASH_MS = 900;
+            const elapsed = Date.now() - (window.__splashStart || 0);
+            setTimeout(() => {
+                splash.classList.add('splash-hidden');
+                setTimeout(() => splash.remove(), 750);
+            }, Math.max(0, MIN_SPLASH_MS - elapsed));
+        }
+
         window.onload = () => {
             loadSettings();
             syncUIFromState();
@@ -4473,6 +6140,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             updateLanguageUI();
             if (!hadPriorVisit && !hasSeenWhatsNew()) setTimeout(showWhatsNewModal, 500);
             updateBadgeDisplay();
+            hideSplashScreen();
 
             setTimeout(() => {
                 isPageLoaded = true;
@@ -4508,7 +6176,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         document.getElementById('factoryResetBtn')?.addEventListener('click', () => {
     const btn = document.getElementById('factoryResetBtn');
     if (!btn) return;
-    const CONFIRM_RESET_LABELS = { 'zh-TW': '確定重設？(再點一次)', 'zh-CN': '确定重设？(再点一次)', 'ja': '本当にリセットしますか？(もう一度クリック)', 'en': 'Confirm Reset? (Click again)' };
+    const CONFIRM_RESET_LABELS = { 'zh-TW': '確定重設？(再點一次)', 'zh-CN': '确定重设？(再点一次)', 'ja': '本当にリセットしますか？(もう一度クリック)', 'ko': '정말 초기화할까요? (다시 클릭)', 'fr': 'Confirmer la réinitialisation ? (cliquez à nouveau)', 'ru': 'Подтвердить сброс? (нажмите ещё раз)', 'es': '¿Confirmar reinicio? (haz clic de nuevo)', 'hi': 'रीसेट की पुष्टि करें? (फिर से क्लिक करें)', 'pt': 'Confirmar reinicialização? (clique novamente)', 'en': 'Confirm Reset? (Click again)' };
     const confirmText = CONFIRM_RESET_LABELS[currentLang] || CONFIRM_RESET_LABELS['en'];
     const restoreText = t('restoreBtn');
     
