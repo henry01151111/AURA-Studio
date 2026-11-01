@@ -123,7 +123,7 @@
         /* Circular Progress Styling: Starts at 12 o'clock and turns counter-clockwise */
         .progress-ring-circle {
             transition: stroke-dashoffset 0.2s linear;
-            transform: rotate(-90deg) scaleX(-1);
+            transform: rotate(-90deg);
             transform-origin: 50% 50%;
             stroke: var(--accent-color);
         }
@@ -137,7 +137,6 @@
             color: var(--text-main);
         }
 
-        /* Modal & Fullscreen Fade Animations */
         .modal-overlay {
             opacity: 0;
             visibility: hidden;
@@ -217,28 +216,24 @@
 
             <!-- Nav Links -->
             <nav class="space-y-0.5">
-                <!-- Nav Item: 專注工作階段 -->
                 <button id="navFocusBtn" onclick="switchNavTab('focus')" title="專注工作階段" class="nav-item-btn w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-black/5 dark:hover:bg-white/5 relative transition">
                     <div id="navFocusIndicator" class="hidden absolute left-0 top-2 bottom-2 w-1 bg-accent rounded-r"></div>
                     <i id="navFocusIcon" data-lucide="target" class="w-4 h-4 shrink-0"></i>
                     <span class="nav-text truncate">專注工作階段</span>
                 </button>
 
-                <!-- Nav Item: 計時器 -->
                 <button id="navTimerBtn" onclick="switchNavTab('timer')" title="計時器" class="nav-item-btn w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-semibold bg-black/5 dark:bg-white/10 relative">
                     <div id="navTimerIndicator" class="absolute left-0 top-2 bottom-2 w-1 bg-accent rounded-r"></div>
                     <i id="navTimerIcon" data-lucide="timer" class="w-4 h-4 text-accent shrink-0"></i>
                     <span class="nav-text truncate">計時器</span>
                 </button>
 
-                <!-- Nav Item: 碼錶 -->
                 <button id="navStopwatchBtn" onclick="switchNavTab('stopwatch')" title="碼錶" class="nav-item-btn w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-black/5 dark:hover:bg-white/5 relative transition">
                     <div id="navStopwatchIndicator" class="hidden absolute left-0 top-2 bottom-2 w-1 bg-accent rounded-r"></div>
                     <i id="navStopwatchIcon" data-lucide="timer-reset" class="w-4 h-4 shrink-0"></i>
                     <span class="nav-text truncate">碼錶</span>
                 </button>
 
-                <!-- Nav Item: 本地時鐘 -->
                 <button id="navWorldClockBtn" onclick="switchNavTab('worldclock')" title="時鐘" class="nav-item-btn w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-black/5 dark:hover:bg-white/5 relative transition">
                     <div id="navWorldClockIndicator" class="hidden absolute left-0 top-2 bottom-2 w-1 bg-accent rounded-r"></div>
                     <i id="navWorldClockIcon" data-lucide="clock" class="w-4 h-4 shrink-0"></i>
@@ -265,12 +260,10 @@
 
     <main class="flex-1 flex flex-col relative overflow-hidden">
 
-        <!-- ==================== VIEW 0: FOCUS SESSIONS PAGE ==================== -->
+        <!-- VIEW 0: FOCUS SESSIONS -->
         <section id="focusViewSection" class="hidden flex-1 p-6 overflow-y-auto relative">
             <div class="max-w-5xl mx-auto space-y-6">
-                <!-- Top Row Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Left Top Card: 準備專注 / 專注計時中 -->
                     <div class="fluent-card p-6 flex flex-col justify-between min-h-[340px] relative">
                         <div class="flex items-center justify-between text-gray-400">
                             <div></div>
@@ -279,14 +272,12 @@
                             </div>
                         </div>
 
-                        <!-- Idle State: Setup Focus -->
                         <div id="focusSetupState" class="flex flex-col items-center text-center my-auto space-y-4">
                             <h2 class="text-xl font-semibold">準備專注</h2>
                             <p class="text-xs text-gray-500 dark:text-gray-400 max-w-sm leading-relaxed">
                                 我們會在每個工作階段期間關閉通知與應用程式提醒。對於較長的工作階段，我們將新增一個短暫休息，讓您休息充電。
                             </p>
 
-                            <!-- Focus Time Spinner -->
                             <div class="flex items-center justify-center gap-3 py-2">
                                 <div class="time-spinner-box w-28 h-20 flex flex-col items-center justify-center text-3xl font-light shadow-xs relative">
                                     <span id="focusMinsDisplay" class="font-normal text-3xl">90</span>
@@ -302,20 +293,17 @@
                                 <span id="focusBreakText">您會有 2 次休息時間</span>
                             </div>
 
-                            <!-- Skip Break Checkbox -->
                             <label class="flex items-center gap-2 cursor-pointer select-none text-xs">
                                 <input id="focusSkipBreak" type="checkbox" onchange="updateFocusBreaksInfo()" class="w-4 h-4 accent-accent rounded cursor-pointer">
                                 <span>跳過休息</span>
                             </label>
 
-                            <!-- Start Button -->
                             <button onclick="startFocusSession()" class="w-full max-w-xs py-2.5 rounded-lg btn-primary-red text-sm font-semibold flex items-center justify-center gap-2 shadow-sm transition active:scale-98">
                                 <i data-lucide="play" class="w-4 h-4 fill-current"></i>
                                 <span>開始專注工作階段</span>
                             </button>
                         </div>
 
-                        <!-- Active State: Focus Timer Ring -->
                         <div id="focusActiveState" class="hidden flex-col items-center justify-center my-auto space-y-4">
                             <span id="focusStageLabel" class="text-xs font-semibold text-accent bg-accent/10 px-3 py-1 rounded-full">專注工作中</span>
                             <div class="relative w-44 h-44 flex items-center justify-center">
@@ -337,7 +325,6 @@
                         </div>
                     </div>
 
-                    <!-- Right Top Card: 每日進度 -->
                     <div class="fluent-card p-6 flex flex-col justify-between min-h-[340px] relative">
                         <div class="flex items-center justify-between">
                             <span class="font-semibold text-sm">每日進度</span>
@@ -377,7 +364,6 @@
                     </div>
                 </div>
 
-                <!-- Bottom Card: Flagged Emails / 工作清單 -->
                 <div class="fluent-card p-6 flex flex-col gap-4">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
@@ -406,13 +392,11 @@
             </div>
         </section>
 
-        <!-- ==================== VIEW 1: TIMER PAGE ==================== -->
+        <!-- VIEW 1: TIMER PAGE -->
         <section id="timerViewSection" class="flex-1 flex flex-col relative h-full w-full p-6">
             <div id="timersGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 items-start overflow-y-auto pb-24">
-                <!-- Timers injected dynamically via JS -->
             </div>
 
-            <!-- Floating Control Buttons -->
             <div class="absolute bottom-6 right-8 flex items-center gap-3 z-20">
                 <button id="toggleEditModeBtn" onclick="toggleEditMode()" title="編輯並重新排序" class="w-10 h-10 rounded-lg bg-white dark:bg-white/10 border border-gray-200/90 dark:border-white/10 shadow-sm hover:bg-gray-50 flex items-center justify-center transition active:scale-95">
                     <i data-lucide="pencil" class="w-4 h-4"></i>
@@ -423,7 +407,7 @@
             </div>
         </section>
 
-        <!-- ==================== VIEW 2: STOPWATCH PAGE ==================== -->
+        <!-- VIEW 2: STOPWATCH PAGE -->
         <section id="stopwatchViewSection" class="hidden flex-1 flex-col relative h-full w-full p-6 select-none overflow-y-auto">
             <div class="flex flex-col items-center justify-center pt-8 pb-4 shrink-0">
                 <div class="relative flex flex-col items-center justify-center group">
@@ -456,7 +440,6 @@
                 </div>
             </div>
 
-            <!-- Laps Container -->
             <div id="swLapsContainer" class="max-w-xl mx-auto w-full mt-4 pb-12 hidden">
                 <div class="flex items-center justify-between text-xs text-gray-400 border-b border-gray-200/60 dark:border-white/10 pb-2 px-4">
                     <span class="w-20">分圈計時</span>
@@ -467,7 +450,7 @@
             </div>
         </section>
 
-        <!-- ==================== VIEW 3: LOCAL CLOCK PAGE ==================== -->
+        <!-- VIEW 3: LOCAL CLOCK PAGE -->
         <section id="worldclockViewSection" class="hidden flex-1 flex-col items-center justify-center relative h-full w-full p-6 select-none">
             <div class="flex flex-col items-center justify-center space-y-4 my-auto">
                 <div class="p-4 rounded-full bg-accent/10 text-accent mb-2">
@@ -482,16 +465,14 @@
             </div>
         </section>
 
-        <!-- ==================== VIEW 4: SETTINGS PAGE ==================== -->
+        <!-- VIEW 4: SETTINGS PAGE -->
         <section id="settingsViewSection" class="hidden flex-1 p-6 sm:p-10 overflow-y-auto relative select-none">
             <div class="max-w-3xl mx-auto space-y-6">
-                <!-- Page Title -->
                 <div class="flex items-center gap-3 pb-2 border-b border-gray-200/60 dark:border-white/10">
                     <i data-lucide="settings" class="w-6 h-6 text-accent"></i>
                     <h1 class="text-2xl font-semibold">設定</h1>
                 </div>
 
-                <!-- Theme Options -->
                 <div class="fluent-card p-6 space-y-4">
                     <div>
                         <h2 class="font-semibold text-base">應用程式主題</h2>
@@ -514,7 +495,6 @@
                     </div>
                 </div>
 
-                <!-- Accent Palette -->
                 <div class="fluent-card p-6 space-y-4">
                     <div>
                         <h2 class="font-semibold text-base">輔色 (主題色彩)</h2>
@@ -523,7 +503,6 @@
                     <div id="accentPaletteGrid" class="flex flex-wrap gap-3 pt-2"></div>
                 </div>
 
-                <!-- About Section -->
                 <div class="fluent-card p-6 space-y-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-lg bg-accent/10 text-accent flex items-center justify-center">
@@ -554,7 +533,6 @@
 
         <div class="flex-1 flex flex-col items-center justify-center -mt-4">
             <div class="relative w-[340px] h-[340px] sm:w-[440px] sm:h-[440px] flex items-center justify-center">
-                <!-- Exit Fullscreen Button at top-right of circle -->
                 <button id="btnExitFs" type="button" onclick="closeFsTimer()" title="縮小 (Esc)" class="absolute top-2 right-2 p-3 rounded-md hover:bg-black/5 dark:hover:bg-white/10 transition z-50 cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M8 3v3a2 2 0 0 1-2 2H3"/>
@@ -641,7 +619,6 @@
 
             <div class="p-6 pt-2 flex flex-col items-center gap-5">
                 <div class="flex items-center justify-center gap-2 select-none">
-                    <!-- Hours Spinner -->
                     <div class="flex flex-col items-center">
                         <button onclick="adjustModalTime('h', 1)" class="p-1 hover:opacity-75 transition"><i data-lucide="chevron-up" class="w-5 h-5"></i></button>
                         <div class="time-spinner-box w-16 h-16 flex items-center justify-center text-2xl font-bold shadow-xs relative overflow-hidden"
@@ -661,7 +638,6 @@
 
                     <span class="text-2xl font-bold text-gray-400 -mt-2">:</span>
 
-                    <!-- Minutes Spinner -->
                     <div class="flex flex-col items-center">
                         <button onclick="adjustModalTime('m', 1)" class="p-1 hover:opacity-75 transition"><i data-lucide="chevron-up" class="w-5 h-5"></i></button>
                         <div class="time-spinner-box w-16 h-16 flex items-center justify-center text-2xl font-bold shadow-xs relative overflow-hidden"
@@ -681,7 +657,6 @@
 
                     <span class="text-2xl font-bold text-gray-400 -mt-2">:</span>
 
-                    <!-- Seconds Spinner -->
                     <div class="flex flex-col items-center">
                         <button onclick="adjustModalTime('s', 1)" class="p-1 hover:opacity-75 transition"><i data-lucide="chevron-up" class="w-5 h-5"></i></button>
                         <div class="time-spinner-box w-16 h-16 flex items-center justify-center text-2xl font-bold shadow-xs relative overflow-hidden"
@@ -719,18 +694,33 @@
         </div>
     </div>
 
+    <!-- Timer Alarm Alert Modal Popup -->
+    <div id="alarmAlertModal" class="modal-overlay fixed inset-0 bg-black/40 backdrop-blur-xs z-[100] flex items-center justify-center p-4">
+        <div class="modal-card w-full max-w-sm rounded-2xl p-6 shadow-2xl border border-gray-200 dark:border-white/10 flex flex-col items-center text-center space-y-4">
+            <div class="w-16 h-16 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center animate-bounce">
+                <i data-lucide="bell-ring" class="w-8 h-8"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold">時間到！</h3>
+                <p id="alarmModalSub" class="text-sm text-gray-500 dark:text-gray-400 mt-1">計時器已結束</p>
+            </div>
+            <button onclick="dismissAlarmModal()" class="w-full py-3 rounded-xl btn-primary-red text-sm font-semibold flex items-center justify-center gap-2 shadow-md hover:scale-102 transition active:scale-95 cursor-pointer">
+                <i data-lucide="bell-off" class="w-4 h-4"></i>
+                <span>停止響鈴</span>
+            </button>
+        </div>
+    </div>
+
     <script>
         // Data State Variables
         let currentTab = 'timer';
         let isEditReorderMode = false;
         let editingTimerId = null;
 
-        // Timers List
         let timers = [
             { id: 't1', title: '計時器 (1)', initialSecs: 1, remainingSecs: 1, isRunning: false, intervalId: null }
         ];
 
-        // Settings State
         let currentTheme = localStorage.getItem('winClock_theme') || 'system';
         let currentAccentHex = localStorage.getItem('winClock_accentHex') || '#d13438';
 
@@ -744,7 +734,6 @@
             { name: '桃粉色', hex: '#e3008c', hover: '#ca007d', active: '#b1006d' }
         ];
 
-        // Stopwatch State
         let swIsRunning = false;
         let swStartTime = 0;
         let swElapsedMs = 0;
@@ -752,11 +741,10 @@
         let swLaps = [];
         let swLastLapMs = 0;
 
-        // Focus Session State
         let focusMins = 90;
         let focusIsActive = false;
         let focusIsPaused = false;
-        let focusCurrentStage = 'work'; // 'work' | 'break'
+        let focusCurrentStage = 'work';
         let focusTotalStageSeconds = 25 * 60;
         let focusRemainingSeconds = 25 * 60;
         let focusIntervalId = null;
@@ -771,7 +759,7 @@
 
         function toggleClockSidebar() {
             const sidebar = document.getElementById('appSidebar');
-            sidebar.classList.toggle('collapsed');
+            if (sidebar) sidebar.classList.toggle('collapsed');
         }
 
         function switchNavTab(tab) {
@@ -851,7 +839,7 @@
                 wcSec.classList.remove('hidden');
                 wcSec.classList.add('flex');
                 navWcBtn.className = activeBtnClass;
-                navWorldClockIndicator.classList.remove('hidden');
+                if (navWcInd) navWcInd.classList.remove('hidden');
                 navWcIcon.classList.add('text-accent');
                 renderBigLocalClock();
             } else if (tab === 'settings') {
@@ -924,7 +912,7 @@
                         </button>
                     `;
                 }).join('');
-                lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
             }
         }
 
@@ -937,6 +925,7 @@
 
         function renderTimers() {
             const grid = document.getElementById('timersGrid');
+            if (!grid) return;
             grid.innerHTML = '';
 
             timers.forEach((t, idx) => {
@@ -997,7 +986,7 @@
                 grid.appendChild(card);
             });
 
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
 
         function toggleTimer(id, e) {
@@ -1018,7 +1007,7 @@
                     } else {
                         clearInterval(t.intervalId);
                         t.isRunning = false;
-                        playAlarmSound();
+                        triggerTimerFinished(t);
                         renderTimers();
                     }
                 }, 1000);
@@ -1093,7 +1082,7 @@
 
             const playBtn = document.getElementById('fsPlayBtn');
             playBtn.innerHTML = `<i data-lucide="${t.isRunning ? 'pause' : 'play'}" class="w-6 h-6 ${t.isRunning ? '' : 'fill-current translate-x-0.5'}"></i>`;
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
 
         function toggleFsTimer() {
@@ -1311,7 +1300,7 @@
             document.getElementById('swLapBtn').disabled = !swIsRunning;
             document.getElementById('swResetBtn').disabled = swIsRunning && swElapsedMs === 0;
 
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
 
         function renderSwLaps() {
@@ -1392,36 +1381,11 @@
             runFocusTimer();
         }
 
-        function runFocusTimer() {
-            clearInterval(focusIntervalId);
-            focusIntervalId = setInterval(() => {
-                if (!focusIsPaused && focusRemainingSeconds > 0) {
-                    focusRemainingSeconds--;
-                    updateFocusVisuals();
-                } else if (focusRemainingSeconds <= 0) {
-                    playAlarmSound();
-                    focusCompletedMins += 25;
-                    updateFocusStatsUI();
-
-                    if (focusCurrentStage === 'work' && !document.getElementById('focusSkipBreak').checked) {
-                        focusCurrentStage = 'break';
-                        focusTotalStageSeconds = 5 * 60;
-                        focusRemainingSeconds = focusTotalStageSeconds;
-                        document.getElementById('focusStageLabel').innerText = '短暫休息中';
-                        document.getElementById('focusStageLabel').className = 'text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full';
-                    } else {
-                        stopFocusSession();
-                    }
-                }
-            }, 1000);
-            updateFocusVisuals();
-        }
-
         function toggleFocusPause() {
             focusIsPaused = !focusIsPaused;
             const btn = document.getElementById('focusToggleBtn');
             btn.innerHTML = focusIsPaused ? `<i data-lucide="play" class="w-4 h-4 fill-current"></i>` : `<i data-lucide="pause" class="w-4 h-4"></i>`;
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
 
         function stopFocusSession() {
@@ -1493,7 +1457,7 @@
                 </div>
             `).join('');
 
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
 
         function addNewTaskPrompt() {
@@ -1561,25 +1525,89 @@
             }
         }
 
-        // Alarm Beep Sound Helper
-        function playAlarmSound() {
+        // Continuous Alarm Audio & Popup Controls
+        let alarmAudioCtx = null;
+        let alarmIntervalId = null;
+
+        function startContinuousAlarm() {
+            stopContinuousAlarm();
             try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(880, ctx.currentTime);
-                gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.6);
+                alarmAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                function playBeep() {
+                    if (!alarmAudioCtx) return;
+                    const osc = alarmAudioCtx.createOscillator();
+                    const gain = alarmAudioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(alarmAudioCtx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, alarmAudioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.15, alarmAudioCtx.currentTime);
+                    osc.start();
+                    osc.stop(alarmAudioCtx.currentTime + 0.4);
+                }
+
+                playBeep();
+                alarmIntervalId = setInterval(playBeep, 800);
             } catch (e) {}
         }
 
-        // ESC key to exit fullscreens
+        function stopContinuousAlarm() {
+            if (alarmIntervalId) {
+                clearInterval(alarmIntervalId);
+                alarmIntervalId = null;
+            }
+            if (alarmAudioCtx) {
+                try { alarmAudioCtx.close(); } catch(e){}
+                alarmAudioCtx = null;
+            }
+        }
+
+        function triggerTimerFinished(timerOrTitle) {
+            startContinuousAlarm();
+            const title = typeof timerOrTitle === 'string' ? timerOrTitle : (timerOrTitle?.title || '計時器');
+            const modal = document.getElementById('alarmAlertModal');
+            const sub = document.getElementById('alarmModalSub');
+            if (sub) sub.innerText = title;
+            if (modal) modal.classList.add('active');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function dismissAlarmModal() {
+            stopContinuousAlarm();
+            const modal = document.getElementById('alarmAlertModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function runFocusTimer() {
+            clearInterval(focusIntervalId);
+            focusIntervalId = setInterval(() => {
+                if (!focusIsPaused && focusRemainingSeconds > 0) {
+                    focusRemainingSeconds--;
+                    updateFocusVisuals();
+                } else if (focusRemainingSeconds <= 0) {
+                    triggerTimerFinished(focusCurrentStage === 'work' ? '專注工作階段完成！' : '休息時間結束！');
+                    focusCompletedMins += 25;
+                    updateFocusStatsUI();
+
+                    if (focusCurrentStage === 'work' && !document.getElementById('focusSkipBreak').checked) {
+                        focusCurrentStage = 'break';
+                        focusTotalStageSeconds = 5 * 60;
+                        focusRemainingSeconds = focusTotalStageSeconds;
+                        document.getElementById('focusStageLabel').innerText = '短暫休息中';
+                        document.getElementById('focusStageLabel').className = 'text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full';
+                    } else {
+                        stopFocusSession();
+                    }
+                }
+            }, 1000);
+            updateFocusVisuals();
+        }
+
+        // ESC key to exit fullscreens and alarm modal
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
+                dismissAlarmModal();
                 closeFsTimer();
                 closeStopwatchFullscreen();
             }
@@ -1589,7 +1617,7 @@
             applyTheme(currentTheme);
             setAccentColor(currentAccentHex);
             renderTimers();
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
 
             setInterval(() => {
                 if (currentTab === 'worldclock') {

@@ -476,13 +476,109 @@
             urgent: { name: '緊急', badge: 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300' }
         };
 
+        // App Initialization
+        window.onload = function() {
+            initTheme();
+            renderCategoryNav();
+            renderProjectNav();
+            renderTasks();
+            updateStats();
+            updatePomodoroUI();
+            initSortable();
+        };
+
+        function saveToStorage() {
+            localStorage.setItem('tm_tasks', JSON.stringify(tasks));
+            localStorage.setItem('tm_projects', JSON.stringify(projects));
+            localStorage.setItem('tm_pomo_count', completedPomoSessions.toString());
+            updateStats();
+        }
+
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+
+            const btn = document.getElementById('themeToggle');
+            if (btn) {
+                btn.onclick = () => {
+                    document.documentElement.classList.toggle('dark');
+                    localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                };
+            }
+        }
+
+        function renderCategoryNav() {
+            const container = document.getElementById('categoryNavList');
+            if (!container) return;
+            container.innerHTML = Object.keys(categories).map(catKey => {
+                const cat = categories[catKey];
+                return `
+                    <button onclick="switchView('cat-${catKey}')" id="nav-cat-${catKey}" title="${cat.name}" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                        <div class="flex items-center gap-3">
+                            <span class="w-2.5 h-2.5 rounded-full ${cat.color} shrink-0"></span>
+                            <span class="nav-text-content">${cat.name}</span>
+                        </div>
+                        <span id="count-cat-${catKey}" class="nav-text-content text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500">0</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderProjectNav() {
+            const container = document.getElementById('projectNavList');
+            if (!container) return;
+            container.innerHTML = projects.map((p, idx) => {
+                return `
+                    <div id="nav-proj-${idx}" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 group">
+                        <button onclick="switchView('proj-${idx}')" class="flex items-center gap-3 min-w-0 flex-1 text-left">
+                            <i class="fa-regular fa-folder text-indigo-500 shrink-0"></i>
+                            <span class="nav-text-content truncate">${escapeHtml(p)}</span>
+                        </button>
+                        <div class="flex items-center gap-1">
+                            <span id="count-proj-${idx}" class="nav-text-content text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500">0</span>
+                            <button onclick="deleteProject(${idx}, event)" title="刪除專案" class="hidden group-hover:block text-slate-400 hover:text-rose-500 p-1">
+                                <i class="fa-solid fa-xmark text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function addProjectPrompt() {
+            const name = prompt('請輸入新專案名稱：');
+            if (name && name.trim()) {
+                projects.push(name.trim());
+                saveToStorage();
+                renderProjectNav();
+                showToast('已建立新專案');
+            }
+        }
+
+        function deleteProject(idx, e) {
+            if (e) e.stopPropagation();
+            const projName = projects[idx];
+            if (confirm(`確定要刪除專案「${projName}」嗎？其中的任務不會被刪除，但會清除專案標記。`)) {
+                tasks.forEach(t => {
+                    if (t.project === projName) t.project = 'none';
+                });
+                projects.splice(idx, 1);
+                saveToStorage();
+                renderProjectNav();
+                renderTasks();
+                showToast('專案已刪除');
+            }
+        }
+
         function toggleTaskSidebar() {
             const sidebar = document.getElementById('taskSidebar');
             const backdrop = document.getElementById('mobileBackdrop');
             const isMobile = window.innerWidth < 768;
 
             if (isMobile) {
-                // Mobile Mode: Draw/Slide Overlay
                 const isOpen = sidebar.classList.contains('mobile-open');
                 if (isOpen) {
                     sidebar.classList.remove('mobile-open');
@@ -492,7 +588,6 @@
                     backdrop.classList.remove('hidden');
                 }
             } else {
-                // Desktop Mode: Toggle Collapsed Width Mode
                 sidebar.classList.toggle('collapsed-sidebar');
             }
         }
@@ -500,7 +595,6 @@
         function switchView(view) {
             currentView = view;
 
-            // Close mobile menu on view change
             if (window.innerWidth < 768) {
                 const sidebar = document.getElementById('taskSidebar');
                 const backdrop = document.getElementById('mobileBackdrop');
@@ -508,7 +602,6 @@
                 backdrop.classList.add('hidden');
             }
 
-            // Update UI Active State
             document.querySelectorAll('.nav-item').forEach(el => {
                 el.classList.remove('bg-blue-50', 'dark:bg-blue-900/40', 'text-blue-600', 'dark:text-blue-400');
                 el.classList.add('text-slate-600', 'dark:text-slate-300');
@@ -519,7 +612,6 @@
                 activeNav.classList.add('bg-blue-50', 'dark:bg-blue-900/40', 'text-blue-600', 'dark:text-blue-400');
             }
 
-            // Hide/Show View Panels
             document.getElementById('taskListView').classList.add('hidden');
             document.getElementById('pomodoroView').classList.add('hidden');
             document.getElementById('analyticsView').classList.add('hidden');
@@ -551,11 +643,9 @@
             }
         }
 
-        // Filtering & Sorting Logic
         function getFilteredTasks() {
             let result = [...tasks];
 
-            // Filter by search query (Title, Desc, or #Tags)
             if (searchQuery.trim() !== '') {
                 const q = searchQuery.toLowerCase();
                 result = result.filter(t => 
@@ -565,7 +655,6 @@
                 );
             }
 
-            // Filter by view
             const todayStr = new Date().toISOString().split('T')[0];
             if (currentView === 'today') {
                 result = result.filter(t => t.dueDate === todayStr);
@@ -582,7 +671,6 @@
                 result = result.filter(t => t.project === projName);
             }
 
-            // Sort
             const sortBy = document.getElementById('sortBy')?.value || 'dueDate';
             result.sort((a, b) => {
                 if (a.completed !== b.completed) return a.completed ? 1 : -1;
@@ -603,7 +691,6 @@
             return result;
         }
 
-        // Task Rendering
         function renderTasks() {
             const taskListContainer = document.getElementById('taskList');
             const emptyState = document.getElementById('emptyState');
@@ -653,7 +740,6 @@
 
                                         ${task.desc ? `<p class="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">${escapeHtml(task.desc)}</p>` : ''}
 
-                                        <!-- Custom Tags -->
                                         ${task.tags && task.tags.length > 0 ? `
                                             <div class="flex flex-wrap gap-1.5 mt-2">
                                                 ${task.tags.map(tag => `
@@ -664,7 +750,6 @@
                                             </div>
                                         ` : ''}
 
-                                        <!-- Subtasks Progress -->
                                         ${totalSubtasks > 0 ? `
                                             <div class="mt-3 bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded-xl">
                                                 <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
@@ -689,7 +774,6 @@
                                     </div>
                                 </div>
 
-                                <!-- Action Buttons -->
                                 <div class="flex items-center gap-1 shrink-0">
                                     <button onclick="openEditTaskModal('${task.id}')" class="p-2 text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 transition">
                                         <i class="fa-solid fa-pen-to-square"></i>
@@ -706,14 +790,12 @@
             }
         }
 
-        // Quick Add Task with #Tags support
         function handleQuickAdd(e) {
             e.preventDefault();
             const input = document.getElementById('quickInput');
             let rawText = input.value.trim();
             if (!rawText) return;
 
-            // Extract tags starting with #
             const tagMatches = rawText.match(/#[\u4e00-\u9fa5\w]+/g) || [];
             const tags = tagMatches.map(t => t.replace('#', ''));
             const cleanTitle = rawText.replace(/#[\u4e00-\u9fa5\w]+/g, '').trim();
@@ -783,8 +865,15 @@
             showToast(`已清除 ${count} 項完成任務`);
         }
 
-        // Modal Management
+        function populateProjectSelect() {
+            const select = document.getElementById('taskProject');
+            if (!select) return;
+            select.innerHTML = `<option value="none">無 (預設)</option>` + 
+                projects.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+        }
+
         function openAddTaskModal() {
+            populateProjectSelect();
             document.getElementById('modalTitle').innerText = '新增任務';
             document.getElementById('taskId').value = '';
             document.getElementById('taskTitle').value = '';
@@ -801,6 +890,7 @@
         }
 
         function openEditTaskModal(id) {
+            populateProjectSelect();
             const task = tasks.find(t => t.id === id);
             if (!task) return;
 
@@ -896,7 +986,6 @@
             showToast('任務儲存成功！');
         }
 
-        // Pomodoro Timer Implementation
         function togglePomodoroTimer() {
             const btn = document.getElementById('pomoStartBtn');
             if (pomoIsRunning) {
@@ -965,7 +1054,6 @@
             }
         }
 
-        // JSON Data Import / Export
         function exportData() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
                 tasks: tasks,
@@ -1003,7 +1091,6 @@
             reader.readAsText(file);
         }
 
-        // Stats Updates
         function updateStats() {
             const todayStr = new Date().toISOString().split('T')[0];
             const todayTasks = tasks.filter(t => t.dueDate === todayStr);
@@ -1013,7 +1100,6 @@
             document.getElementById('todayProgressPercent').innerText = `${todayPercent}%`;
             document.getElementById('todayProgressBar').style.width = `${todayPercent}%`;
 
-            // Navigation Badge Counts
             document.getElementById('count-all').innerText = tasks.length;
             document.getElementById('count-today').innerText = todayTasks.length;
             document.getElementById('count-important').innerText = tasks.filter(t => t.priority === 'high' || t.priority === 'urgent').length;
@@ -1033,22 +1119,18 @@
                 }
             });
 
-            // Analytics Panel Stats
             document.getElementById('statTotal').innerText = tasks.length;
             document.getElementById('statCompleted').innerText = tasks.filter(t => t.completed).length;
             document.getElementById('statPending').innerText = tasks.filter(t => !t.completed).length;
             document.getElementById('statPomoCount').innerText = completedPomoSessions;
         }
 
-        // Search Handling
         function handleSearch() {
             searchQuery = document.getElementById('searchInput').value;
             renderTasks();
         }
 
-        // Analytics Charts (Chart.js)
         function renderCharts() {
-            // Category Chart
             const catCounts = Object.keys(categories).map(k => tasks.filter(t => t.category === k).length);
             const catCtx = document.getElementById('categoryChart').getContext('2d');
 
@@ -1065,7 +1147,6 @@
                 options: { responsive: true, maintainAspectRatio: false }
             });
 
-            // Priority Chart
             const prioCounts = ['low', 'medium', 'high', 'urgent'].map(p => tasks.filter(t => t.priority === p).length);
             const prioCtx = document.getElementById('priorityChart').getContext('2d');
 
@@ -1084,22 +1165,23 @@
             });
         }
 
-        // Drag & Drop Sorting Initialization
         function initSortable() {
             const el = document.getElementById('taskList');
-            Sortable.create(el, {
-                animation: 150,
-                onEnd: function (evt) {
-                    const itemIds = Array.from(el.children).map(child => child.getAttribute('data-id'));
-                    tasks.sort((a, b) => itemIds.indexOf(a.id) - itemIds.indexOf(b.id));
-                    saveToStorage();
-                }
-            });
+            if (el) {
+                Sortable.create(el, {
+                    animation: 150,
+                    onEnd: function (evt) {
+                        const itemIds = Array.from(el.children).map(child => child.getAttribute('data-id'));
+                        tasks.sort((a, b) => itemIds.indexOf(a.id) - itemIds.indexOf(b.id));
+                        saveToStorage();
+                    }
+                });
+            }
         }
 
-        // UI Helpers & Toasts
         function showToast(message) {
             const container = document.getElementById('toastContainer');
+            if (!container) return;
             const toast = document.createElement('div');
             toast.className = 'bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-800 px-4 py-3 rounded-2xl shadow-xl text-xs font-medium flex items-center gap-2 transform transition-all duration-300 translate-y-full opacity-0';
             toast.innerHTML = `<i class="fa-solid fa-circle-info text-blue-400"></i> ${escapeHtml(message)}`;
@@ -1117,7 +1199,7 @@
         }
 
         function escapeHtml(str) {
-            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
     </script>
 </body>
