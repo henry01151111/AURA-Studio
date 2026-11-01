@@ -47,25 +47,45 @@
             background: #475569;
         }
 
-        /* Collapsed Sidebar Mode */
-        aside.collapsed-sidebar {
-            width: 4.5rem !important;
+        /* Desktop Collapsed Sidebar Mode */
+        @media (min-width: 768px) {
+            aside.collapsed-sidebar {
+                width: 4.5rem !important;
+            }
+            aside.collapsed-sidebar .nav-text-content,
+            aside.collapsed-sidebar .sidebar-section-title,
+            aside.collapsed-sidebar .sidebar-footer-content,
+            aside.collapsed-sidebar .logo-text {
+                display: none !important;
+            }
+            aside.collapsed-sidebar .sidebar-header {
+                justify-content: center !important;
+                padding-left: 0.5rem !important;
+                padding-right: 0.5rem !important;
+            }
+            aside.collapsed-sidebar .nav-item {
+                justify-content: center !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
         }
-        aside.collapsed-sidebar .nav-text-content,
-        aside.collapsed-sidebar .sidebar-section-title,
-        aside.collapsed-sidebar .sidebar-footer-content,
-        aside.collapsed-sidebar .logo-text {
-            display: none !important;
-        }
-        aside.collapsed-sidebar .sidebar-header {
-            justify-content: center !important;
-            padding-left: 0.5rem !important;
-            padding-right: 0.5rem !important;
-        }
-        aside.collapsed-sidebar .nav-item {
-            justify-content: center !important;
-            padding-left: 0 !important;
-            padding-right: 0 !important;
+
+        /* Mobile Drawer Sidebar Overlay Animation */
+        @media (max-width: 767px) {
+            aside#taskSidebar {
+                position: fixed;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                width: 16rem !important;
+                z-index: 50;
+                transform: translateX(-100%);
+                transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            }
+            aside#taskSidebar.mobile-open {
+                transform: translateX(0);
+            }
         }
 
         .progress-ring-circle {
@@ -77,10 +97,13 @@
 </head>
 <body class="h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors duration-200 font-sans antialiased">
 
-    <div class="flex h-full flex-col md:flex-row overflow-hidden">
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="mobileBackdrop" onclick="toggleTaskSidebar()" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 hidden md:hidden transition-opacity"></div>
+
+    <div class="flex h-full flex-col md:flex-row overflow-hidden relative">
         
         <!-- Sidebar Navigation -->
-        <aside id="taskSidebar" class="w-full md:w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col justify-between shrink-0 transition-all duration-200 z-20">
+        <aside id="taskSidebar" class="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col justify-between shrink-0 transition-all duration-200">
             <div class="overflow-y-auto">
                 <!-- App Header / Logo & Toggle Button -->
                 <div class="sidebar-header p-4 flex items-center justify-between border-b border-slate-100 dark:border-slate-700 gap-2">
@@ -192,24 +215,29 @@
         </aside>
 
         <!-- Main Content Area -->
-        <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 dark:bg-slate-900">
+        <main class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 dark:bg-slate-900 w-full">
             
             <!-- Top Search & Quick Actions -->
-            <header class="p-4 md:px-8 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 flex items-center justify-between gap-4">
-                <div class="relative flex-1 max-w-md">
+            <header class="p-3 md:px-8 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 flex items-center justify-between gap-2 md:gap-4 shrink-0">
+                <!-- Mobile Menu Button (Shows only on mobile) -->
+                <button onclick="toggleTaskSidebar()" title="開啟選單" class="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition shrink-0">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+
+                <div class="relative flex-1 min-w-0 max-w-md">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋任務、說明或 #標籤..." class="w-full pl-9 pr-4 py-2 bg-slate-100 dark:bg-slate-700 border-none rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 placeholder-slate-400">
+                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜尋任務、說明或 #標籤..." class="w-full pl-9 pr-3 py-1.5 md:py-2 bg-slate-100 dark:bg-slate-700 border-none rounded-xl text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 dark:text-slate-100 placeholder-slate-400">
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <select id="sortBy" onchange="renderTasks()" class="bg-slate-100 dark:bg-slate-700 border-none text-xs font-medium rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
-                        <option value="dueDate">按到期日排序</option>
-                        <option value="priority">按優先級排序</option>
-                        <option value="title">按標題排序</option>
-                        <option value="createdAt">按建立時間排序</option>
+                <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
+                    <select id="sortBy" onchange="renderTasks()" class="bg-slate-100 dark:bg-slate-700 border-none text-xs font-medium rounded-xl px-2 md:px-3 py-1.5 md:py-2 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="dueDate">到期日</option>
+                        <option value="priority">優先級</option>
+                        <option value="title">標題</option>
+                        <option value="createdAt">建立時間</option>
                     </select>
 
-                    <button onclick="openAddTaskModal()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-4 py-2 rounded-xl shadow-md shadow-blue-500/20 transition active:scale-95">
+                    <button onclick="openAddTaskModal()" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2 rounded-xl shadow-md shadow-blue-500/20 transition active:scale-95 shrink-0">
                         <i class="fa-solid fa-plus"></i>
                         <span class="hidden sm:inline">新增任務</span>
                     </button>
@@ -450,88 +478,35 @@
 
         function toggleTaskSidebar() {
             const sidebar = document.getElementById('taskSidebar');
-            sidebar.classList.toggle('collapsed-sidebar');
-        }
+            const backdrop = document.getElementById('mobileBackdrop');
+            const isMobile = window.innerWidth < 768;
 
-        // App Initialization
-        window.onload = function() {
-            initTheme();
-            renderCategoryNav();
-            renderProjectNav();
-            renderTasks();
-            updateStats();
-            initSortable();
-        };
-
-        // Storage Save Helper
-        function saveToStorage() {
-            localStorage.setItem('tm_tasks', JSON.stringify(tasks));
-            localStorage.setItem('tm_projects', JSON.stringify(projects));
-            localStorage.setItem('tm_pomo_count', completedPomoSessions.toString());
-            updateStats();
-        }
-
-        // Theme Switcher
-        function initTheme() {
-            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
+            if (isMobile) {
+                // Mobile Mode: Draw/Slide Overlay
+                const isOpen = sidebar.classList.contains('mobile-open');
+                if (isOpen) {
+                    sidebar.classList.remove('mobile-open');
+                    backdrop.classList.add('hidden');
+                } else {
+                    sidebar.classList.add('mobile-open');
+                    backdrop.classList.remove('hidden');
+                }
             } else {
-                document.documentElement.classList.remove('dark');
+                // Desktop Mode: Toggle Collapsed Width Mode
+                sidebar.classList.toggle('collapsed-sidebar');
             }
-
-            document.getElementById('themeToggle').onclick = () => {
-                document.documentElement.classList.toggle('dark');
-                localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-            };
-        }
-
-        // Project Folders Management
-        function addProjectPrompt() {
-            const name = prompt('請輸入新專案名稱：');
-            if (name && name.trim()) {
-                projects.push(name.trim());
-                saveToStorage();
-                renderProjectNav();
-                showToast('已新增專案資料夾');
-            }
-        }
-
-        function renderProjectNav() {
-            const container = document.getElementById('projectNavList');
-            container.innerHTML = projects.map((p, idx) => `
-                <button onclick="switchView('proj-${idx}')" id="nav-proj-${idx}" title="${escapeHtml(p)}" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <i class="fa-regular fa-folder text-base text-indigo-500 shrink-0"></i>
-                        <span class="nav-text-content truncate">${escapeHtml(p)}</span>
-                    </div>
-                    <span id="count-proj-${idx}" class="nav-text-content text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500">0</span>
-                </button>
-            `).join('');
-
-            // Also update project dropdown in Modal
-            const select = document.getElementById('taskProject');
-            select.innerHTML = `<option value="none">無 (預設)</option>` + projects.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
-        }
-
-        // Navigation Management
-        function renderCategoryNav() {
-            const container = document.getElementById('categoryNavList');
-            container.innerHTML = Object.keys(categories).map(catKey => {
-                const cat = categories[catKey];
-                return `
-                    <button onclick="switchView('cat-${catKey}')" id="nav-cat-${catKey}" title="${cat.name}" class="nav-item w-full flex items-center justify-between px-3 py-2 rounded-xl font-medium text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
-                        <div class="flex items-center gap-3">
-                            <span class="w-2.5 h-2.5 rounded-full ${cat.color} shrink-0"></span>
-                            <span class="nav-text-content">${cat.name}</span>
-                        </div>
-                        <span id="count-cat-${catKey}" class="nav-text-content text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500">0</span>
-                    </button>
-                `;
-            }).join('');
         }
 
         function switchView(view) {
             currentView = view;
+
+            // Close mobile menu on view change
+            if (window.innerWidth < 768) {
+                const sidebar = document.getElementById('taskSidebar');
+                const backdrop = document.getElementById('mobileBackdrop');
+                sidebar.classList.remove('mobile-open');
+                backdrop.classList.add('hidden');
+            }
 
             // Update UI Active State
             document.querySelectorAll('.nav-item').forEach(el => {
