@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>記事本</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        winBgLight: '#f3f3f3',
+                        winCardLight: '#fbfbfb',
+                        winHoverLight: '#e5e5e5',
+                        winBgDark: '#202020',
+                        winCardDark: '#2c2c2c',
+                        winHoverDark: '#383838',
+                        winAccent: '#0067c0'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Segoe UI / Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            user-select: none;
+        }
+        .font-mono {
+            font-family: 'Fira Code', Consolas, monospace;
+        }
+        
+        /* 隱藏滾動條但保留功能 (視圖流暢) */
+        .no-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .no-scrollbar::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        .dark .no-scrollbar::-webkit-scrollbar-thumb {
+            background: #444444;
+        }
+
+        /* 自訂 Markdown 預覽樣式 - 簡潔風格 */
+        .markdown-body h1 { font-size: 1.75rem; font-weight: 600; margin-top: 1.2rem; margin-bottom: 0.6rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.3rem; }
+        .dark .markdown-body h1 { border-color: #374151; }
+        .markdown-body h2 { font-size: 1.4rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; }
+        .markdown-body h3 { font-size: 1.15rem; font-weight: 600; margin-top: 0.8rem; margin-bottom: 0.4rem; }
+        .markdown-body p { margin-bottom: 0.75rem; line-height: 1.6; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+        .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+        .markdown-body blockquote { border-left: 4px solid #0067c0; padding-left: 1rem; color: #6b7280; margin-bottom: 0.75rem; }
+        .dark .markdown-body blockquote { color: #9ca3af; }
+        .markdown-body code { background-color: rgba(0,0,0,0.05); padding: 0.15rem 0.3rem; border-radius: 0.25rem; font-family: 'Fira Code', monospace; font-size: 0.9em; }
+        .dark .markdown-body code { background-color: rgba(255,255,255,0.1); }
+        .markdown-body pre { background-color: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 0.375rem; overflow-x: auto; margin-bottom: 0.75rem; }
+        .markdown-body pre code { background-color: transparent; padding: 0; color: inherit; }
+        .markdown-body a { color: #0067c0; text-decoration: underline; }
+        .dark .markdown-body a { color: #4cc2ff; }
+        .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; }
+        .markdown-body th, .markdown-body td { border: 1px solid #d1d5db; padding: 0.5rem; text-align: left; }
+        .dark .markdown-body th, .dark .markdown-body td { border-color: #4b5563; }
+        .markdown-body th { background-color: rgba(0,0,0,0.03); }
+        .dark .markdown-body th { background-color: rgba(255,255,255,0.05); }
+
+        /* 下拉選單動畫 */
+        .win-dropdown {
+            transform-origin: top left;
+            transition: all 0.1s cubic-bezier(0,0,0.2,1);
+        }
+    </style>
+</head>
+<body class="bg-winBgLight dark:bg-winBgDark text-slate-800 dark:text-slate-100 h-screen flex flex-col overflow-hidden transition-colors duration-150">
+
+    <!-- 1. Win11 頂部分頁列 (Tabs Bar) -->
+    <header class="bg-winBgLight dark:bg-winBgDark pt-2 px-2 flex items-end justify-between border-b border-slate-300/60 dark:border-slate-700/60 select-none">
+        <div class="flex items-center space-x-1 overflow-x-auto no-scrollbar max-w-[85vw]" id="tabs-container">
+            <!-- 動態生成分頁標籤 -->
+        </div>
+
+        <!-- 新增分頁按鈕 & 視窗控制按鈕裝飾 -->
+        <div class="flex items-center space-x-2 pb-1.5 px-2">
+            <button id="btn-add-tab" class="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-winHoverDark text-slate-600 dark:text-slate-300 transition" title="新增分頁 (Ctrl+T)">
+                <i class="fa-solid fa-plus text-xs"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- 2. Windows 11 記事本工具選單與格式列 -->
+    <div class="bg-winBgLight dark:bg-winBgDark px-3 py-1 flex flex-wrap items-center justify-between gap-y-1 text-xs border-b border-slate-200 dark:border-slate-800">
+        
+        <!-- 左側：選單與格式按鈕 -->
+        <div class="flex items-center flex-wrap gap-1">
+            <!-- 檔案選單 Dropdown -->
+            <div class="relative">
+                <button id="menu-file-btn" class="px-2.5 py-1 rounded hover:bg-slate-200 dark:hover:bg-winHoverDark text-slate-700 dark:text-slate-200">檔案</button>
+                <div id="menu-file-dropdown" class="hidden absolute left-0 top-full mt-1 w-48 bg-white dark:bg-winCardDark border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-1 z-50 text-xs">
+                    <button onclick="addNewTab()" class="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-winHoverDark flex justify-between"><span>新增分頁</span><span class="text-slate-400">Ctrl+N</span></button>
+                    <label for="file-input" class="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-winHoverDark flex justify-between cursor-pointer"><span>開啟檔案...</span><span class="text-slate-400">Ctrl+O</span></label>
+                    <input type="file" id="file-input" class="hidden" accept=".txt,.md,.markdown" />
+                    <div class="h-[1px] bg-slate-200 dark:bg-slate-700 my-1"></div>
+                    <button onclick="downloadActiveFile('.txt')" class="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-winHoverDark flex justify-between"><span>儲存為 TXT</span><span class="text-slate-400">Ctrl+S</span></button>
+                    <button onclick="downloadActiveFile('.md')" class="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-winHoverDark flex justify-between"><span>儲存為 MD</span><span class="text-slate-400">Ctrl+Shift+S</span></button>
+                </div>
+            </div>
+
+            <!-- 編輯選單 Dropdown -->
+            <div class="relative">
+                <button id="menu-edit-btn" class="px-2.5 py-1 rounded hover:bg-slate-200 dark:hover:bg-winHoverDark text-slate-700 dark:text-slate-200">編輯</button>
+                <div id="menu-edit-dropdown" class="hidden absolute left-0 top-full mt-1 w-44 bg-white dark:bg-winCardDark border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-1 z-50 text-xs">
+                    <button onclick="insertMarkdown('**', '**')" class="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-winHoverDark">粗體</button>
+                    <button onclick="insertMarkdown('*', '*')" class="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-winHoverDark">斜體</button>
+                    <button onclick="insertMarkdown('~~', '~~')" class="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-winHoverDark">刪除線</button>
+                    <div class="h-[1px] bg-slate-200 dark:bg-slate-700 my-1"></div>
+                    <button onclick="clearActiveTabContent()" class="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-winHoverDark text-red-600 dark:text-red-400">清空內容</button>
+                </div>
+            </div>
+
+            <!-- 檢視選單 Dropdown -->
+            <div class="relative">
+                <button id="menu-view-btn" class="px-2.5 py-1 rounded hover:bg-slate-200 dark:hover:bg-winHoverDark text-slate-700 dark:text-slate-200">檢視</button>
+                <div id="menu-view-dropdown" class="hidden absolute left-0 top-full mt-1 w-40 bg-white dark:bg-winCardDark border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-1 z-50 text-xs">
+                    <button onclick="toggleMode()" class="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-winHoverDark flex justify-between"><span id="menu-view-toggle-label">切換預覽</span></button>
+                    <button onclick="toggleTheme()" class="w-full text-left px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-winHoverDark">切換深色/淺色</button>
+                </div>
+            </div>
+
+            <!-- 分隔線 -->
+            <div class="h-4 w-[1px] bg-slate-300 dark:bg-slate-700 mx-1"></div>
+
+            <!-- Markdown 格式快捷工具列 (Win11圖示樣式) -->
+            <!-- 標題下拉選單 -->
+            <div class="relative">
+                <button id="heading-dropdown-btn" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-winHoverDark flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-200">
+                    <span id="heading-label">H1</span> <i class="fa-solid fa-chevron-down text-[9px] opacity-70"></i>
+                </button>
+                <div id="heading-dropdown" class="hidden absolute left-0 top-full mt-1 w-28 bg-white dark:bg-winCardDark border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-1 z-50">
+                    <button onclick="insertMarkdown('# ', ''); closeDropdowns();" class="w-full text-left px-3 py-1 hover:bg-slate-100 dark:hover:bg-winHoverDark font-bold">H1 標題</button>
+                    <button onclick="insertMarkdown('## ', ''); closeDropdowns();" class="w-full text-left px-3 py-1 hover:bg-slate-100 dark:hover:bg-winHoverDark font-semibold">H2 標題</button>
+                    <button onclick="insertMarkdown('### ', ''); closeDropdowns();" class="w-full text-left px-3 py-1 hover:bg-slate-100 dark:hover:bg-winHoverDark font-medium">H3 標題</button>
+                    <button onclick="insertMarkdown('#### ', ''); closeDropdowns();" class="w-full text-left px-3 py-1 hover:bg-slate-100 dark:hover:bg-winHoverDark text-xs">H4 標題</button>
+                </div>
+            </div>
+
+            <!-- 清單下拉選單 -->
+            <div class="relative">
+                <button id="list-dropdown-btn" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-winHoverDark flex items-center gap-1 text-slate-700 dark:text-slate-200">
+                    <i class="fa-solid fa-list-ul text-sm"></i> <i class="fa-solid fa-chevron-down text-[9px] opacity-70"></i>
+                </button>
+                <div id="list-dropdown" class="hidden absolute left-0 top-full mt-1 w-32 bg-white dark:bg-winCardDark border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-1 z-50">
+                    <button onclick="insertMarkdown('- ', ''); closeDropdowns();" class="w-full text-left px-3 py-1 hover:bg-slate-100 dark:hover:bg-winHoverDark flex items-center gap-2"><i class="fa-solid fa-list-ul text-xs"></i> 項目符號</button>
+                    <button onclick="insertMarkdown('1. ', ''); closeDropdowns();" class="w-full text-left px-3 py-1 hover:bg-slate-100 dark:hover:bg-winHoverDark flex items-center gap-2"><i class="fa-solid fa-list-ol text-xs"></i> 編號清單</button>
+                    <button onclick="insertMarkdown('- [ ] ', ''); closeDropdowns();" class="w-full text-left px-3 py-1 hover:bg-slate-100 dark:hover:bg-winHoverDark flex items-center gap-2"><i class="fa-regular fa-square-check text-xs"></i> 待辦核取方塊</button>
+                </div>
+            </div>
+
+            <!-- 粗體, 斜體, 刪除線, 連結 -->
+            <button onclick="insertMarkdown('**', '**')" class="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-winHoverDark font-bold text-slate-800 dark:text-slate-100" title="粗體 (Ctrl+B)">B</button>
+            <button onclick="insertMarkdown('*', '*')" class="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-winHoverDark italic text-slate-800 dark:text-slate-100 font-serif" title="斜體 (Ctrl+I)">I</button>
+            <button onclick="insertMarkdown('~~', '~~')" class="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-winHoverDark line-through text-slate-800 dark:text-slate-100" title="刪除線">S</button>
+            <button onclick="insertMarkdown('[連結描述](', ')')" class="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-winHoverDark text-slate-700 dark:text-slate-300" title="插入連結"><i class="fa-solid fa-link text-xs"></i></button>
+
+            <!-- 表格與程式碼下拉選單 -->
+            <div class="relative">
+                <button id="more-dropdown-btn" class="px-2 py-1 rounded hover:bg-slate-200 dark:hover:bg-winHoverDark flex items-center gap-1 text-slate-700 dark:text-slate-200">
+                    <i class="fa-solid fa-table-cells text-xs"></i> <i class="fa-solid fa-chevron-down text-[9px] opacity-70"></i>
+                </button>
+                <div id="more-dropdown" class="hidden absolute left-0 top-full mt-1 w-36 bg-white dark:bg-winCardDark border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-1 z-50">
+                    <button onclick="insertTable(); closeDropdowns();" class="w-full text-left px-3 py-1 hover:bg-slate-100 dark:hover:bg-winHoverDark flex items-center gap-2"><i class="fa-solid fa-table text-xs"></i> 插入表格</button>
+                    <button onclick="insertMarkdown('> ', ''); closeDropdowns();" class="w-full text-left px-3 py-1 hover:bg-slate-100 dark:hover:bg-winHoverDark flex items-center gap-2"><i class="fa-solid fa-quote-left text-xs"></i> 區塊引用</button>
+                    <button onclick="insertMarkdown('```\n', '\n```'); closeDropdowns();" class="w-full text-left px-3 py-1 hover:bg-slate-100 dark:hover:bg-winHoverDark flex items-center gap-2"><i class="fa-solid fa-code text-xs"></i> 程式碼區塊</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側：切換預覽模式與設定按鈕 -->
+        <div class="flex items-center space-x-1.5 ml-auto">
+            <button id="btn-toggle-mode" class="px-2.5 py-1 text-xs rounded border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-winHoverDark transition flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+                <i class="fa-solid fa-eye" id="toggle-icon"></i>
+                <span id="toggle-text">預覽模式</span>
+            </button>
+            <button onclick="toggleTheme()" class="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-winHoverDark text-slate-700 dark:text-slate-300 transition" title="切換深色/淺色主題">
+                <i class="fa-solid fa-moon text-xs" id="theme-icon"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- 3. 主要編輯/預覽內容區域 -->
+    <main class="flex-1 relative overflow-hidden bg-white dark:bg-winBgDark flex flex-col">
+        <!-- 編輯視圖 -->
+        <div id="editor-container" class="w-full h-full flex flex-col">
+            <textarea id="editor" class="w-full h-full p-4 bg-transparent resize-none font-mono text-sm sm:text-base leading-relaxed focus:outline-none text-slate-900 dark:text-slate-100 select-text no-scrollbar" placeholder="開始打字..."></textarea>
+        </div>
+
+        <!-- 預覽視圖 -->
+        <div id="preview-container" class="hidden w-full h-full overflow-y-auto no-scrollbar p-6 bg-white dark:bg-winBgDark">
+            <div id="preview" class="max-w-4xl mx-auto markdown-body text-slate-800 dark:text-slate-100 select-text"></div>
+        </div>
+    </main>
+
+    <!-- 4. Windows 11 經典底部狀態列 -->
+    <footer class="bg-winBgLight dark:bg-winBgDark border-t border-slate-200 dark:border-slate-800 px-4 py-1 text-[11px] text-slate-600 dark:text-slate-400 flex items-center justify-between select-none">
+        <!-- 左側：光標位置與字元數據 -->
+        <div class="flex items-center space-x-4 divide-x divide-slate-300 dark:divide-slate-700">
+            <div id="stat-cursor">第 1 行，第 1 欄</div>
+            <div class="pl-4" id="stat-chars">0 個字元</div>
+        </div>
+
+        <!-- 右側：檔案編碼與格式狀態 -->
+        <div class="flex items-center space-x-4 divide-x divide-slate-300 dark:divide-slate-700">
+            <div class="hidden sm:block" id="doc-type-label">純文字 / Markdown</div>
+            <div class="pl-4 hidden sm:block">100%</div>
+            <div class="pl-4 hidden md:block">Windows (CRLF)</div>
+            <div class="pl-4">UTF-8</div>
+        </div>
+    </footer>
+
+    <!-- JavaScript 邏輯機制 -->
+    <script>
+        // 全局狀態管理 - 多分頁架構
+        let tabs = [
+            { id: 1, title: '未命名', content: '', isModified: false }
+        ];
+        let activeTabId = 1;
+        let isPreviewMode = false;
+
+        // DOM 元素引用
+        const editor = document.getElementById('editor');
+        const preview = document.getElementById('preview');
+        const editorContainer = document.getElementById('editor-container');
+        const previewContainer = document.getElementById('preview-container');
+        const tabsContainer = document.getElementById('tabs-container');
+
+        const btnToggleMode = document.getElementById('btn-toggle-mode');
+        const toggleIcon = document.getElementById('toggle-icon');
+        const toggleText = document.getElementById('toggle-text');
+        const menuViewToggleLabel = document.getElementById('menu-view-toggle-label');
+
+        const statCursor = document.getElementById('stat-cursor');
+        const statChars = document.getElementById('stat-chars');
+        const fileInput = document.getElementById('file-input');
+
+        // 設定 marked 解析器
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+
+        // 渲染分頁列 (Render Win11 Tabs)
+        function renderTabs() {
+            tabsContainer.innerHTML = '';
+            tabs.forEach(tab => {
+                const isActive = tab.id === activeTabId;
+                const tabEl = document.createElement('div');
+                tabEl.className = `group relative flex items-center gap-2 px-3 py-1.5 text-xs rounded-t-lg transition-all duration-100 cursor-pointer max-w-[160px] border-t border-x ${
+                    isActive 
+                    ? 'bg-white dark:bg-winBgDark border-slate-300/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-100 font-medium shadow-sm' 
+                    : 'bg-transparent border-transparent hover:bg-slate-200/60 dark:hover:bg-winHoverDark text-slate-600 dark:text-slate-400'
+                }`;
+
+                tabEl.onclick = () => switchTab(tab.id);
+
+                tabEl.innerHTML = `
+                    <i class="fa-regular fa-file-lines text-xs ${isActive ? 'text-winAccent' : 'text-slate-400'}"></i>
+                    <span class="truncate flex-1">${escapeHtml(tab.title)}</span>
+                    ${tabs.length > 1 ? `
+                        <button onclick="closeTab(event, ${tab.id})" class="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition">
+                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                        </button>
+                    ` : ''}
+                `;
+                tabsContainer.appendChild(tabEl);
+            });
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
+
+        // 取得當前分頁物件
+        function getActiveTab() {
+            return tabs.find(t => t.id === activeTabId) || tabs[0];
+        }
+
+        // 切換分頁
+        function switchTab(id) {
+            // 儲存目前編輯器內容
+            const activeTab = getActiveTab();
+            if (activeTab) {
+                activeTab.content = editor.value;
+            }
+
+            activeTabId = id;
+            const newActiveTab = getActiveTab();
+            editor.value = newActiveTab.content;
+
+            renderTabs();
+            updateEditorAndStats();
+        }
+
+        // 新增分頁
+        function addNewTab(title = '未命名', content = '') {
+            const newId = Date.now();
+            tabs.push({ id: newId, title, content, isModified: false });
+            switchTab(newId);
+        }
+
+        document.getElementById('btn-add-tab').addEventListener('click', () => addNewTab());
+
+        // 關閉分頁
+        function closeTab(event, id) {
+            event.stopPropagation();
+            if (tabs.length <= 1) return;
+
+            tabs = tabs.filter(t => t.id !== id);
+            if (activeTabId === id) {
+                activeTabId = tabs[tabs.length - 1].id;
+            }
+            switchTab(activeTabId);
+        }
+
+        // 清空當前分頁內容
+        function clearActiveTabContent() {
+            editor.value = '';
+            const activeTab = getActiveTab();
+            activeTab.content = '';
+            updateEditorAndStats();
+            closeDropdowns();
+        }
+
+        // 更新編輯器內容與統計資訊
+        function updateEditorAndStats() {
+            const content = editor.value;
+            const activeTab = getActiveTab();
+            activeTab.content = content;
+
+            // 即時渲染 Markdown 預覽
+            preview.innerHTML = marked.parse(content || '<p class="text-slate-400 italic">無內容可預覽...</p>');
+
+            // 計算字元總數
+            statChars.textContent = `${content.length} 個字元`;
+
+            // 計算光標位置（第幾行，第幾欄）
+            updateCursorPosition();
+        }
+
+        // 計算光標位置
+        function updateCursorPosition() {
+            const pos = editor.selectionStart;
+            const text = editor.value.substring(0, pos);
+            const lines = text.split('\n');
+            const currentLine = lines.length;
+            const currentCol = lines[lines.length - 1].length + 1;
+
+            statCursor.textContent = `第 ${currentLine} 行，第 ${currentCol} 欄`;
+        }
+
+        // 切換編輯與預覽模式
+        function toggleMode() {
+            isPreviewMode = !isPreviewMode;
+            if (isPreviewMode) {
+                updateEditorAndStats();
+                editorContainer.classList.add('hidden');
+                previewContainer.classList.remove('hidden');
+
+                toggleIcon.className = 'fa-solid fa-pen';
+                toggleText.textContent = '返回編輯';
+                menuViewToggleLabel.textContent = '返回編輯';
+            } else {
+                previewContainer.classList.add('hidden');
+                editorContainer.classList.remove('hidden');
+
+                toggleIcon.className = 'fa-solid fa-eye';
+                toggleText.textContent = '預覽模式';
+                menuViewToggleLabel.textContent = '切換預覽';
+                editor.focus();
+            }
+            closeDropdowns();
+        }
+
+        btnToggleMode.addEventListener('click', toggleMode);
+
+        // 快捷語法插入
+        function insertMarkdown(prefix, suffix) {
+            if (isPreviewMode) return;
+
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const text = editor.value;
+            const selectedText = text.substring(start, end);
+
+            const replacement = prefix + selectedText + suffix;
+            editor.value = text.substring(0, start) + replacement + text.substring(end);
+
+            editor.focus();
+            if (selectedText.length === 0) {
+                editor.setSelectionRange(start + prefix.length, start + prefix.length);
+            } else {
+                editor.setSelectionRange(start, start + replacement.length);
+            }
+
+            updateEditorAndStats();
+        }
+
+        // 插入 Markdown 範本表格
+        function insertTable() {
+            const tableTemplate = `\n| 欄位 1 | 欄位 2 | 欄位 3 |\n| --- | --- | --- |\n| 內容 1 | 內容 2 | 內容 3 |\n`;
+            insertMarkdown(tableTemplate, '');
+        }
+
+        // 切換深色/淺色主題 (Dark Mode Support)
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            const themeIcon = document.getElementById('theme-icon');
+            if (themeIcon) {
+                if (isDark) {
+                    themeIcon.className = 'fa-solid fa-sun text-xs text-amber-400';
+                } else {
+                    themeIcon.className = 'fa-solid fa-moon text-xs';
+                }
+            }
+            closeDropdowns();
+        }
+
+        // 檔案開啟讀取功能
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                addNewTab(file.name, evt.target.result);
+            };
+            reader.readAsText(file);
+            fileInput.value = ''; // Reset input
+            closeDropdowns();
+        });
+
+        // 下載檔案功能
+        function downloadActiveFile(defaultExt) {
+            const activeTab = getActiveTab();
+            let filename = activeTab.title;
+
+            if (filename === '未命名') {
+                filename = '未命名' + defaultExt;
+            } else if (!filename.endsWith('.txt') && !filename.endsWith('.md')) {
+                filename += defaultExt;
+            }
+
+            const blob = new Blob([editor.value], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            closeDropdowns();
+        }
+
+        // 下拉選單控制器 (Dropdown Controls)
+        const dropdowns = [
+            { btn: 'menu-file-btn', menu: 'menu-file-dropdown' },
+            { btn: 'menu-edit-btn', menu: 'menu-edit-dropdown' },
+            { btn: 'menu-view-btn', menu: 'menu-view-dropdown' },
+            { btn: 'heading-dropdown-btn', menu: 'heading-dropdown' },
+            { btn: 'list-dropdown-btn', menu: 'list-dropdown' },
+            { btn: 'more-dropdown-btn', menu: 'more-dropdown' }
+        ];
+
+        function closeDropdowns() {
+            dropdowns.forEach(d => {
+                const el = document.getElementById(d.menu);
+                if (el) el.classList.add('hidden');
+            });
+        }
+
+        dropdowns.forEach(d => {
+            const btn = document.getElementById(d.btn);
+            const menu = document.getElementById(d.menu);
+            if (btn && menu) {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isHidden = menu.classList.contains('hidden');
+                    closeDropdowns();
+                    if (isHidden) menu.classList.remove('hidden');
+                });
+            }
+        });
+
+        // 點擊外部區域自動關閉選單
+        window.addEventListener('click', () => closeDropdowns());
+
+        // 監聽編輯器輸入與游標移動事件
+        editor.addEventListener('input', updateEditorAndStats);
+        editor.addEventListener('click', updateCursorPosition);
+        editor.addEventListener('keyup', updateCursorPosition);
+
+        // 支援 Tab 鍵縮排 (4 個空白格)
+        editor.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                insertMarkdown('    ', '');
+            }
+            // 快捷鍵支援
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 's') {
+                    e.preventDefault();
+                    downloadActiveFile('.txt');
+                } else if (e.key === 'b') {
+                    e.preventDefault();
+                    insertMarkdown('**', '**');
+                } else if (e.key === 'i') {
+                    e.preventDefault();
+                    insertMarkdown('*', '*');
+                } else if (e.key === 'n') {
+                    e.preventDefault();
+                    addNewTab();
+                }
+            }
+        });
+
+        // 頁面初始化
+        window.onload = function() {
+            renderTabs();
+            updateEditorAndStats();
+            editor.focus();
+        };
+    </script>
+</body>
+</html>
