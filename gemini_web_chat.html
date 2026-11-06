@@ -22,47 +22,16 @@
   <!-- Google Fonts Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-    .chat-bubble-user {
-      background-color: #2563eb;
-      color: white;
-    }
-    .chat-bubble-model {
-      background-color: #e2e8f0;
-      color: #0f172a;
-    }
-    /* Dark mode chat bubbles */
-    .dark .chat-bubble-model {
-      background-color: #334155;
-      color: #f8fafc;
-    }
-    /* Markdown Styles within chat */
+    body { font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .chat-bubble-user { background-color: #2563eb; color: white; }
+    .chat-bubble-model { background-color: #e2e8f0; color: #0f172a; }
+    .dark .chat-bubble-model { background-color: #334155; color: #f8fafc; }
     .prose p { margin-bottom: 0.75rem; }
     .prose p:last-child { margin-bottom: 0; }
-    .prose pre {
-      background-color: #0f172a;
-      color: #f8fafc;
-      padding: 0.75rem 1rem;
-      border-radius: 0.5rem;
-      overflow-x: auto;
-      margin: 0.5rem 0;
-      font-size: 0.875rem;
-    }
-    .prose code {
-      font-family: monospace;
-      background-color: rgba(0,0,0,0.08);
-      padding: 0.125rem 0.25rem;
-      border-radius: 0.25rem;
-    }
-    .dark .prose code {
-      background-color: rgba(255,255,255,0.15);
-    }
-    .prose pre code {
-      background-color: transparent;
-      padding: 0;
-    }
+    .prose pre { background-color: #0f172a; color: #f8fafc; padding: 0.75rem 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 0.5rem 0; font-size: 0.875rem; }
+    .prose code { font-family: monospace; background-color: rgba(0,0,0,0.08); padding: 0.125rem 0.25rem; border-radius: 0.25rem; }
+    .dark .prose code { background-color: rgba(255,255,255,0.15); }
+    .prose pre code { background-color: transparent; padding: 0; }
     .prose ul { list-style-type: disc; padding-left: 1.25rem; margin: 0.5rem 0; }
     .prose ol { list-style-type: decimal; padding-left: 1.25rem; margin: 0.5rem 0; }
     .katex-display { margin: 0.5rem 0; overflow-x: auto; overflow-y: hidden; }
@@ -70,7 +39,7 @@
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
 
-  <!-- Header / Navigation -->
+  <!-- Header -->
   <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shadow-sm">
     <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center space-x-2">
@@ -83,27 +52,35 @@
         </div>
       </div>
 
-      <!-- Settings Controls -->
       <div class="flex items-center gap-2 flex-wrap">
-        <!-- Dark/Light Theme Toggle Button -->
-        <button id="themeToggleBtn" class="px-3 py-1.5 text-xs md:text-sm font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition-colors flex items-center gap-1.5" title="切換深色/淺色模式">
+        <!-- 主題切換 -->
+        <button id="themeToggleBtn" class="px-3 py-1.5 text-xs md:text-sm font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition-colors flex items-center gap-1.5">
           <i class="fa-solid fa-moon" id="themeIcon"></i>
           <span id="themeText">深色</span>
         </button>
 
+        <!-- 設定按鈕 -->
         <button id="toggleSettingsBtn" class="px-3 py-1.5 text-xs md:text-sm font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition-colors flex items-center gap-1.5">
           <i class="fa-solid fa-sliders"></i>
           <span>API & 模型設定</span>
         </button>
 
-        <!-- Export Chat Button Dropdown -->
+        <!-- 使用教學連結按鈕 -->
+        <a href="https://www.henry0115.dpdns.org/紀哥ai使用教學" target="_blank" rel="noopener noreferrer" 
+          class="px-3 py-1.5 text-xs md:text-sm font-medium bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 dark:text-blue-300 rounded-lg transition-colors flex items-center gap-1.5" 
+          title="開啟紀哥AI使用教學">
+          <i class="fa-solid fa-book-open"></i>
+          <span>使用教學</span>
+          <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+        </a>
+
+        <!-- 匯出對話 -->
         <div class="relative inline-block text-left">
-          <button id="exportMenuBtn" class="px-3 py-1.5 text-xs md:text-sm font-medium bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 text-emerald-600 dark:text-emerald-300 rounded-lg transition-colors flex items-center gap-1.5" title="匯出對話紀錄">
+          <button id="exportMenuBtn" class="px-3 py-1.5 text-xs md:text-sm font-medium bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 text-emerald-600 dark:text-emerald-300 rounded-lg transition-colors flex items-center gap-1.5">
             <i class="fa-solid fa-file-export"></i>
             <span>匯出對話</span>
             <i class="fa-solid fa-chevron-down text-[10px]"></i>
           </button>
-          <!-- Export Dropdown Menu -->
           <div id="exportDropdown" class="hidden absolute right-0 mt-1 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 z-50 py-1">
             <button id="exportMdBtn" class="w-full text-left px-3 py-2 text-xs text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2">
               <i class="fa-solid fa-file-code text-blue-500"></i>
@@ -116,14 +93,14 @@
           </div>
         </div>
 
-        <!-- Clear Chat History Button -->
-        <button id="clearChatBtn" class="px-3 py-1.5 text-xs md:text-sm font-medium bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 text-amber-600 dark:text-amber-300 rounded-lg transition-colors flex items-center gap-1.5" title="僅清空畫面對話紀錄，保留 API Key 設定">
+        <!-- 清除對話 -->
+        <button id="clearChatBtn" class="px-3 py-1.5 text-xs md:text-sm font-medium bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 text-amber-600 dark:text-amber-300 rounded-lg transition-colors flex items-center gap-1.5">
           <i class="fa-solid fa-trash-can"></i>
           <span>清除對話</span>
         </button>
 
-        <!-- Reset Button -->
-        <button id="resetAppBtn" class="px-3 py-1.5 text-xs md:text-sm font-medium bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-300 rounded-lg transition-colors flex items-center gap-1.5" title="重置對話與清除本地 API Key 設定">
+        <!-- 重置 -->
+        <button id="resetAppBtn" class="px-3 py-1.5 text-xs md:text-sm font-medium bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 text-rose-600 dark:text-rose-300 rounded-lg transition-colors flex items-center gap-1.5">
           <i class="fa-solid fa-rotate-left"></i>
           <span>重置</span>
         </button>
@@ -131,11 +108,9 @@
     </div>
   </header>
 
-  <!-- Configuration Bar -->
+  <!-- Settings Panel -->
   <div id="settingsPanel" class="bg-slate-100 dark:bg-slate-800/90 border-b border-slate-200 dark:border-slate-700 p-4 transition-all">
     <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-4">
-      
-      <!-- API Key Input -->
       <div class="md:col-span-6 space-y-1">
         <label for="apiKeyInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-300">
           API Key <span class="text-rose-500">*</span>
@@ -148,10 +123,8 @@
               <i class="fa-solid fa-eye" id="eyeIcon"></i>
             </button>
           </div>
-          <!-- Get API Key Link Button -->
           <a href="https://aistudio.google.com/api-keys" target="_blank" rel="noopener noreferrer" 
-            class="px-3 py-2 text-xs font-medium bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:hover:bg-blue-900/80 dark:text-blue-300 rounded-lg border border-blue-200 dark:border-blue-800 transition-colors flex items-center gap-1.5 shrink-0" 
-            title="開啟 Google AI Studio 取得 API Key">
+            class="px-3 py-2 text-xs font-medium bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/60 dark:hover:bg-blue-900/80 dark:text-blue-300 rounded-lg border border-blue-200 dark:border-blue-800 transition-colors flex items-center gap-1.5 shrink-0">
             <i class="fa-solid fa-key"></i>
             <span>取得 Key</span>
             <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
@@ -159,7 +132,6 @@
         </div>
       </div>
 
-      <!-- Model Name Selection / Input -->
       <div class="md:col-span-4 space-y-1">
         <label for="modelSelect" class="block text-xs font-semibold text-slate-600 dark:text-slate-300">
           模型代碼 (Model Code)
@@ -167,19 +139,16 @@
         <div class="space-y-1.5">
           <select id="modelSelect" 
             class="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer">
-            
             <optgroup label="Gemini 3 系列">
               <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (gemini-3.1-pro-preview)</option>
               <option value="gemini-3-flash-preview" selected>Gemini 3 Flash (gemini-3-flash-preview)</option>
             </optgroup>
-
             <optgroup label="Nano Banana 影像系列">
               <option value="gemini-nano-banana-2.1">Nano Banana 2.1 (gemini-nano-banana-2.1)</option>
               <option value="gemini-3.1-flash-image">Nano Banana 2 (gemini-3.1-flash-image)</option>
               <option value="gemini-3.1-flash-lite-image">Nano Banana 2 Lite (gemini-3.1-flash-lite-image)</option>
               <option value="gemini-3-pro-image">Nano Banana Pro (gemini-3-pro-image)</option>
             </optgroup>
-
             <optgroup label="Gemini 3.5 / 3.6 / 3.8 / 4 系列">
               <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (gemini-3.5-flash-lite)</option>
               <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite (gemini-3.1-flash-lite)</option>
@@ -187,20 +156,15 @@
               <option value="gemini-3.8-flash">Gemini 3.8 Flash (gemini-3.8-flash)</option>
               <option value="gemini-4-argon">Gemini 4 Argon (gemini-4-argon)</option>
             </optgroup>
-
             <optgroup label="其他">
               <option value="custom">其他 (手動輸入模型代碼...)</option>
             </optgroup>
-
           </select>
-
-          <!-- Custom Model Input (shown when "custom" is selected) -->
           <input type="text" id="customModelInput" placeholder="請輸入自訂模型代碼 (例如: gemini-custom-model)" 
             class="hidden w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none">
         </div>
       </div>
 
-      <!-- Save & Remember -->
       <div class="md:col-span-2 flex items-end">
         <button id="saveSettingsBtn" class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm transition-colors shadow-sm flex items-center justify-center gap-1.5">
           <i class="fa-solid fa-check"></i>
@@ -208,7 +172,6 @@
         </button>
       </div>
 
-      <!-- System Prompt Area -->
       <div class="md:col-span-12 space-y-1">
         <label for="systemPromptInput" class="block text-xs font-semibold text-slate-600 dark:text-slate-300">
           系統指令 System Instruction (可選)
@@ -227,10 +190,7 @@
 
   <!-- Main Chat Container -->
   <main class="flex-1 max-w-5xl w-full mx-auto p-4 flex flex-col justify-between overflow-hidden">
-    
-    <!-- Chat Messages Area -->
     <div id="chatHistory" class="flex-1 overflow-y-auto space-y-4 pr-2 mb-4 scroll-smooth">
-      <!-- Welcome Message -->
       <div class="flex items-start gap-3">
         <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-sm shrink-0">
           <i class="fa-solid fa-robot"></i>
@@ -241,7 +201,6 @@
       </div>
     </div>
 
-    <!-- Image Preview Area -->
     <div id="imagePreviewContainer" class="hidden mb-2 p-2 bg-slate-200 dark:bg-slate-800 rounded-lg inline-flex items-center gap-2 self-start">
       <img id="imagePreview" class="h-16 w-16 object-cover rounded-md border border-slate-300 dark:border-slate-600" src="" alt="預覽圖片">
       <div class="flex flex-col">
@@ -250,20 +209,15 @@
       </div>
     </div>
 
-    <!-- Input Form -->
     <form id="chatForm" class="relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-md p-2 flex items-end gap-2">
-      
-      <!-- Image Upload Button -->
       <label for="imageInput" class="p-2 text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors flex items-center justify-center" title="上傳圖片">
         <i class="fa-solid fa-paperclip text-lg"></i>
         <input type="file" id="imageInput" accept="image/*" class="hidden">
       </label>
 
-      <!-- Message Textarea -->
       <textarea id="userInput" rows="1" placeholder="輸入訊息... (Shift + Enter 換行)" 
         class="flex-1 bg-transparent border-0 focus:ring-0 focus:outline-none resize-none max-h-32 py-2 px-1 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"></textarea>
 
-      <!-- Submit Button -->
       <button type="submit" id="sendBtn" class="p-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white rounded-xl transition-colors shrink-0 shadow-sm">
         <i class="fa-solid fa-paper-plane"></i>
       </button>
@@ -272,10 +226,8 @@
     <div class="text-center text-[10px] text-slate-400 dark:text-slate-500 mt-2">
       所有請求直接與 Google Gemini API 通訊，你的 API Key僅存於本地瀏覽器。
     </div>
-
   </main>
 
-  <!-- Selection Tooltip Popup Menu -->
   <div id="selectionMenu" class="hidden absolute z-50 bg-slate-800 dark:bg-slate-700 text-white rounded-xl shadow-xl p-1 flex items-center gap-1 border border-slate-600/50 text-xs transition-opacity duration-150">
     <button id="copySelectBtn" class="px-2.5 py-1.5 hover:bg-slate-700 dark:hover:bg-slate-600 rounded-lg flex items-center gap-1 transition-colors">
       <i class="fa-solid fa-copy text-blue-400"></i>
@@ -288,17 +240,14 @@
     </button>
   </div>
 
-  <!-- JavaScript App Logic -->
   <script>
-    // State Management
     let apiKey = localStorage.getItem('gemini_api_key') || '';
     let modelName = localStorage.getItem('gemini_model_name') || 'gemini-3-flash-preview';
     let systemInstruction = localStorage.getItem('gemini_system_instruction') || '';
-    let currentTheme = localStorage.getItem('gemini_theme') || 'dark'; // Default theme set to dark
-    let chatConversation = []; // Stores formatted API conversation history
-    let currentBase64Image = null; // Store loaded image base64 data
+    let currentTheme = localStorage.getItem('gemini_theme') || 'dark';
+    let chatConversation = [];
+    let currentBase64Image = null;
 
-    // DOM Elements
     const htmlElement = document.documentElement;
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     const themeIcon = document.getElementById('themeIcon');
@@ -316,7 +265,6 @@
     const clearChatBtn = document.getElementById('clearChatBtn');
     const resetAppBtn = document.getElementById('resetAppBtn');
 
-    // Export Dropdown Elements
     const exportMenuBtn = document.getElementById('exportMenuBtn');
     const exportDropdown = document.getElementById('exportDropdown');
     const exportMdBtn = document.getElementById('exportMdBtn');
@@ -334,21 +282,15 @@
     const statusBanner = document.getElementById('statusBanner');
     const statusText = document.getElementById('statusText');
 
-    // Text Selection Floating Menu Elements
     const selectionMenu = document.getElementById('selectionMenu');
     const copySelectBtn = document.getElementById('copySelectBtn');
     const askSelectBtn = document.getElementById('askSelectBtn');
     let selectedTextContent = '';
 
-    // Initialize UI and Theme on load
     window.addEventListener('DOMContentLoaded', () => {
-      // Initialize Theme (Default Dark)
       applyTheme(currentTheme);
-
       apiKeyInput.value = apiKey;
       systemPromptInput.value = systemInstruction;
-
-      // Restore Model Selection logic
       initModelSelection(modelName);
 
       if (apiKey) {
@@ -357,17 +299,28 @@
         showStatus('請先設定你的 API Key', 'warning');
       }
 
-      // Configure Marked markdown
-      marked.setOptions({
-        breaks: true,
-        gfm: true
-      });
-
-      // Render math on initial content
+      marked.setOptions({ breaks: true, gfm: true });
       renderMath(chatHistory);
     });
 
-    // Helper to initialize and bind model selection
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        htmlElement.classList.add('dark');
+        themeIcon.className = 'fa-solid fa-sun';
+        themeText.textContent = '淺色';
+      } else {
+        htmlElement.classList.remove('dark');
+        themeIcon.className = 'fa-solid fa-moon';
+        themeText.textContent = '深色';
+      }
+      localStorage.setItem('gemini_theme', theme);
+      currentTheme = theme;
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+      applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    });
+
     function initModelSelection(currentModel) {
       const options = Array.from(modelSelect.options).map(o => o.value);
       if (options.includes(currentModel) && currentModel !== 'custom') {
@@ -380,7 +333,6 @@
       }
     }
 
-    // Toggle custom model input display when select changes
     modelSelect.addEventListener('change', () => {
       if (modelSelect.value === 'custom') {
         customModelInput.classList.remove('hidden');
@@ -390,7 +342,6 @@
       }
     });
 
-    // Render Math Formulas with KaTeX
     function renderMath(element) {
       if (window.renderMathInElement) {
         window.renderMathInElement(element, {
@@ -405,7 +356,6 @@
       }
     }
 
-    // Toggle Export Dropdown
     exportMenuBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       exportDropdown.classList.toggle('hidden');
@@ -415,7 +365,6 @@
       exportDropdown.classList.add('hidden');
     });
 
-    // Export Chat Handlers
     exportMdBtn.addEventListener('click', () => exportChatHistory('md'));
     exportTxtBtn.addEventListener('click', () => exportChatHistory('txt'));
 
@@ -429,7 +378,7 @@
       content += `匯出時間：${new Date().toLocaleString('zh-TW')}\n`;
       content += `使用模型：${modelName}\n\n---\n\n`;
 
-      chatConversation.forEach((msg, index) => {
+      chatConversation.forEach((msg) => {
         const role = msg.role === 'user' ? '使用者' : '紀哥AI';
         const textParts = msg.parts.map(p => p.text || '[圖片訊息]').join('\n');
         
@@ -458,13 +407,11 @@
       exportDropdown.classList.add('hidden');
     }
 
-    // Auto-resize textarea height
     userInput.addEventListener('input', () => {
       userInput.style.height = 'auto';
       userInput.style.height = Math.min(userInput.scrollHeight, 128) + 'px';
     });
 
-    // Enter to submit (Shift+Enter for newline)
     userInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -472,12 +419,10 @@
       }
     });
 
-    // Toggle Settings View
     toggleSettingsBtn.addEventListener('click', () => {
       settingsPanel.classList.toggle('hidden');
     });
 
-    // Toggle Password Visibility
     togglePasswordVisibility.addEventListener('click', () => {
       if (apiKeyInput.type === 'password') {
         apiKeyInput.type = 'text';
@@ -488,11 +433,9 @@
       }
     });
 
-    // Save Settings
     saveSettingsBtn.addEventListener('click', () => {
       apiKey = apiKeyInput.value.trim();
       
-      // Determine model name from select or custom input
       if (modelSelect.value === 'custom') {
         modelName = customModelInput.value.trim() || 'gemini-3-flash-preview';
       } else {
@@ -514,7 +457,6 @@
       settingsPanel.classList.add('hidden');
     });
 
-    // Clear Chat History Only (Keep API Key & Settings)
     clearChatBtn.addEventListener('click', () => {
       chatConversation = [];
       chatHistory.innerHTML = `
@@ -530,27 +472,22 @@
       showStatus('對話紀錄已成功清除', 'info');
     });
 
-    // Reset Application & Clear LocalStorage Data (Fixed Functionality)
     resetAppBtn.addEventListener('click', () => {
-      // Clear Local Storage Keys directly
       localStorage.removeItem('gemini_api_key');
       localStorage.removeItem('gemini_model_name');
       localStorage.removeItem('gemini_system_instruction');
 
-      // Reset variables
       apiKey = '';
       modelName = 'gemini-3-flash-preview';
       systemInstruction = '';
       chatConversation = [];
 
-      // Reset Input Elements
       apiKeyInput.value = '';
       modelSelect.value = 'gemini-3-flash-preview';
       customModelInput.value = '';
       customModelInput.classList.add('hidden');
       systemPromptInput.value = '';
 
-      // Reset Chat UI
       chatHistory.innerHTML = `
         <div class="flex items-start gap-3">
           <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-sm shrink-0">
@@ -566,7 +503,6 @@
       settingsPanel.classList.remove('hidden');
     });
 
-    // Handle Image Upload & Convert to Base64
     imageInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
@@ -589,14 +525,12 @@
       }
     });
 
-    // Remove Selected Image
     removeImageBtn.addEventListener('click', () => {
       currentBase64Image = null;
       imageInput.value = '';
       imagePreviewContainer.classList.add('hidden');
     });
 
-    // Form Submit (Send Message)
     chatForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const text = userInput.value.trim();
@@ -609,10 +543,8 @@
         return;
       }
 
-      // UI update for user message
       appendUserMessage(text, currentBase64Image ? imagePreview.src : null);
 
-      // Construct request payload message parts
       const userParts = [];
       if (text) {
         userParts.push({ text: text });
@@ -626,34 +558,26 @@
         });
       }
 
-      // Push to API history context
       chatConversation.push({
         role: 'user',
         parts: userParts
       });
 
-      // Clear input state
       userInput.value = '';
       userInput.style.height = 'auto';
       currentBase64Image = null;
       imageInput.value = '';
       imagePreviewContainer.classList.add('hidden');
 
-      // Create model message placeholder in UI
       const modelBubbleElement = appendModelMessageLoading();
-
-      // Disable Send Button during API request
       sendBtn.disabled = true;
 
       try {
         const responseText = await callGeminiAPI();
         
-        // Update UI with rendered markdown text
         modelBubbleElement.innerHTML = marked.parse(responseText);
-        // Render math formulas within the response bubble
         renderMath(modelBubbleElement);
 
-        // Store model response in conversation history
         chatConversation.push({
           role: 'model',
           parts: [{ text: responseText }]
@@ -662,7 +586,6 @@
       } catch (error) {
         console.error('API Request Error:', error);
         modelBubbleElement.innerHTML = `<span class="text-rose-500 font-semibold"><i class="fa-solid fa-circle-exclamation mr-1"></i>錯誤: ${escapeHtml(error.message)}</span>`;
-        // Remove last failed user message from conversation context
         chatConversation.pop();
       } finally {
         sendBtn.disabled = false;
@@ -670,7 +593,49 @@
       }
     });
 
-    // Helper: Append User Message to UI
+    // API 呼叫函式
+    async function callGeminiAPI() {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
+      const requestBody = {
+        contents: chatConversation
+      };
+
+      if (systemInstruction) {
+        requestBody.systemInstruction = {
+          parts: [{ text: systemInstruction }]
+        };
+      }
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || `HTTP 錯誤狀態碼: ${response.status}`);
+      }
+
+      const candidate = data.candidates?.[0];
+      if (candidate?.finishReason && candidate.finishReason !== 'STOP') {
+        if (candidate.finishReason === 'SAFETY') {
+          throw new Error('回應因觸發安全過濾機制而被攔截。');
+        }
+      }
+
+      const text = candidate?.content?.parts?.[0]?.text;
+      if (!text) {
+        throw new Error('模型未回傳任何有效的文字內容。');
+      }
+
+      return text;
+    }
+
     function appendUserMessage(text, imageSrc) {
       const msgDiv = document.createElement('div');
       msgDiv.className = 'flex items-start gap-3 justify-end';
@@ -692,7 +657,6 @@
       scrollToBottom();
     }
 
-    // Helper: Append Loading Placeholder for Model Response
     function appendModelMessageLoading() {
       const msgDiv = document.createElement('div');
       msgDiv.className = 'flex items-start gap-3';
@@ -712,7 +676,6 @@
       return msgDiv.querySelector('.chat-bubble-model');
     }
 
-    // Status Banner Notification Helper
     function showStatus(message, type = 'info') {
       statusText.textContent = message;
       statusBanner.classList.remove('hidden', 'bg-blue-100', 'text-blue-800', 'bg-emerald-100', 'text-emerald-800', 'bg-amber-100', 'text-amber-800', 'bg-rose-100', 'text-rose-800', 'dark:bg-blue-900/60', 'dark:text-blue-200', 'dark:bg-emerald-900/60', 'dark:text-emerald-200', 'dark:bg-amber-900/60', 'dark:text-amber-200', 'dark:bg-rose-900/60', 'dark:text-rose-200');
@@ -744,9 +707,7 @@
                 .replace(/'/g, "&#039;");
     }
 
-    // Text Selection Floating Menu Logic
-    function handleSelectionChange(e) {
-      // Small delay to allow text selection to settle (especially for mobile touch events)
+    function handleSelectionChange() {
       setTimeout(() => {
         const selection = window.getSelection();
         const text = selection ? selection.toString().trim() : '';
@@ -758,7 +719,6 @@
 
         selectedTextContent = text;
 
-        // Position the popover menu near selection/cursor
         const range = selection.getRangeAt(0);
         const rect = range.getBoundingClientRect();
 
@@ -770,13 +730,11 @@
         const menuWidth = selectionMenu.offsetWidth || 150;
         const menuHeight = selectionMenu.offsetHeight || 36;
 
-        // Calculate positioning above the selected text area
         let top = rect.top + window.scrollY - menuHeight - 8;
         let left = rect.left + window.scrollX + (rect.width / 2) - (menuWidth / 2);
 
-        // Keep inside viewport bounds
         if (top < window.scrollY + 10) {
-          top = rect.bottom + window.scrollY + 8; // Show below if too close to top
+          top = rect.bottom + window.scrollY + 8;
         }
         if (left < 10) left = 10;
         if (left + menuWidth > window.innerWidth - 10) {
@@ -793,15 +751,14 @@
       selectionMenu.classList.add('hidden');
     }
 
-    // Event listeners for text selection
     document.addEventListener('mouseup', (e) => {
       if (selectionMenu.contains(e.target)) return;
-      handleSelectionChange(e);
+      handleSelectionChange();
     });
 
     document.addEventListener('touchend', (e) => {
       if (selectionMenu.contains(e.target)) return;
-      handleSelectionChange(e);
+      handleSelectionChange();
     });
 
     document.addEventListener('mousedown', (e) => {
@@ -810,7 +767,6 @@
       }
     });
 
-    // Copy Selected Text Handler
     copySelectBtn.addEventListener('click', () => {
       if (!selectedTextContent) return;
       
@@ -826,14 +782,12 @@
       window.getSelection().removeAllRanges();
     });
 
-    // Deep Ask Selected Text Handler
     askSelectBtn.addEventListener('click', () => {
       if (!selectedTextContent) return;
 
       userInput.value = `請幫我詳細說明以下內容：\n"${selectedTextContent}"\n\n`;
       userInput.focus();
 
-      // Trigger auto-resize for text area height
       userInput.style.height = 'auto';
       userInput.style.height = Math.min(userInput.scrollHeight, 128) + 'px';
 
