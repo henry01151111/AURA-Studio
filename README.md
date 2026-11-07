@@ -1,4 +1,4 @@
-# AURA-Studio
+# AURA Studio | Immersive Rainy Night Focus Space 🌧️🎧沉浸式雨夜專注空間 (95%AI)
 # 從這裡打開Open Here:
 
 # https://aura.henry0115.dpdns.org/
