@@ -34,6 +34,7 @@
     <style>
 * { user-select: none; -webkit-user-select: none; box-sizing: border-box; }
 input, textarea, select { user-select: text; -webkit-user-select: text; }
+body.allow-text-select, body.allow-text-select * { user-select: text !important; -webkit-user-select: text !important; }
 body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #030712; color: #ffffff; transition: background-color 0.8s ease; }
 #splashScreen { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; background: #030712; transition: opacity 0.7s ease, visibility 0.7s ease; }
 #splashScreen.splash-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
@@ -43,6 +44,40 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 @keyframes splashGlow { 0%, 100% { text-shadow: 0 0 20px rgba(99, 102, 241, 0.25), 0 0 46px rgba(99, 102, 241, 0.12); } 50% { text-shadow: 0 0 34px rgba(99, 102, 241, 0.55), 0 0 70px rgba(99, 102, 241, 0.3); } }
 canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
 .canvas-layer { z-index: 2; }
+
+#islandPill {
+    background-color: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, backdrop-filter 0.35s ease;
+}
+#islandPill.island-open {
+    background-color: rgba(0, 0, 0, 0.9);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+}
+#islandContent {
+    transition: opacity 0.28s ease;
+}
+
+#ytProjectionWidget {
+    transform: translateX(-50%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+#ytProjectionWidget.yt-island-pushed {
+    transform: translateX(-50%) translateY(52px);
+}
+
+/* 窄螢幕上，靈動島顯示時先淡出頂部按鈕列，避免重疊 */
+@media (max-width: 640px) {
+    body.island-active #topHud {
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: opacity 0.3s ease;
+    }
+}
 .hud-element { transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
 .glass-panel { background: rgba(13, 18, 30, 0.82); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65); transition: background 0.6s ease, border-color 0.6s ease, color 0.6s ease, box-shadow 0.6s ease; }
 .text-shadow-glow { text-shadow: 0 0 30px rgba(255, 255, 255, 0.6), 0 0 60px rgba(99, 102, 241, 0.4); }
@@ -56,7 +91,7 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
 .tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
 .modal-slide-up { transform: translateY(100vh); transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1); }
 #whatsNewModal:not(.opacity-0) .modal-slide-up, #settingsModal:not(.opacity-0) .modal-slide-up, #pomoCustomModal:not(.opacity-0) .modal-slide-up, #pwaInstallModal:not(.opacity-0) .modal-slide-up, #winClockSplitPane:not(.opacity-0) .modal-slide-up { transform: translateY(0); }
-body.low-performance .drawer-slide, body.low-performance .modal-slide-up, body.low-performance #whatsNewModal, body.low-performance #settingsModal, body.low-performance #pomoCustomModal, body.low-performance #pwaInstallModal, body.low-performance #winClockSplitPane, body.low-performance #splitPlaceholder, body.low-performance #splitDivider, body.low-performance #taskDrawer, body.low-performance #audioMixerDrawer, body.low-performance .hud-element, body.low-performance #appStage, body.low-performance .ios-mode-backdrop, body.low-performance .ios-adjacent-card, body.low-performance #iosThemeModal, body.low-performance #iosTopHeader, body.low-performance #iosBottomFooter, body.low-performance #iosPrevThemeBtn, body.low-performance #iosNextThemeBtn { transition: none !important; }
+body.low-performance .drawer-slide, body.low-performance .modal-slide-up, body.low-performance #whatsNewModal, body.low-performance #settingsModal, body.low-performance #pomoCustomModal, body.low-performance #pwaInstallModal, body.low-performance #winClockSplitPane, body.low-performance #splitPlaceholder, body.low-performance #splitDivider, body.low-performance #audioMixerDrawer, body.low-performance .hud-element, body.low-performance #appStage, body.low-performance .ios-mode-backdrop, body.low-performance .ios-adjacent-card, body.low-performance #iosThemeModal, body.low-performance #iosTopHeader, body.low-performance #iosBottomFooter, body.low-performance #iosPrevThemeBtn, body.low-performance #iosNextThemeBtn { transition: none !important; }
 .font-sans { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important; }
 .font-mono { font-family: 'JetBrains Mono', monospace !important; }
 .font-serif { font-family: 'Playfair Display', serif !important; }
@@ -320,6 +355,23 @@ body.split-view-active #winClockSplitPane {
     pointer-events: auto;
 }
 
+/* 底部功能按鈕列：空間不足時自動縮窄，避免溢出 */
+@media (max-width: 420px) {
+    #bottomHudActionRow { gap: 0.125rem; }
+    #bottomHudActionRow button { width: 1.85rem !important; height: 1.85rem !important; }
+    #bottomHudActionRow button i { font-size: 0.65rem !important; }
+}
+@media (max-width: 360px) {
+    #bottomHudActionRow { gap: 0.05rem; }
+    #bottomHudActionRow button { width: 1.6rem !important; height: 1.6rem !important; }
+    #bottomHudActionRow button i { font-size: 0.6rem !important; }
+}
+@media (max-width: 320px) {
+    #bottomHudActionRow { gap: 0rem; }
+    #bottomHudActionRow button { width: 1.4rem !important; height: 1.4rem !important; }
+    #bottomHudActionRow button i { font-size: 0.55rem !important; }
+}
+
 @media (max-width: 767px) {
     #winClockSplitPane { width: 100%; }
     #splitDivider { display: none; }
@@ -336,12 +388,12 @@ body.split-view-active #winClockSplitPane {
     body.split-view-active #pomoCustomModal,
     body.split-view-active #pwaInstallModal,
     body.split-view-active #whatsNewModal,
-    body.split-view-active #breathingModal,
     body.split-view-active #iosThemeModal,
     body.split-view-active .ios-mode-backdrop {
         right: calc((100 - var(--split)) * 1%) !important;
     }
-    body.split-view-active #zenNotice {
+    body.split-view-active #islandNotice,
+    body.split-view-active #ytProjectionWidget {
         left: calc(var(--split) * 0.5 * 1%) !important;
     }
     /* 主題卡片原本以整個視窗寬度計算，改以左半寬度為基準 */
@@ -373,12 +425,12 @@ body.split-view-active #winClockSplitPane {
     body.split-view-active.clock-expanded #pomoCustomModal,
     body.split-view-active.clock-expanded #pwaInstallModal,
     body.split-view-active.clock-expanded #whatsNewModal,
-    body.split-view-active.clock-expanded #breathingModal,
     body.split-view-active.clock-expanded #iosThemeModal,
     body.split-view-active.clock-expanded .ios-mode-backdrop {
         right: 0 !important;
     }
-    body.split-view-active.clock-expanded #zenNotice { left: 50% !important; }
+    body.split-view-active.clock-expanded #islandNotice,
+    body.split-view-active.clock-expanded #ytProjectionWidget { left: 50% !important; }
     body.split-view-active.clock-expanded .ios-adjacent-card { width: 62vw !important; }
     body.split-view-active.clock-expanded #iosCardsContainer {
         padding-left: calc(50vw - 31vw) !important;
@@ -688,7 +740,6 @@ body.theme-is-light #fpsValDisplay {
 
 body.theme-is-light #settingsModal,
 body.theme-is-light #winClockSplitPane,
-body.theme-is-light #taskDrawer,
 body.theme-is-light #audioMixerDrawer,
 body.theme-is-light #pomoCustomModal,
 body.theme-is-light #pwaInstallModal,
@@ -732,7 +783,6 @@ body.theme-is-light #winClockSplitPane .hover\:text-white:hover {
 
 body.theme-is-light #settingsModal .glass-panel,
 body.theme-is-light #winClockSplitPane .glass-panel,
-body.theme-is-light #taskDrawer.glass-panel,
 body.theme-is-light #audioMixerDrawer.glass-panel,
 body.theme-is-light #pomoCustomModal .glass-panel,
 body.theme-is-light #pwaInstallModal .glass-panel,
@@ -751,7 +801,6 @@ body.theme-is-light #settingsModal h3,
 body.theme-is-light #whatsNewModal h3,
 body.theme-is-light #pomoCustomModal h3,
 body.theme-is-light #pwaInstallModal h3,
-body.theme-is-light #taskDrawer span,
 body.theme-is-light #audioMixerDrawer span {
     color: #0f172a !important;
 }
@@ -762,7 +811,6 @@ body.theme-is-light #settingsModal .bg-black\/10 {
 }
 
 body.theme-is-light #settingsModal .border-white\/10,
-body.theme-is-light #taskDrawer .border-white\/10,
 body.theme-is-light #audioMixerDrawer .border-white\/10,
 body.theme-is-light #pomoCustomModal .border-white\/10,
 body.theme-is-light #pwaInstallModal .border-white\/10,
@@ -812,6 +860,12 @@ body.theme-is-light .settings-tab-btn[data-tab="tab-focus"].bg-purple-500\/10 {
     background-color: rgba(168, 85, 247, 0.18) !important;
     color: #7e22ce !important;
     border-color: rgba(168, 85, 247, 0.35) !important;
+}
+body.theme-is-light .settings-tab-btn.bg-slate-500\/10,
+body.theme-is-light .settings-tab-btn[data-tab="tab-dev"].bg-slate-500\/10 {
+    background-color: rgba(100, 116, 139, 0.15) !important;
+    color: #334155 !important;
+    border-color: rgba(100, 116, 139, 0.25) !important;
 }
 body.theme-is-light .settings-tab-btn.bg-teal-500\/10,
 body.theme-is-light .settings-tab-btn[data-tab="tab-shortcuts"].bg-teal-500\/10 {
@@ -941,6 +995,15 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         </div>
 
         <!-- 頂部工具列 -->
+        <div id="islandNotice" class="fixed top-3 left-1/2 -translate-x-1/2 z-[70] pointer-events-none">
+            <div id="islandPill" class="rounded-full border flex items-center justify-center overflow-hidden" style="width:14px;height:38px;">
+                <div id="islandContent" class="flex items-center space-x-2 px-4 py-2.5 whitespace-nowrap opacity-0">
+                    <i id="islandIcon" class="fa-solid fa-circle-check text-emerald-400 text-sm shrink-0"></i>
+                    <span id="islandText" class="text-white text-xs font-medium"></span>
+                </div>
+            </div>
+        </div>
+
         <header id="topHud" class="hud-element absolute top-0 left-0 right-0 z-20 flex justify-between items-center p-4 sm:p-6 text-xs sm:text-sm">
             <div class="flex items-center space-x-3">
                 <div id="langDropdownWrap" class="relative">
@@ -982,10 +1045,6 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                         </button>
                     </div>
                 </div>
-                <button id="toggleTaskDrawerBtn" title="任務與草稿" class="group flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 hover:border-indigo-400/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.25)] hover:scale-105 active:scale-95 text-white/90 transition-all duration-300 shadow-lg cursor-pointer">
-                    <i class="fa-solid fa-list-check text-indigo-400 group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-300"></i>
-                    <span class="hud-label font-medium">任務與草稿</span>
-                </button>
                 <button id="toggleWinClockBtn" class="group flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 hover:border-sky-400/50 hover:shadow-[0_0_15px_rgba(56,189,248,0.25)] hover:scale-105 active:scale-95 text-white/90 transition-all duration-300 shadow-lg cursor-pointer" title="開啟擴充功能 (Alt + C)">
                     <i class="fa-solid fa-table-cells-large text-sky-400 group-hover:scale-110 transition-transform duration-300"></i>
                     <span class="hud-label font-medium">擴充功能</span>
@@ -1000,19 +1059,6 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 </button>
             </div>
         </header>
-
-        <!-- 任務抽屜 -->
-        <div id="taskDrawer" class="drawer-slide absolute top-20 left-4 z-30 w-80 sm:w-96 glass-panel rounded-3xl p-5 border border-white/15 shadow-2xl opacity-0 pointer-events-none -translate-x-full">
-            <div class="flex justify-between items-center pb-3 border-b border-white/10 mb-4">
-                <div class="flex items-center space-x-2 text-indigo-300 font-semibold text-sm">
-                    <i class="fa-solid fa-book-bookmark"></i><span>任務與隨手筆記</span>
-                </div>
-                <button id="closeTaskDrawerBtn" class="text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div id="taskDeprecationNotice" class="flex items-start space-x-2 px-3 py-2.5 rounded-xl bg-amber-500/10 border border-amber-400/30 text-amber-200 text-[11px] leading-relaxed">
-                <i class="fa-solid fa-triangle-exclamation mt-0.5 shrink-0"></i><span>此功能已淘汰，請打開擴充功能中的待辦事項或記事本繼續使用</span>
-            </div>
-        </div>
 
         <!-- 音效混音器抽屜 -->
         <div id="audioMixerDrawer" class="drawer-slide absolute top-20 right-4 z-30 w-80 glass-panel rounded-3xl p-5 border border-white/15 shadow-2xl opacity-0 pointer-events-none translate-x-full max-h-[85vh] overflow-y-auto custom-scrollbar">
@@ -1032,16 +1078,26 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                         <input id="ytUrlInput" type="text" placeholder="貼上影片或直播網址..." class="w-full bg-black/40 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-red-500 transition">
                         <button id="ytLoadBtn" class="bg-red-600 hover:bg-red-500 text-white text-xs px-2.5 py-1.5 rounded-xl shrink-0 font-medium transition shadow-md shadow-red-600/20 active:scale-95">載入</button>
                     </div>
+                    <button id="ytOpenSiteBtn" class="w-full flex items-center justify-center space-x-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-[11px] py-1.5 rounded-xl transition border border-white/5"><i class="fa-brands fa-youtube text-red-500"></i><span id="ytOpenSiteLabel">開啟 YouTube 網站</span></button>
                     <div id="ytPlayerContainer" class="hidden w-full mt-2"></div>
                 </div>
             </div>
         </div>
 
-        <div id="ytProjectionWidget" class="hidden hud-element fixed top-20 right-4 z-[25] glass-panel rounded-2xl px-2.5 py-2 border border-white/15 shadow-2xl flex items-center space-x-1.5">
+        <div id="ytProjectionWidget" class="hidden hud-element fixed top-3 left-1/2 z-[24] bg-black/90 backdrop-blur-xl rounded-full px-3 border border-white/10 shadow-2xl flex items-center space-x-1.5" style="height:38px;">
             <i class="fa-brands fa-youtube text-red-500 text-sm ml-0.5 mr-0.5"></i>
             <button id="ytBgRewindBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="倒退 10 秒"><i class="fa-solid fa-rotate-left text-xs"></i><span class="tooltip-text">倒退 10 秒</span></button>
             <button id="ytBgPlayPauseBtn" class="w-9 h-9 flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-md"><i id="ytBgPlayPauseIcon" class="fa-solid fa-pause text-xs"></i></button>
             <button id="ytBgForwardBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="前進 10 秒"><i class="fa-solid fa-rotate-right text-xs"></i><span class="tooltip-text">前進 10 秒</span></button>
+            <div class="h-5 w-[1px] bg-white/15 mx-0.5"></div>
+            <div class="relative">
+                <button id="ytVolumeBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="音量調整"><i id="ytVolumeIcon" class="fa-solid fa-volume-high text-xs"></i><span class="tooltip-text">音量調整</span></button>
+                <div id="ytVolumePopover" class="hidden absolute top-full right-0 mt-2 glass-panel rounded-xl p-3 border border-white/15 shadow-2xl w-36 z-[26]">
+                    <div class="flex justify-between text-[10px] text-white/60 mb-1.5"><span>音量</span><span id="ytWidgetVolumeVal" class="font-mono text-white/80">100%</span></div>
+                    <input id="ytWidgetVolumeSlider" type="range" min="0" max="100" step="1" value="100" class="w-full accent-indigo-400 bg-white/10 rounded-lg cursor-pointer h-1.5">
+                </div>
+            </div>
+            <button id="ytStopMediaBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-rose-500/80 text-white/80 hover:text-white transition tooltip" title="關閉媒體"><i class="fa-solid fa-stop text-xs"></i><span class="tooltip-text">關閉媒體</span></button>
             <div class="h-5 w-[1px] bg-white/15 mx-0.5"></div>
             <button id="ytCastToggleBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="投影到背景"><i id="ytCastToggleIcon" class="fa-solid fa-tv text-xs"></i><span id="ytCastToggleTooltip" class="tooltip-text">投影到背景</span></button>
         </div>
@@ -1065,14 +1121,13 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 <div class="flex items-center space-x-1.5">
                     <button id="togglePomoFoldBtn" class="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-white/70 hover:text-white transition tooltip flex items-center space-x-1">
                         <i id="pomoFoldIcon" class="fa-solid fa-stopwatch text-xs text-indigo-400"></i>
-                        <span id="pomoFoldMiniText" class="text-[11px] font-mono text-indigo-300 px-1">25m</span>
                         <span class="tooltip-text" id="pomoFoldTooltip">展開控制按鈕</span>
                     </button>
                 </div>
 
                 <div class="h-4 w-[1px] bg-white/15 mx-1 hidden sm:block"></div>
 
-                <div class="flex items-center space-x-1">
+                <div id="bottomHudActionRow" class="flex items-center space-x-1 min-w-0">
                     <button id="shareBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="分享網站"><i class="fa-solid fa-share-nodes text-xs text-indigo-300"></i><span class="tooltip-text">分享網站</span></button>
                     <button id="pipBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="懸浮時鐘 (Alt + P)"><i class="fa-solid fa-arrow-up-right-from-square text-xs text-indigo-300"></i><span class="tooltip-text">子母畫面</span></button>
                     <button id="lowPerfToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="切換性能模式"><i id="lowPerfIcon" class="fa-solid fa-leaf text-xs text-green-400"></i><span id="lowPerfText" class="tooltip-text">性能: 標準</span></button>
@@ -1198,48 +1253,6 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         </div>
     </div>
 
-    <!-- Zen 模式提示 -->
-    <div id="zenNotice" class="fixed top-8 left-1/2 -translate-x-1/2 z-50 bg-black/70 backdrop-blur-md border border-white/20 text-white/90 text-xs px-4 py-2 rounded-full pointer-events-none transition-all duration-500 opacity-0 transform -translate-y-4 shadow-xl">
-        <i class="fa-solid fa-spa text-indigo-400 mr-2"></i>已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）
-    </div>
-
-    <!-- 正念呼吸引導 Modal -->
-    <div id="breathingModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-2xl flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 p-4 select-none">
-        <button id="closeBreathingBtn" class="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition active:scale-95 cursor-pointer z-20">
-            <i class="fa-solid fa-xmark text-lg"></i>
-        </button>
-
-        <div class="flex flex-col items-center max-w-md w-full text-center z-10 space-y-6 sm:space-y-8">
-            <div class="space-y-1">
-                <span class="text-xs font-mono text-sky-300 tracking-widest uppercase bg-sky-500/20 border border-sky-400/30 px-3.5 py-1 rounded-full"><i class="fa-solid fa-lungs mr-1.5"></i>正念沉浸呼吸</span>
-                <p id="breathingSubtitle" class="text-xs text-white/50 mt-2">深呼吸，調整節奏，重拾沉靜專注</p>
-            </div>
-
-            <!-- 動態擴張圓環 -->
-            <div class="relative flex items-center justify-center my-4 w-64 h-64 sm:w-72 sm:h-72">
-                <div id="breathingGlowCircle" class="absolute inset-0 rounded-full bg-sky-500/20 blur-3xl transition-transform duration-[4000ms] ease-in-out scale-75 opacity-60"></div>
-                <div id="breathingOuterRing" class="absolute inset-0 rounded-full border-2 border-sky-400/30 transition-transform duration-[4000ms] ease-in-out scale-75 shadow-[0_0_50px_rgba(56,189,248,0.2)]"></div>
-                <div id="breathingInnerRing" class="absolute inset-4 rounded-full border border-sky-300/40 bg-sky-500/10 backdrop-blur-md transition-transform duration-[4000ms] ease-in-out scale-75 flex flex-col items-center justify-center p-4">
-                    <span id="breathingPhaseText" class="text-2xl sm:text-3xl font-light tracking-widest text-white text-shadow-glow">吸氣</span>
-                    <span id="breathingTimerText" class="text-4xl sm:text-5xl font-mono font-extralight text-sky-200 mt-2">4</span>
-                </div>
-            </div>
-
-            <!-- 呼吸模式選擇器 -->
-            <div class="flex flex-col space-y-3 w-full max-w-xs">
-                <div class="grid grid-cols-3 gap-2 text-xs">
-                    <button onclick="setBreathingTechnique('box')" id="btnBreathBox" class="bg-sky-500/20 border border-sky-400/40 text-sky-200 py-2 rounded-xl font-semibold transition active:scale-95">4-4-4-4 箱式</button>
-                    <button onclick="setBreathingTechnique('relax')" id="btnBreathRelax" class="bg-white/5 border border-transparent text-white/70 hover:bg-white/10 py-2 rounded-xl font-semibold transition active:scale-95">4-7-8 放鬆</button>
-                    <button onclick="setBreathingTechnique('calm')" id="btnBreathCalm" class="bg-white/5 border border-transparent text-white/70 hover:bg-white/10 py-2 rounded-xl font-semibold transition active:scale-95">5-5 均勻</button>
-                </div>
-                <div class="flex items-center justify-between text-[11px] text-white/40 px-1 pt-1">
-                    <span id="breathingCycleCount" class="font-mono">已完成 0 次循環</span>
-                    <button id="toggleBreathSoundBtn" class="hover:text-white/80 transition flex items-center space-x-1"><i class="fa-solid fa-volume-high text-sky-400 mr-1"></i><span>提示音：開</span></button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- 進階設定彈窗 -->
     <div id="settingsModal" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-4 overflow-hidden">
         <div class="modal-slide-up glass-panel w-full max-w-2xl rounded-3xl flex flex-col border border-white/15 shadow-2xl overflow-hidden max-h-[90vh]">
@@ -1296,6 +1309,16 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                         <i class="fa-solid fa-chevron-right text-white/30 text-[11px] sm:hidden"></i>
                     </button>
 
+                    <button class="settings-tab-btn w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-white/60 hover:bg-white/5 hover:text-white/80 text-xs font-semibold transition shrink-0 border border-transparent active:scale-[0.98]" data-tab="tab-dev" data-title="開發者設定" data-icon="fa-solid fa-code text-slate-400" data-active-bg="bg-slate-500/10" data-active-text="text-slate-300" data-active-border="border-slate-500/20">
+                        <div class="flex items-center space-x-3 text-left">
+                            <i class="fa-solid fa-code text-slate-400 w-4 text-center"></i>
+                            <div>
+                                <div class="font-bold">開發者設定</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-white/30 text-[11px] sm:hidden"></i>
+                    </button>
+
                     <button id="openWhatsNewFromSettingsBtn" class="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl text-amber-300/80 hover:bg-amber-500/10 text-xs font-semibold transition shrink-0 border border-transparent active:scale-[0.98]">
                         <div class="flex items-center space-x-3 text-left">
                             <i class="fa-solid fa-sparkles text-amber-300 w-4 text-center"></i>
@@ -1323,7 +1346,12 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                         </div>
                         <div class="pt-3 border-t border-white/10 space-y-4">
                             <div class="flex items-center justify-between"><span class="text-white/80">滑鼠/觸控與雨滴玻璃互動</span><input type="checkbox" id="glassInteractionToggle" class="w-4 h-4 accent-amber-500 rounded cursor-pointer"></div>
-                            <div class="flex items-center justify-between"><span class="text-white/80">顯示即時 FPS 影格率</span><input type="checkbox" id="showFpsToggle" class="w-4 h-4 accent-amber-500 rounded cursor-pointer"></div>
+                        </div>
+                    </div>
+                    <div id="tab-dev" class="settings-tab-content space-y-6 text-xs hidden">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between"><span class="text-white/80">允許選取文字</span><input type="checkbox" id="allowTextSelectToggle" class="w-4 h-4 accent-slate-400 rounded cursor-pointer"></div>
+                            <div class="flex items-center justify-between"><span class="text-white/80">顯示即時 FPS 影格率</span><input type="checkbox" id="showFpsToggle" class="w-4 h-4 accent-slate-400 rounded cursor-pointer"></div>
                         </div>
                     </div>
                     <div id="tab-clock" class="settings-tab-content space-y-6 text-xs hidden">
@@ -1379,7 +1407,6 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                             <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">跳過目前階段</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">N</kbd></div>
                             <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">Zen 沉浸模式</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">Z</kbd></div>
                             <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">總聲音靜音</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">M</kbd></div>
-                            <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">任務與草稿</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">T</kbd></div>
                             <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">專注音效</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">A</kbd></div>
                             <div class="bg-white/5 p-2.5 rounded-xl border border-white/5 flex items-center justify-between"><span class="text-white/80">開啟進階設定</span><kbd class="px-2 py-0.5 bg-black/50 border border-white/20 rounded font-mono text-teal-300">S</kbd></div>
                         </div>
@@ -1461,6 +1488,23 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
                     <div class="text-[11px] sm:text-xs text-slate-600 text-center font-serif italic">極簡純白，澄澈思緒</div>
                     <button class="card-select-badge bg-slate-800 text-white font-bold text-xs sm:text-sm px-5 py-2 rounded-full shadow-lg transition hover:scale-105">套用主題</button>
+                </div>
+            </div>
+
+            <!-- 淺色主題 4 - 蜜桃奶油 -->
+            <div data-ios-theme="peach_cream" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-rose-50/90 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
+                <canvas class="card-bg-canvas"></canvas>
+                <div class="flex justify-between items-center text-rose-900 text-xs sm:text-sm font-semibold z-10">
+                    <span class="flex items-center"><i class="fa-solid fa-ice-cream mr-2 text-rose-500"></i>蜜桃奶油 (淺色)</span>
+                    <span class="active-badge hidden text-[10px] sm:text-xs bg-rose-500/20 text-rose-800 border border-rose-400/40 px-2.5 py-0.5 rounded-full">使用中</span>
+                </div>
+                <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
+                    <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-slate-800 text-shadow-glow">00:00:00</div>
+                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-rose-800 uppercase tracking-wider">2026年9月8日</div>
+                </div>
+                <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
+                    <div class="text-[11px] sm:text-xs text-rose-700 text-center font-serif italic">暖粉蜜桃，柔軟治癒</div>
+                    <button class="card-select-badge bg-rose-500 text-white font-bold text-xs sm:text-sm px-5 py-2 rounded-full shadow-lg transition hover:scale-105">套用主題</button>
                 </div>
             </div>
 
@@ -1595,23 +1639,6 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 </div>
             </div>
 
-            <!-- 淺色主題 4 - 蜜桃奶油 -->
-            <div data-ios-theme="peach_cream" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-rose-50/90 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
-                <canvas class="card-bg-canvas"></canvas>
-                <div class="flex justify-between items-center text-rose-900 text-xs sm:text-sm font-semibold z-10">
-                    <span class="flex items-center"><i class="fa-solid fa-ice-cream mr-2 text-rose-500"></i>蜜桃奶油 (淺色)</span>
-                    <span class="active-badge hidden text-[10px] sm:text-xs bg-rose-500/20 text-rose-800 border border-rose-400/40 px-2.5 py-0.5 rounded-full">使用中</span>
-                </div>
-                <div class="z-10 flex flex-col items-center justify-center my-auto space-y-1 text-center">
-                    <div class="card-time-display font-sans font-light text-3xl sm:text-5xl text-slate-800 text-shadow-glow">00:00:00</div>
-                    <div class="card-date-display font-mono text-[10px] sm:text-xs text-rose-800 uppercase tracking-wider">2026年9月8日</div>
-                </div>
-                <div class="z-10 flex flex-col items-center space-y-2 mt-auto">
-                    <div class="text-[11px] sm:text-xs text-rose-700 text-center font-serif italic">暖粉蜜桃，柔軟治癒</div>
-                    <button class="card-select-badge bg-rose-500 text-white font-bold text-xs sm:text-sm px-5 py-2 rounded-full shadow-lg transition hover:scale-105">套用主題</button>
-                </div>
-            </div>
-
             <!-- 深色主題 - 熔岩赤焰 -->
             <div data-ios-theme="molten_ember" class="ios-adjacent-card ios-theme-card shrink-0 snap-center bg-black/80 p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between ios-card-shadow cursor-pointer border-2 border-white/20">
                 <canvas class="card-bg-canvas"></canvas>
@@ -1709,30 +1736,30 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         <div class="flex justify-between items-center border-b border-white/10 pb-4">
             <div class="flex items-center space-x-3">
                 <div class="w-9 h-9 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-base border border-indigo-500/30 shadow-lg shadow-indigo-500/10"><i class="fa-solid fa-sparkles"></i></div>
-                <div><h3 class="font-bold text-white text-base">AURA Studio v1.2.2 正式版</h3><p class="text-[10px] text-indigo-300/80 font-mono uppercase tracking-wider">v1.2.2 Official Release Notes</p></div>
+                <div><h3 class="font-bold text-white text-base">AURA Studio v1.2.3 正式版</h3><p class="text-[10px] text-indigo-300/80 font-mono uppercase tracking-wider">v1.2.3 Official Release Notes</p></div>
             </div>
             <button id="closeWhatsNewModalBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-3 text-xs">
             <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                <div class="w-7 h-7 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-palette text-xs"></i></div>
-                <div><h4 class="font-semibold text-white/90 mb-0.5">1. 新增 3 款主題 + 直向列表模式</h4><p class="text-white/60 leading-relaxed text-[11px]">主題新增「蜜桃奶油」「熔岩赤焰」「薰衣草暮色」；主題選單右上角新增切換鍵，可在橫向滑動卡片與直向條列清單間切換。</p></div>
+                <div class="w-7 h-7 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-circle-notch text-xs"></i></div>
+                <div><h4 class="font-semibold text-white/90 mb-0.5">1. 全新「靈動島」通知樣式</h4><p class="text-white/60 leading-relaxed text-[11px]">所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。</p></div>
             </div>
             <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                <div class="w-7 h-7 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-share-nodes text-xs"></i></div>
-                <div><h4 class="font-semibold text-white/90 mb-0.5">2. 分享網站按鈕</h4><p class="text-white/60 leading-relaxed text-[11px]">子母畫面按鈕左邊新增「分享網站」，支援裝置原生分享面板，不支援時自動改為複製連結。</p></div>
+                <div class="w-7 h-7 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-lungs text-xs"></i></div>
+                <div><h4 class="font-semibold text-white/90 mb-0.5">2. 正念呼吸簡化為靈動島顯示</h4><p class="text-white/60 leading-relaxed text-[11px]">移除全螢幕呼吸引導畫面，改成按下工具列按鈕即反白啟動，呼吸階段與倒數直接顯示在靈動島上。</p></div>
             </div>
             <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                <div class="w-7 h-7 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-tv text-xs"></i></div>
-                <div><h4 class="font-semibold text-white/90 mb-0.5">3. YouTube 專注音樂投影到背景</h4><p class="text-white/60 leading-relaxed text-[11px]">專注音效的 YouTube 影片可投影成全螢幕背景，雨滴效果會疊在影片上方；右上角常駐小面板可控制播放/暫停與快轉倒退 10 秒。</p></div>
+                <div class="w-7 h-7 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-volume-high text-xs"></i></div>
+                <div><h4 class="font-semibold text-white/90 mb-0.5">3. YouTube 控制整合進靈動島</h4><p class="text-white/60 leading-relaxed text-[11px]">YouTube 控制項目移到靈動島上常駐顯示，支援音量調整、關閉媒體與系統媒體控制整合；遇到其他通知時會自動往下避讓，窄螢幕顯示時頂部按鈕會先淡出；專注音效面板新增「開啟 YouTube 網站」按鈕。</p></div>
             </div>
             <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                <div class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-wind text-xs"></i></div>
-                <div><h4 class="font-semibold text-white/90 mb-0.5">4. 分割畫面動畫簡化</h4><p class="text-white/60 leading-relaxed text-[11px]">桌面時鐘的分割畫面改為單純從右側平滑滑入／滑出，轉場更俐落流暢。</p></div>
+                <div class="w-7 h-7 rounded-xl bg-slate-500/20 text-slate-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-code text-xs"></i></div>
+                <div><h4 class="font-semibold text-white/90 mb-0.5">4. 新增「開發者設定」分頁</h4><p class="text-white/60 leading-relaxed text-[11px]">可開啟「允許選取文字」，並把「顯示即時 FPS」選項移到這裡集中管理。</p></div>
             </div>
             <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                <div class="w-7 h-7 rounded-xl bg-teal-500/20 text-teal-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-sun text-xs"></i></div>
-                <div><h4 class="font-semibold text-white/90 mb-0.5">5. 淺色模式擴充功能頁面優化</h4><p class="text-white/60 leading-relaxed text-[11px]">修正擴充功能頁面在淺色主題下底色過暗、文字不易閱讀的問題。</p></div>
+                <div class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-broom text-xs"></i></div>
+                <div><h4 class="font-semibold text-white/90 mb-0.5">5. 介面修正與清理</h4><p class="text-white/60 leading-relaxed text-[11px]">移除「任務與草稿」功能；修正主題選單「使用中」標示與雨滴效果即時性問題；淺色主題分組排列；底部按鈕列在窄螢幕自動縮窄；移除重複的番茄鐘時間顯示。</p></div>
             </div>
         </div>
         <div class="pt-2 border-t border-white/10 flex items-center gap-2">
@@ -1740,7 +1767,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             <a href="https://github.com/henry01151111/AURA-Studio/" target="_blank" rel="noopener noreferrer" class="flex-1 bg-white hover:bg-slate-100 text-slate-900 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-md active:scale-95"><i class="fa-brands fa-github text-sm"></i><span>GitHub 開源專案</span></a>
         </div>
         <div class="pt-1 flex flex-col space-y-2.5">
-            <button id="startFocusBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i><span>探索 v1.2.2 正式版，開始使用</span></button>
+            <button id="startFocusBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i><span>探索 v1.2.3 正式版，開始使用</span></button>
         </div>
     </div>
 </div>
@@ -1821,6 +1848,9 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "貼上影片或直播網址...": "Paste video or stream URL...",
             "載入": "Load",
             "移除音樂": "Remove Music",
+            "關閉媒體": "Stop Media",
+            "音量": "Volume",
+            "開啟 YouTube 網站": "Open YouTube Website",
             "投影到背景": "Project to background",
             "倒退 10 秒": "Rewind 10 seconds",
             "前進 10 秒": "Forward 10 seconds",
@@ -1904,6 +1934,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "Clock & Appearance",
             "專注與系統": "Focus & System",
             "快捷鍵指南": "Keyboard Shortcuts",
+            "開發者設定": "Developer Settings",
+            "允許選取文字": "Allow Text Selection",
+            "媒體控制": "Media Controls",
+            "關閉媒體（停用系統媒體控制整合）": "Disable Media (turn off system media integration)",
+            "音量調整": "Volume",
             "最新升級特色": "What's New",
             "恢復預設值": "Restore Defaults",
             "雨滴滑落速度": "Rain Fall Speed",
@@ -1983,7 +2018,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "October",
             "十一月": "November",
             "十二月": "December",
-            "AURA Studio v1.2.2 正式版": "AURA Studio v1.2.2 Official",
+            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 Official",
+            "1. 全新「靈動島」通知樣式": "1. Brand-New “Dynamic Island” Notifications",
+            "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "All system notices now expand from a top-center dot in Dynamic Island style; shown on exiting Zen Mode, toggling performance mode, entering fullscreen, Pomodoro phase changes, and new version alerts.",
+            "2. 正念呼吸簡化為靈動島顯示": "2. Mindful Breathing Simplified to the Island",
+            "移除全螢幕呼吸引導畫面，改成按下工具列按鈕即反白啟動，呼吸階段與倒數直接顯示在靈動島上。": "Removed the full-screen breathing guide; the toolbar button now highlights when active, and the breathing phase and countdown show directly on the Dynamic Island.",
+            "3. YouTube 控制整合進靈動島": "3. YouTube Controls Integrated into the Dynamic Island",
+            "YouTube 控制項目移到靈動島上常駐顯示，支援音量調整、關閉媒體與系統媒體控制整合；遇到其他通知時會自動往下避讓，窄螢幕顯示時頂部按鈕會先淡出；專注音效面板新增「開啟 YouTube 網站」按鈕。": "YouTube controls now live persistently on the Dynamic Island, with volume control, stop-media, and system media control integration; when another notice appears it automatically moves down to make room, and on narrow screens the top buttons fade out first; a new “Open YouTube Website” button was added to the Focus Sounds panel.",
+            "4. 新增「開發者設定」分頁": "4. New “Developer Settings” Tab",
+            "可開啟「允許選取文字」，並把「顯示即時 FPS」選項移到這裡集中管理。": "Toggle “Allow Text Selection”, and the “Show Live FPS” option has moved here for centralized management.",
+            "5. 介面修正與清理": "5. UI Fixes & Cleanup",
+            "移除「任務與草稿」功能；修正主題選單「使用中」標示與雨滴效果即時性問題；淺色主題分組排列；底部按鈕列在窄螢幕自動縮窄；移除重複的番茄鐘時間顯示。": "Removed the Tasks & Drafts feature; fixed the theme menu's “Active” badge and real-time rain-effect issues; grouped light themes together; the bottom button row now auto-shrinks on narrow screens; removed the duplicate Pomodoro time display.",
             "1. 新增 3 款主題 + 直向列表模式": "1. 3 New Themes + Vertical List Mode",
             "主題新增「蜜桃奶油」「熔岩赤焰」「薰衣草暮色」；主題選單右上角新增切換鍵，可在橫向滑動卡片與直向條列清單間切換。": "Added Peach Cream, Molten Ember, and Lavender Dusk themes; a new toggle in the top-right of the theme menu switches between horizontal swipe cards and a vertical list.",
             "2. 分享網站按鈕": "2. Share Website Button",
@@ -2004,7 +2049,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "AURA Studio now greets you with a simple fade-in title and a soft breathing glow every time you open it.",
             "5. 新增 Gemini 對話助手": "5. New Gemini Chat Assistant",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "A new AI chat tool, \"Gemini Chat Assistant,\" has been added to Extensions, connecting to Google Gemini AI Studio so you can ask questions and organize your thoughts right in the split view; the Install App window also gained a \"Learn More\" button with detailed install instructions.",
-            "探索 v1.2.2 正式版，開始使用": "Explore v1.2.2 — Get Started"
+            "探索 v1.2.3 正式版，開始使用": "Explore v1.2.3 — Get Started"
         };
         const enToZhMap = Object.fromEntries(Object.entries(zhToEnMap).map(([k,v]) => [v, k]));
         const zhToCnMap = {
@@ -2082,6 +2127,9 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "貼上影片或直播網址...": "贴上影片或直播网址...",
             "載入": "载入",
             "移除音樂": "移除音乐",
+            "關閉媒體": "关闭媒体",
+            "音量": "音量",
+            "開啟 YouTube 網站": "打开 YouTube 网站",
             "投影到背景": "投影到背景",
             "倒退 10 秒": "倒退 10 秒",
             "前進 10 秒": "前进 10 秒",
@@ -2165,6 +2213,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "时钟与外观",
             "專注與系統": "专注与系统",
             "快捷鍵指南": "快捷键指南",
+            "開發者設定": "开发者设定",
+            "允許選取文字": "允许选取文字",
+            "媒體控制": "媒体控制",
+            "關閉媒體（停用系統媒體控制整合）": "关闭媒体（停用系统媒体控制整合）",
+            "音量調整": "音量调整",
             "最新升級特色": "最新升级特色",
             "恢復預設值": "恢复预设值",
             "雨滴滑落速度": "雨滴滑落速度",
@@ -2244,7 +2297,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "十月",
             "十一月": "十一月",
             "十二月": "十二月",
-            "AURA Studio v1.2.2 正式版": "AURA Studio v1.2.2 正式版",
+            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 正式版",
+            "1. 全新「靈動島」通知樣式": "1. 全新「灵动岛」通知样式",
+            "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "所有系统通知改成从顶部置中圆点左右展开的灵动岛样式；退出 Zen 模式、切换性能模式、进入全萤幕、番茄钟切换阶段、发现新版本时都会显示。",
+            "2. 正念呼吸簡化為靈動島顯示": "2. 正念呼吸简化为灵动岛显示",
+            "移除全螢幕呼吸引導畫面，改成按下工具列按鈕即反白啟動，呼吸階段與倒數直接顯示在靈動島上。": "移除全萤幕呼吸引导画面，改成按下工具列按钮即反白启动，呼吸阶段与倒数直接显示在灵动岛上。",
+            "3. YouTube 控制整合進靈動島": "3. YouTube 控制整合进灵动岛",
+            "YouTube 控制項目移到靈動島上常駐顯示，支援音量調整、關閉媒體與系統媒體控制整合；遇到其他通知時會自動往下避讓，窄螢幕顯示時頂部按鈕會先淡出；專注音效面板新增「開啟 YouTube 網站」按鈕。": "YouTube 控制项目移到灵动岛上常驻显示，支持音量调整、关闭媒体与系统媒体控制整合；遇到其他通知时会自动往下避让，窄萤幕显示时顶部按钮会先淡出；专注音效面板新增「打开 YouTube 网站」按钮。",
+            "4. 新增「開發者設定」分頁": "4. 新增「开发者设定」分页",
+            "可開啟「允許選取文字」，並把「顯示即時 FPS」選項移到這裡集中管理。": "可开启「允许选取文字」，并把「显示即时 FPS」选项移到这里集中管理。",
+            "5. 介面修正與清理": "5. 介面修正与清理",
+            "移除「任務與草稿」功能；修正主題選單「使用中」標示與雨滴效果即時性問題；淺色主題分組排列；底部按鈕列在窄螢幕自動縮窄；移除重複的番茄鐘時間顯示。": "移除「任务与草稿」功能；修正主题选单「使用中」标示与雨滴效果即时性问题；浅色主题分组排列；底部按钮列在窄萤幕自动缩窄；移除重复的番茄钟时间显示。",
             "1. 新增 3 款主題 + 直向列表模式": "1. 新增 3 款主题 + 纵向列表模式",
             "主題新增「蜜桃奶油」「熔岩赤焰」「薰衣草暮色」；主題選單右上角新增切換鍵，可在橫向滑動卡片與直向條列清單間切換。": "主题新增「蜜桃奶油」「熔岩赤焰」「薰衣草暮色」；主题选单右上角新增切换键，可在横向滑动卡片与纵向条列清单间切换。",
             "2. 分享網站按鈕": "2. 分享网站按钮",
@@ -2265,7 +2328,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "每次开启 AURA Studio，都会先看到一段简约文字淡入与呼吸感光晕的开场画面。",
             "5. 新增 Gemini 對話助手": "5. 新增 Gemini 对话助手",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "扩充功能新增 AI 对话工具「Gemini 对话助手」，串接 Google Gemini AI Studio，可直接在分割画面中提问、整理想法；安装 App 视窗也新增「了解详情」按钮，可查看详细安装说明。",
-            "探索 v1.2.2 正式版，開始使用": "探索 v1.2.2 正式版，开始使用",
+            "探索 v1.2.3 正式版，開始使用": "探索 v1.2.3 正式版，开始使用",
         };
         const cnToZhMap = Object.fromEntries(Object.entries(zhToCnMap).map(([k,v]) => [v, k]));
         const zhToJaMap = {
@@ -2343,6 +2406,9 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "貼上影片或直播網址...": "動画またはライブ配信のURLを貼り付け...",
             "載入": "読み込む",
             "移除音樂": "音楽を削除",
+            "關閉媒體": "メディアを停止",
+            "音量": "音量",
+            "開啟 YouTube 網站": "YouTubeサイトを開く",
             "投影到背景": "背景に投影",
             "倒退 10 秒": "10秒戻る",
             "前進 10 秒": "10秒進む",
@@ -2426,6 +2492,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "時計と外観",
             "專注與系統": "集中とシステム",
             "快捷鍵指南": "キーボードショートカット",
+            "開發者設定": "開発者設定",
+            "允許選取文字": "テキスト選択を許可",
+            "媒體控制": "メディアコントロール",
+            "關閉媒體（停用系統媒體控制整合）": "メディアを無効化（システムのメディア連携をオフ）",
+            "音量調整": "音量調整",
             "最新升級特色": "新機能",
             "恢復預設值": "デフォルトに戻す",
             "雨滴滑落速度": "雨粒の落下速度",
@@ -2505,7 +2576,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "10月",
             "十一月": "11月",
             "十二月": "12月",
-            "AURA Studio v1.2.2 正式版": "AURA Studio v1.2.2 正式版",
+            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 正式版",
+            "1. 全新「靈動島」通知樣式": "1. 新しい「ダイナミックアイランド」通知スタイル",
+            "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "すべてのシステム通知を、上部中央のドットから左右に広がるダイナミックアイランド風に変更。Zenモード終了、パフォーマンスモード切替、全画面表示、ポモドーロのフェーズ切替、新バージョン発見時に表示されます。",
+            "2. 正念呼吸簡化為靈動島顯示": "2. マインドフル呼吸をアイランド表示に簡素化",
+            "移除全螢幕呼吸引導畫面，改成按下工具列按鈕即反白啟動，呼吸階段與倒數直接顯示在靈動島上。": "全画面の呼吸ガイドを廃止。ツールバーのボタンを押すと反転表示され、呼吸フェーズとカウントダウンがダイナミックアイランドに直接表示されます。",
+            "3. YouTube 控制整合進靈動島": "3. YouTubeコントロールをダイナミックアイランドに統合",
+            "YouTube 控制項目移到靈動島上常駐顯示，支援音量調整、關閉媒體與系統媒體控制整合；遇到其他通知時會自動往下避讓，窄螢幕顯示時頂部按鈕會先淡出；專注音效面板新增「開啟 YouTube 網站」按鈕。": "YouTubeコントロールがダイナミックアイランド上に常駐表示されるようになり、音量調整、メディア停止、システムのメディアコントロール連携に対応。他の通知が来ると自動的に下へ移動してスペースを譲り、狭い画面では上部ボタンが先にフェードアウトします。集中サウンドパネルに「YouTubeサイトを開く」ボタンを追加。",
+            "4. 新增「開發者設定」分頁": "4. 「開発者設定」タブを追加",
+            "可開啟「允許選取文字」，並把「顯示即時 FPS」選項移到這裡集中管理。": "「テキスト選択を許可」を切り替え可能に。「FPSをリアルタイム表示」オプションもここに移動し一元管理。",
+            "5. 介面修正與清理": "5. UIの修正と整理",
+            "移除「任務與草稿」功能；修正主題選單「使用中」標示與雨滴效果即時性問題；淺色主題分組排列；底部按鈕列在窄螢幕自動縮窄；移除重複的番茄鐘時間顯示。": "「タスクとメモ」機能を削除。テーマメニューの「使用中」表示と雨エフェクトのリアルタイム性の問題を修正。ライトテーマをまとめて配置。下部ボタン列が狭い画面で自動縮小。重複していたポモドーロの時間表示を削除。",
             "1. 新增 3 款主題 + 直向列表模式": "1. 新テーマ3種 + 縦型リストモード",
             "主題新增「蜜桃奶油」「熔岩赤焰」「薰衣草暮色」；主題選單右上角新增切換鍵，可在橫向滑動卡片與直向條列清單間切換。": "「ピーチクリーム」「溶岩の残り火」「ラベンダーの黄昏」を追加。テーマメニュー右上の切り替えボタンで横スワイプと縦型リストを切り替え可能に。",
             "2. 分享網站按鈕": "2. 共有ボタンを追加",
@@ -2526,7 +2607,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "AURA Studioを開くたびに、シンプルなタイトルのフェードインと穏やかな呼吸のような輝きで迎えてくれます。",
             "5. 新增 Gemini 對話助手": "5. Gemini チャットアシスタントを追加",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "拡張機能に新しいAIチャットツール「Geminiチャットアシスタント」が追加され、Google Gemini AI Studioと接続して分割画面内で直接質問したり考えを整理したりできます。アプリのインストールウィンドウにも「詳細を見る」ボタンが追加され、詳しいインストール手順を確認できます。",
-            "探索 v1.2.2 正式版，開始使用": "v1.2.2 正式版を見る、使ってみる",
+            "探索 v1.2.3 正式版，開始使用": "v1.2.3 正式版を見る、使ってみる",
         };
         const jaToZhMap = Object.fromEntries(Object.entries(zhToJaMap).map(([k,v]) => [v, k]));
         const zhToKoMap = {
@@ -2604,6 +2685,9 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "貼上影片或直播網址...": "동영상 또는 스트리밍 주소 붙여넣기...",
             "載入": "불러오기",
             "移除音樂": "음악 제거",
+            "關閉媒體": "미디어 중지",
+            "音量": "볼륨",
+            "開啟 YouTube 網站": "YouTube 웹사이트 열기",
             "投影到背景": "배경에 투사",
             "倒退 10 秒": "10초 뒤로",
             "前進 10 秒": "10초 앞으로",
@@ -2687,6 +2771,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "시계와 디자인",
             "專注與系統": "집중과 시스템",
             "快捷鍵指南": "단축키 안내",
+            "開發者設定": "개발자 설정",
+            "允許選取文字": "텍스트 선택 허용",
+            "媒體控制": "미디어 제어",
+            "關閉媒體（停用系統媒體控制整合）": "미디어 비활성화(시스템 미디어 연동 끄기)",
+            "音量調整": "볼륨 조절",
             "最新升級特色": "최신 업데이트 소식",
             "恢復預設值": "기본값으로 복원",
             "雨滴滑落速度": "빗방울 떨어지는 속도",
@@ -2766,7 +2855,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "10월",
             "十一月": "11월",
             "十二月": "12월",
-            "AURA Studio v1.2.2 正式版": "AURA Studio v1.2.2 정식 버전",
+            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 정식 버전",
+            "1. 全新「靈動島」通知樣式": "1. 새로운 “다이나믹 아일랜드” 알림 스타일",
+            "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "모든 시스템 알림이 상단 중앙 점에서 좌우로 펼쳐지는 다이나믹 아일랜드 스타일로 변경됨; Zen 모드 종료, 성능 모드 전환, 전체 화면 진입, 뽀모도로 단계 전환, 새 버전 발견 시 표시됩니다.",
+            "2. 正念呼吸簡化為靈動島顯示": "2. 마인드풀 호흡이 아일랜드 표시로 간소화됨",
+            "移除全螢幕呼吸引導畫面，改成按下工具列按鈕即反白啟動，呼吸階段與倒數直接顯示在靈動島上。": "전체 화면 호흡 가이드를 제거하고, 툴바 버튼을 누르면 반전 강조되며 호흡 단계와 카운트다운이 다이나믹 아일랜드에 직접 표시됩니다.",
+            "3. YouTube 控制整合進靈動島": "3. YouTube 컨트롤이 다이나믹 아일랜드에 통합됨",
+            "YouTube 控制項目移到靈動島上常駐顯示，支援音量調整、關閉媒體與系統媒體控制整合；遇到其他通知時會自動往下避讓，窄螢幕顯示時頂部按鈕會先淡出；專注音效面板新增「開啟 YouTube 網站」按鈕。": "YouTube 컨트롤이 이제 다이나믹 아일랜드에 상시 표시되며, 볼륨 조절, 미디어 중지, 시스템 미디어 제어 연동을 지원합니다; 다른 알림이 나타나면 자동으로 아래로 이동해 자리를 비켜주고, 좁은 화면에서는 상단 버튼이 먼저 페이드아웃됩니다; 집중 사운드 패널에 'YouTube 웹사이트 열기' 버튼이 추가되었습니다.",
+            "4. 新增「開發者設定」分頁": "4. '개발자 설정' 탭 추가",
+            "可開啟「允許選取文字」，並把「顯示即時 FPS」選項移到這裡集中管理。": "'텍스트 선택 허용'을 켤 수 있으며, '실시간 FPS 표시' 옵션이 여기로 옮겨져 한 곳에서 관리됩니다.",
+            "5. 介面修正與清理": "5. UI 수정 및 정리",
+            "移除「任務與草稿」功能；修正主題選單「使用中」標示與雨滴效果即時性問題；淺色主題分組排列；底部按鈕列在窄螢幕自動縮窄；移除重複的番茄鐘時間顯示。": "'작업 및 메모' 기능 제거; 테마 메뉴의 '사용 중' 표시와 비 효과 실시간성 문제 수정; 라이트 테마를 함께 그룹화; 하단 버튼 줄이 좁은 화면에서 자동으로 축소됨; 중복된 뽀모도로 시간 표시 제거.",
             "1. 新增 3 款主題 + 直向列表模式": "1. 새 테마 3종 + 세로 목록 모드",
             "主題新增「蜜桃奶油」「熔岩赤焰」「薰衣草暮色」；主題選單右上角新增切換鍵，可在橫向滑動卡片與直向條列清單間切換。": "'피치 크림', '용암의 불씨', '라벤더 황혼' 테마 추가. 테마 메뉴 우측 상단의 전환 버튼으로 가로 스와이프와 세로 목록 보기를 전환할 수 있습니다.",
             "2. 分享網站按鈕": "2. 웹사이트 공유 버튼",
@@ -2787,7 +2886,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "AURA Studio를 열 때마다 간결한 타이틀 페이드인과 은은한 숨 쉬는 듯한 빛 효과로 맞이합니다.",
             "5. 新增 Gemini 對話助手": "5. Gemini 대화 도우미 추가",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "확장 기능에 AI 대화 도구 'Gemini 대화 도우미'가 추가되어 Google Gemini AI Studio와 연결해 분할 화면에서 바로 질문하고 생각을 정리할 수 있습니다. 앱 설치 창에도 '자세히 보기' 버튼이 추가되어 자세한 설치 안내를 볼 수 있습니다.",
-            "探索 v1.2.2 正式版，開始使用": "v1.2.2 정식 버전 살펴보기, 시작하기",
+            "探索 v1.2.3 正式版，開始使用": "v1.2.3 정식 버전 살펴보기, 시작하기",
         };
         const koToZhMap = Object.fromEntries(Object.entries(zhToKoMap).map(([k,v]) => [v, k]));
         const zhToFrMap = {
@@ -2865,6 +2964,9 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "貼上影片或直播網址...": "Collez l'URL d'une vidéo ou d'un flux...",
             "載入": "Charger",
             "移除音樂": "Retirer la musique",
+            "關閉媒體": "Arrêter le média",
+            "音量": "Volume",
+            "開啟 YouTube 網站": "Ouvrir le site YouTube",
             "投影到背景": "Projeter en arrière-plan",
             "倒退 10 秒": "Reculer de 10 s",
             "前進 10 秒": "Avancer de 10 s",
@@ -2948,6 +3050,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "Horloge et apparence",
             "專注與系統": "Concentration et système",
             "快捷鍵指南": "Guide des raccourcis clavier",
+            "開發者設定": "Paramètres développeur",
+            "允許選取文字": "Autoriser la sélection de texte",
+            "媒體控制": "Contrôles multimédias",
+            "關閉媒體（停用系統媒體控制整合）": "Désactiver les médias (désactive l'intégration média système)",
+            "音量調整": "Volume",
             "最新升級特色": "Nouveautés",
             "恢復預設值": "Restaurer les valeurs par défaut",
             "雨滴滑落速度": "Vitesse de chute des gouttes de pluie",
@@ -3027,7 +3134,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "Octobre",
             "十一月": "Novembre",
             "十二月": "Décembre",
-            "AURA Studio v1.2.2 正式版": "AURA Studio v1.2.2 Officielle",
+            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 Officielle",
+            "1. 全新「靈動島」通知樣式": "1. Nouveau style de notification « Dynamic Island »",
+            "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "Toutes les notifications système se déploient désormais depuis un point centré en haut, façon Dynamic Island ; affichées en quittant le mode Zen, en changeant de mode performance, en entrant en plein écran, lors des changements de phase Pomodoro et des alertes de nouvelle version.",
+            "2. 正念呼吸簡化為靈動島顯示": "2. Respiration consciente simplifiée sur l'île",
+            "移除全螢幕呼吸引導畫面，改成按下工具列按鈕即反白啟動，呼吸階段與倒數直接顯示在靈動島上。": "Le guide de respiration plein écran a été supprimé ; le bouton de la barre d'outils s'active en surbrillance et la phase de respiration avec le compte à rebours s'affiche directement sur la Dynamic Island.",
+            "3. YouTube 控制整合進靈動島": "3. Contrôles YouTube intégrés à la Dynamic Island",
+            "YouTube 控制項目移到靈動島上常駐顯示，支援音量調整、關閉媒體與系統媒體控制整合；遇到其他通知時會自動往下避讓，窄螢幕顯示時頂部按鈕會先淡出；專注音效面板新增「開啟 YouTube 網站」按鈕。": "Les contrôles YouTube résident désormais en permanence sur la Dynamic Island, avec réglage du volume, arrêt du média et intégration au contrôle média du système ; lorsqu'une autre notification apparaît, elle se déplace automatiquement vers le bas pour lui laisser la place, et sur les petits écrans les boutons du haut s'estompent d'abord ; un bouton « Ouvrir le site YouTube » a été ajouté au panneau des sons de concentration.",
+            "4. 新增「開發者設定」分頁": "4. Nouvel onglet « Paramètres développeur »",
+            "可開啟「允許選取文字」，並把「顯示即時 FPS」選項移到這裡集中管理。": "Activez « Autoriser la sélection de texte », et l'option « Afficher les FPS en direct » a été déplacée ici pour une gestion centralisée.",
+            "5. 介面修正與清理": "5. Corrections et nettoyage de l'interface",
+            "移除「任務與草稿」功能；修正主題選單「使用中」標示與雨滴效果即時性問題；淺色主題分組排列；底部按鈕列在窄螢幕自動縮窄；移除重複的番茄鐘時間顯示。": "Suppression de la fonction Tâches et brouillons ; correction du badge « Actif » du menu des thèmes et des problèmes de temps réel de l'effet de pluie ; thèmes clairs regroupés ; la rangée de boutons du bas se rétrécit automatiquement sur petits écrans ; suppression de l'affichage en double du temps Pomodoro.",
             "1. 新增 3 款主題 + 直向列表模式": "1. 3 nouveaux thèmes + mode liste verticale",
             "主題新增「蜜桃奶油」「熔岩赤焰」「薰衣草暮色」；主題選單右上角新增切換鍵，可在橫向滑動卡片與直向條列清單間切換。": "Ajout des thèmes Crème de pêche, Braise ardente et Crépuscule de lavande ; un nouveau bouton en haut à droite du menu des thèmes permet de basculer entre le défilement horizontal et la liste verticale.",
             "2. 分享網站按鈕": "2. Bouton de partage du site",
@@ -3048,7 +3165,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "AURA Studio vous accueille désormais, à chaque ouverture, par un titre qui apparaît en fondu accompagné d'une douce lueur respirante.",
             "5. 新增 Gemini 對話助手": "5. Nouvel assistant de chat Gemini",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "Un nouvel outil de chat IA, « Assistant de chat Gemini », a été ajouté aux extensions : connecté à Google Gemini AI Studio, il permet de poser des questions et d'organiser ses idées directement dans la vue partagée. La fenêtre d'installation de l'application comporte aussi un nouveau bouton « En savoir plus » avec des instructions d'installation détaillées.",
-            "探索 v1.2.2 正式版，開始使用": "Découvrir la version v1.2.2, commencer",
+            "探索 v1.2.3 正式版，開始使用": "Découvrir la version v1.2.3, commencer",
         };
         const frToZhMap = Object.fromEntries(Object.entries(zhToFrMap).map(([k,v]) => [v, k]));
         const zhToRuMap = {
@@ -3126,6 +3243,9 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "貼上影片或直播網址...": "Вставьте ссылку на видео или трансляцию...",
             "載入": "Загрузить",
             "移除音樂": "Убрать музыку",
+            "關閉媒體": "Остановить медиа",
+            "音量": "Громкость",
+            "開啟 YouTube 網站": "Открыть сайт YouTube",
             "投影到背景": "Проецировать на фон",
             "倒退 10 秒": "Назад на 10 секунд",
             "前進 10 秒": "Вперёд на 10 секунд",
@@ -3209,6 +3329,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "Часы и внешний вид",
             "專注與系統": "Фокусировка и система",
             "快捷鍵指南": "Руководство по горячим клавишам",
+            "開發者設定": "Настройки разработчика",
+            "允許選取文字": "Разрешить выделение текста",
+            "媒體控制": "Управление медиа",
+            "關閉媒體（停用系統媒體控制整合）": "Отключить медиа (выключить системную интеграцию медиа)",
+            "音量調整": "Громкость",
             "最新升級特色": "Что нового",
             "恢復預設值": "Восстановить значения по умолчанию",
             "雨滴滑落速度": "Скорость падения капель дождя",
@@ -3288,7 +3413,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "Октябрь",
             "十一月": "Ноябрь",
             "十二月": "Декабрь",
-            "AURA Studio v1.2.2 正式版": "AURA Studio v1.2.2 — официальный релиз",
+            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 — официальный релиз",
+            "1. 全新「靈動島」通知樣式": "1. Новый стиль уведомлений «Dynamic Island»",
+            "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "Все системные уведомления теперь разворачиваются из точки по центру сверху в стиле Dynamic Island; отображаются при выходе из режима Zen, переключении режима производительности, входе в полноэкранный режим, смене фаз Pomodoro и обнаружении новой версии.",
+            "2. 正念呼吸簡化為靈動島顯示": "2. Осознанное дыхание упрощено до отображения на острове",
+            "移除全螢幕呼吸引導畫面，改成按下工具列按鈕即反白啟動，呼吸階段與倒數直接顯示在靈動島上。": "Полноэкранное руководство по дыханию удалено; кнопка на панели инструментов теперь подсвечивается при активации, а фаза дыхания и обратный отсчёт отображаются прямо на Dynamic Island.",
+            "3. YouTube 控制整合進靈動島": "3. Управление YouTube встроено в Dynamic Island",
+            "YouTube 控制項目移到靈動島上常駐顯示，支援音量調整、關閉媒體與系統媒體控制整合；遇到其他通知時會自動往下避讓，窄螢幕顯示時頂部按鈕會先淡出；專注音效面板新增「開啟 YouTube 網站」按鈕。": "Элементы управления YouTube теперь постоянно отображаются на Dynamic Island, с регулировкой громкости, остановкой медиа и интеграцией системного управления медиа; при появлении другого уведомления они автоматически сдвигаются вниз, освобождая место, а на узких экранах верхние кнопки сначала исчезают; в панель фокус-звуков добавлена кнопка «Открыть сайт YouTube».",
+            "4. 新增「開發者設定」分頁": "4. Новая вкладка «Настройки разработчика»",
+            "可開啟「允許選取文字」，並把「顯示即時 FPS」選項移到這裡集中管理。": "Переключатель «Разрешить выделение текста», а опция «Показывать FPS в реальном времени» перенесена сюда для централизованного управления.",
+            "5. 介面修正與清理": "5. Исправления и очистка интерфейса",
+            "移除「任務與草稿」功能；修正主題選單「使用中」標示與雨滴效果即時性問題；淺色主題分組排列；底部按鈕列在窄螢幕自動縮窄；移除重複的番茄鐘時間顯示。": "Удалена функция «Задачи и черновики»; исправлены значок «Активна» в меню тем и проблемы с реактивностью эффекта дождя; светлые темы сгруппированы вместе; нижний ряд кнопок автоматически сужается на узких экранах; удалено дублирующееся отображение времени Pomodoro.",
             "1. 新增 3 款主題 + 直向列表模式": "1. 3 новые темы + вертикальный список",
             "主題新增「蜜桃奶油」「熔岩赤焰」「薰衣草暮色」；主題選單右上角新增切換鍵，可在橫向滑動卡片與直向條列清單間切換。": "Добавлены темы «Персиковый крем», «Тлеющая лава» и «Лавандовые сумерки»; новая кнопка в правом верхнем углу меню тем переключает между горизontальной прокруткой и вертикальным списком.",
             "2. 分享網站按鈕": "2. Кнопка «Поделиться сайтом»",
@@ -3309,7 +3444,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "Теперь при каждом открытии AURA Studio вас встречает лаконичное название с плавным появлением и мягким дышащим свечением.",
             "5. 新增 Gemini 對話助手": "5. Новый чат-помощник Gemini",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "В расширения добавлен новый ИИ-инструмент для общения «Чат-помощник Gemini», подключённый к Google Gemini AI Studio — теперь можно задавать вопросы и упорядочивать мысли прямо в разделённом экране. В окне установки приложения также появилась кнопка «Узнать больше» с подробной инструкцией по установке.",
-            "探索 v1.2.2 正式版，開始使用": "Узнать о v1.2.2, начать работу",
+            "探索 v1.2.3 正式版，開始使用": "Узнать о v1.2.3, начать работу",
         };
         const ruToZhMap = Object.fromEntries(Object.entries(zhToRuMap).map(([k,v]) => [v, k]));
         const zhToEsMap = {
@@ -3387,6 +3522,9 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "貼上影片或直播網址...": "Pega la URL de un vídeo o directo...",
             "載入": "Cargar",
             "移除音樂": "Quitar música",
+            "關閉媒體": "Detener medio",
+            "音量": "Volumen",
+            "開啟 YouTube 網站": "Abrir el sitio de YouTube",
             "投影到背景": "Proyectar en el fondo",
             "倒退 10 秒": "Retroceder 10 segundos",
             "前進 10 秒": "Avanzar 10 segundos",
@@ -3470,6 +3608,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "Reloj y apariencia",
             "專注與系統": "Concentración y sistema",
             "快捷鍵指南": "Guía de atajos de teclado",
+            "開發者設定": "Ajustes de desarrollador",
+            "允許選取文字": "Permitir selección de texto",
+            "媒體控制": "Controles de medios",
+            "關閉媒體（停用系統媒體控制整合）": "Desactivar medios (desactiva la integración multimedia del sistema)",
+            "音量調整": "Volumen",
             "最新升級特色": "Novedades",
             "恢復預設值": "Restaurar valores predeterminados",
             "雨滴滑落速度": "Velocidad de caída de la lluvia",
@@ -3549,7 +3692,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "Octubre",
             "十一月": "Noviembre",
             "十二月": "Diciembre",
-            "AURA Studio v1.2.2 正式版": "AURA Studio v1.2.2 Oficial",
+            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 Oficial",
+            "1. 全新「靈動島」通知樣式": "1. Nuevo estilo de notificaciones «Dynamic Island»",
+            "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "Todos los avisos del sistema ahora se expanden desde un punto centrado arriba al estilo Dynamic Island; se muestran al salir del modo Zen, cambiar el modo de rendimiento, entrar en pantalla completa, cambiar de fase en el Pomodoro y al detectar una nueva versión.",
+            "2. 正念呼吸簡化為靈動島顯示": "2. Respiración consciente simplificada en la isla",
+            "移除全螢幕呼吸引導畫面，改成按下工具列按鈕即反白啟動，呼吸階段與倒數直接顯示在靈動島上。": "Se eliminó la guía de respiración a pantalla completa; el botón de la barra de herramientas ahora se resalta al activarse, y la fase de respiración junto con la cuenta regresiva se muestran directamente en la Dynamic Island.",
+            "3. YouTube 控制整合進靈動島": "3. Controles de YouTube integrados en la Dynamic Island",
+            "YouTube 控制項目移到靈動島上常駐顯示，支援音量調整、關閉媒體與系統媒體控制整合；遇到其他通知時會自動往下避讓，窄螢幕顯示時頂部按鈕會先淡出；專注音效面板新增「開啟 YouTube 網站」按鈕。": "Los controles de YouTube ahora están siempre visibles en la Dynamic Island, con control de volumen, detener medio e integración de control multimedia del sistema; al aparecer otro aviso, se desplazan automáticamente hacia abajo para dejarle espacio, y en pantallas estrechas los botones superiores se desvanecen primero; se añadió un botón «Abrir el sitio de YouTube» al panel de sonidos de enfoque.",
+            "4. 新增「開發者設定」分頁": "4. Nueva pestaña «Ajustes de desarrollador»",
+            "可開啟「允許選取文字」，並把「顯示即時 FPS」選項移到這裡集中管理。": "Activa «Permitir selección de texto», y la opción «Mostrar FPS en vivo» se trasladó aquí para una gestión centralizada.",
+            "5. 介面修正與清理": "5. Correcciones y limpieza de la interfaz",
+            "移除「任務與草稿」功能；修正主題選單「使用中」標示與雨滴效果即時性問題；淺色主題分組排列；底部按鈕列在窄螢幕自動縮窄；移除重複的番茄鐘時間顯示。": "Se eliminó la función Tareas y borradores; se corrigió la insignia «Activo» del menú de temas y los problemas de tiempo real del efecto de lluvia; los temas claros se agruparon juntos; la fila de botones inferior ahora se reduce automáticamente en pantallas estrechas; se eliminó la visualización duplicada del tiempo del Pomodoro.",
             "1. 新增 3 款主題 + 直向列表模式": "1. 3 nuevos temas + modo de lista vertical",
             "主題新增「蜜桃奶油」「熔岩赤焰」「薰衣草暮色」；主題選單右上角新增切換鍵，可在橫向滑動卡片與直向條列清單間切換。": "Se añadieron los temas Crema de durazno, Brasa ardiente y Crepúsculo de lavanda; un nuevo botón en la esquina superior derecha del menú de temas alterna entre tarjetas deslizables horizontales y una lista vertical.",
             "2. 分享網站按鈕": "2. Botón para compartir el sitio",
@@ -3570,7 +3723,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "Cada vez que abres AURA Studio, te recibe un título que aparece suavemente junto con un resplandor que respira con calma.",
             "5. 新增 Gemini 對話助手": "5. Nuevo asistente de chat Gemini",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "Se añadió una nueva herramienta de chat con IA, «Asistente de chat Gemini», a Extensiones, conectada a Google Gemini AI Studio para que puedas hacer preguntas y organizar tus ideas directamente en la vista dividida; la ventana de instalación de la app también incorpora un botón «Más información» con instrucciones de instalación detalladas.",
-            "探索 v1.2.2 正式版，開始使用": "Explora la versión v1.2.2, empieza ahora",
+            "探索 v1.2.3 正式版，開始使用": "Explora la versión v1.2.3, empieza ahora",
         };
         const esToZhMap = Object.fromEntries(Object.entries(zhToEsMap).map(([k,v]) => [v, k]));
         const zhToHiMap = {
@@ -3648,6 +3801,9 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "貼上影片或直播網址...": "वीडियो या लाइव स्ट्रीम का URL पेस्ट करें...",
             "載入": "लोड करें",
             "移除音樂": "संगीत हटाएँ",
+            "關閉媒體": "मीडिया बंद करें",
+            "音量": "वॉल्यूम",
+            "開啟 YouTube 網站": "YouTube वेबसाइट खोलें",
             "投影到背景": "बैकग्राउंड पर प्रोजेक्ट करें",
             "倒退 10 秒": "10 सेकंड पीछे",
             "前進 10 秒": "10 सेकंड आगे",
@@ -3731,6 +3887,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "घड़ी और रूप-रंग",
             "專注與系統": "फ़ोकस और सिस्टम",
             "快捷鍵指南": "कीबोर्ड शॉर्टकट गाइड",
+            "開發者設定": "डेवलपर सेटिंग्स",
+            "允許選取文字": "टेक्स्ट चयन की अनुमति दें",
+            "媒體控制": "मीडिया नियंत्रण",
+            "關閉媒體（停用系統媒體控制整合）": "मीडिया बंद करें (सिस्टम मीडिया एकीकरण बंद करें)",
+            "音量調整": "वॉल्यूम समायोजन",
             "最新升級特色": "नया क्या है",
             "恢復預設值": "डिफ़ॉल्ट पर पुनर्स्थापित करें",
             "雨滴滑落速度": "बारिश की बूंदों की गति",
@@ -3810,7 +3971,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "अक्टूबर",
             "十一月": "नवंबर",
             "十二月": "दिसंबर",
-            "AURA Studio v1.2.2 正式版": "AURA Studio v1.2.2 आधिकारिक संस्करण",
+            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 आधिकारिक संस्करण",
+            "1. 全新「靈動島」通知樣式": "1. नई “डायनामिक आइलैंड” नोटिफ़िकेशन शैली",
+            "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "सभी सिस्टम नोटिफ़िकेशन अब ऊपर बीच के एक बिंदु से डायनामिक आइलैंड शैली में दाएँ-बाएँ फैलते हैं; Zen मोड से बाहर निकलने, परफ़ॉर्मेंस मोड बदलने, फ़ुलस्क्रीन में जाने, पोमोडोरो चरण बदलने और नया वर्शन मिलने पर दिखाई देते हैं।",
+            "2. 正念呼吸簡化為靈動島顯示": "2. माइंडफुल ब्रीदिंग को आइलैंड डिस्प्ले में सरल बनाया गया",
+            "移除全螢幕呼吸引導畫面，改成按下工具列按鈕即反白啟動，呼吸階段與倒數直接顯示在靈動島上。": "फ़ुलस्क्रीन ब्रीदिंग गाइड हटा दी गई है; टूलबार बटन दबाने पर वह हाइलाइट हो जाता है और ब्रीदिंग फ़ेज़ व काउंटडाउन सीधे डायनामिक आइलैंड पर दिखते हैं।",
+            "3. YouTube 控制整合進靈動島": "3. YouTube नियंत्रण अब डायनामिक आइलैंड में",
+            "YouTube 控制項目移到靈動島上常駐顯示，支援音量調整、關閉媒體與系統媒體控制整合；遇到其他通知時會自動往下避讓，窄螢幕顯示時頂部按鈕會先淡出；專注音效面板新增「開啟 YouTube 網站」按鈕。": "YouTube नियंत्रण अब डायनामिक आइलैंड पर स्थायी रूप से दिखते हैं, वॉल्यूम नियंत्रण, मीडिया बंद करना और सिस्टम मीडिया कंट्रोल इंटीग्रेशन के साथ; कोई और सूचना आने पर यह अपने आप नीचे खिसक जाता है, और संकरी स्क्रीन पर ऊपर के बटन पहले फीके होकर गायब होते हैं; फ़ोकस साउंड्स पैनल में “YouTube वेबसाइट खोलें” बटन जोड़ा गया।",
+            "4. 新增「開發者設定」分頁": "4. नया “डेवलपर सेटिंग्स” टैब",
+            "可開啟「允許選取文字」，並把「顯示即時 FPS」選項移到這裡集中管理。": "“टेक्स्ट चयन की अनुमति दें” चालू करें, और “लाइव FPS दिखाएँ” विकल्प को केंद्रीकृत प्रबंधन के लिए यहाँ ले जाया गया है।",
+            "5. 介面修正與清理": "5. UI सुधार और सफ़ाई",
+            "移除「任務與草稿」功能；修正主題選單「使用中」標示與雨滴效果即時性問題；淺色主題分組排列；底部按鈕列在窄螢幕自動縮窄；移除重複的番茄鐘時間顯示。": "“टास्क और ड्राफ़्ट” फ़ीचर हटाया गया; थीम मेनू के “सक्रिय” बैज और बारिश प्रभाव की रीयल-टाइम समस्याएँ ठीक कीं; हल्की थीम एक साथ समूहित कीं; संकरी स्क्रीन पर नीचे की बटन पंक्ति अपने आप सिकुड़ती है; डुप्लिकेट पोमोडोरो समय प्रदर्शन हटाया गया।",
             "1. 新增 3 款主題 + 直向列表模式": "1. 3 नई थीम + वर्टिकल लिस्ट मोड",
             "主題新增「蜜桃奶油」「熔岩赤焰」「薰衣草暮色」；主題選單右上角新增切換鍵，可在橫向滑動卡片與直向條列清單間切換。": "पीच क्रीम, सुलगता अंगारा और लैवेंडर की सांझ थीम जोड़ी गईं; थीम मेनू के ऊपरी दाएँ कोने में नया टॉगल बटन क्षैतिज स्वाइप कार्ड और वर्टिकल सूची के बीच बदलता है।",
             "2. 分享網站按鈕": "2. वेबसाइट शेयर बटन",
@@ -3831,7 +4002,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "अब हर बार AURA Studio खोलने पर एक सरल शीर्षक फेड-इन और हल्की साँस जैसी चमक आपका स्वागत करती है।",
             "5. 新增 Gemini 對話助手": "5. नया Gemini चैट सहायक",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "एक्सटेंशन में एक नया AI चैट टूल \"Gemini चैट सहायक\" जोड़ा गया है, जो Google Gemini AI Studio से जुड़ा है और स्प्लिट व्यू में सीधे सवाल पूछने व विचार व्यवस्थित करने देता है; ऐप इंस्टॉल विंडो में भी \"और जानें\" बटन जोड़ा गया है, जो विस्तृत इंस्टॉलेशन निर्देश दिखाता है।",
-            "探索 v1.2.2 正式版，開始使用": "v1.2.2 आधिकारिक संस्करण देखें, शुरू करें",
+            "探索 v1.2.3 正式版，開始使用": "v1.2.3 आधिकारिक संस्करण देखें, शुरू करें",
         };
         const hiToZhMap = Object.fromEntries(Object.entries(zhToHiMap).map(([k,v]) => [v, k]));
         const zhToPtMap = {
@@ -3909,6 +4080,9 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "貼上影片或直播網址...": "Cole o URL de um vídeo ou transmissão...",
             "載入": "Carregar",
             "移除音樂": "Remover música",
+            "關閉媒體": "Parar mídia",
+            "音量": "Volume",
+            "開啟 YouTube 網站": "Abrir o site do YouTube",
             "投影到背景": "Projetar no plano de fundo",
             "倒退 10 秒": "Voltar 10 segundos",
             "前進 10 秒": "Avançar 10 segundos",
@@ -3992,6 +4166,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "Relógio e aparência",
             "專注與系統": "Foco e sistema",
             "快捷鍵指南": "Guia de atalhos de teclado",
+            "開發者設定": "Configurações do desenvolvedor",
+            "允許選取文字": "Permitir seleção de texto",
+            "媒體控制": "Controles de mídia",
+            "關閉媒體（停用系統媒體控制整合）": "Desativar mídia (desativa a integração de mídia do sistema)",
+            "音量調整": "Volume",
             "最新升級特色": "Novidades",
             "恢復預設值": "Restaurar padrões",
             "雨滴滑落速度": "Velocidade de queda da chuva",
@@ -4071,7 +4250,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "Outubro",
             "十一月": "Novembro",
             "十二月": "Dezembro",
-            "AURA Studio v1.2.2 正式版": "AURA Studio v1.2.2 Oficial",
+            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 Oficial",
+            "1. 全新「靈動島」通知樣式": "1. Novo estilo de notificação “Dynamic Island”",
+            "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "Todos os avisos do sistema agora se expandem a partir de um ponto centralizado no topo, estilo Dynamic Island; exibidos ao sair do Modo Zen, alternar o modo de desempenho, entrar em tela cheia, mudar de fase no Pomodoro e ao detectar uma nova versão.",
+            "2. 正念呼吸簡化為靈動島顯示": "2. Respiração consciente simplificada na ilha",
+            "移除全螢幕呼吸引導畫面，改成按下工具列按鈕即反白啟動，呼吸階段與倒數直接顯示在靈動島上。": "O guia de respiração em tela cheia foi removido; o botão da barra de ferramentas agora fica destacado quando ativo, e a fase de respiração com a contagem regressiva aparece diretamente na Dynamic Island.",
+            "3. YouTube 控制整合進靈動島": "3. Controles do YouTube integrados à Dynamic Island",
+            "YouTube 控制項目移到靈動島上常駐顯示，支援音量調整、關閉媒體與系統媒體控制整合；遇到其他通知時會自動往下避讓，窄螢幕顯示時頂部按鈕會先淡出；專注音效面板新增「開啟 YouTube 網站」按鈕。": "Os controles do YouTube agora ficam permanentemente na Dynamic Island, com controle de volume, parar mídia e integração ao controle de mídia do sistema; ao surgir outro aviso, eles descem automaticamente para abrir espaço, e em telas estreitas os botões do topo desaparecem primeiro; um botão “Abrir o site do YouTube” foi adicionado ao painel de sons de foco.",
+            "4. 新增「開發者設定」分頁": "4. Nova aba “Configurações do desenvolvedor”",
+            "可開啟「允許選取文字」，並把「顯示即時 FPS」選項移到這裡集中管理。": "Ative “Permitir seleção de texto”, e a opção “Mostrar FPS em tempo real” foi movida para cá para gerenciamento centralizado.",
+            "5. 介面修正與清理": "5. Correções e limpeza da interface",
+            "移除「任務與草稿」功能；修正主題選單「使用中」標示與雨滴效果即時性問題；淺色主題分組排列；底部按鈕列在窄螢幕自動縮窄；移除重複的番茄鐘時間顯示。": "Removida a função Tarefas e rascunhos; corrigido o selo “Ativo” do menu de temas e problemas de tempo real do efeito de chuva; temas claros agrupados; a fileira de botões inferior agora encolhe automaticamente em telas estreitas; removida a exibição duplicada do tempo do Pomodoro.",
             "1. 新增 3 款主題 + 直向列表模式": "1. 3 novos temas + modo de lista vertical",
             "主題新增「蜜桃奶油」「熔岩赤焰」「薰衣草暮色」；主題選單右上角新增切換鍵，可在橫向滑動卡片與直向條列清單間切換。": "Adicionados os temas Creme de pêssego, Brasa em chamas e Crepúsculo de lavanda; um novo botão no canto superior direito do menu de temas alterna entre cartões deslizáveis horizontais e uma lista vertical.",
             "2. 分享網站按鈕": "2. Botão de compartilhar site",
@@ -4092,7 +4281,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "Agora, toda vez que você abre o AURA Studio, é recebido por um título que surge suavemente com um brilho que pulsa como uma respiração.",
             "5. 新增 Gemini 對話助手": "5. Novo Assistente de chat Gemini",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "Uma nova ferramenta de chat com IA, o «Assistente de chat Gemini», foi adicionada às Extensões, conectando-se ao Google Gemini AI Studio para que você possa tirar dúvidas e organizar suas ideias diretamente na visualização dividida; a janela de instalação do app também ganhou um botão «Saiba mais» com instruções de instalação detalhadas.",
-            "探索 v1.2.2 正式版，開始使用": "Conheça a v1.2.2, comece agora",
+            "探索 v1.2.3 正式版，開始使用": "Conheça a v1.2.3, comece agora",
         };
         const ptToZhMap = Object.fromEntries(Object.entries(zhToPtMap).map(([k,v]) => [v, k]));
 
@@ -4121,9 +4310,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 focusLabel: (mode, mm, ss) => ({ work: `專注階段 (${mm}:${ss})`, shortBreak: `短休息 (${mm}:${ss})`, longBreak: `長休息 (${mm}:${ss})` }[mode]),
                 startLabel: (mode, mins) => `開始${({work:'專注',shortBreak:'短休息',longBreak:'長休息'}[mode])} (${mins}m)`,
                 switchLabel: (mode, mins) => `切換${({work:'專注',shortBreak:'短休息',longBreak:'長休息'}[mode])} (${mins}m)`,
+                phaseDoneMsg: (next) => `已進入${({work:'專注',shortBreak:'短休息',longBreak:'長休息'}[next])}`,
+                fsEnteredMsg: '已進入全螢幕', zenExitMsg: '已退出 Zen 模式', newVersionMsg: '發現新版本！點擊設定查看',
                 foldExpand: '展開控制按鈕', foldCollapse: '收合控制按鈕',
 				zenBanner: '已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）',
-				getStarted: '探索 v1.2.2 正式版，開始使用',
+				getStarted: '探索 v1.2.3 正式版，開始使用',
             },
             'en': {
                 appTitle: 'AURA Studio - A Focus Timer.',
@@ -4146,9 +4337,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 focusLabel: (mode, mm, ss) => ({ work: `Focus Phase (${mm}:${ss})`, shortBreak: `Short Break (${mm}:${ss})`, longBreak: `Long Break (${mm}:${ss})` }[mode]),
                 startLabel: (mode, mins) => `Start ${({work:'Focus',shortBreak:'Short Break',longBreak:'Long Break'}[mode])} (${mins}m)`,
                 switchLabel: (mode, mins) => `Switch ${({work:'Focus',shortBreak:'Short Break',longBreak:'Long Break'}[mode])} (${mins}m)`,
+                phaseDoneMsg: (next) => `Now in ${({work:'Focus',shortBreak:'Short Break',longBreak:'Long Break'}[next])}`,
+                fsEnteredMsg: 'Entered fullscreen', zenExitMsg: 'Exited Zen Mode', newVersionMsg: 'New version available — check Settings',
                 foldExpand: 'Expand Controls', foldCollapse: 'Collapse Controls',
 				zenBanner: 'Zen Mode On — tap anywhere or press ESC to exit',
-				getStarted: 'Explore v1.2.2 — Get Started',
+				getStarted: 'Explore v1.2.3 — Get Started',
             },
             'zh-CN': {
                 appTitle: 'AURA Studio - 一个专注时钟。',
@@ -4171,9 +4364,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 focusLabel: (mode, mm, ss) => ({ work: `专注阶段 (${mm}:${ss})`, shortBreak: `短休息 (${mm}:${ss})`, longBreak: `长休息 (${mm}:${ss})` }[mode]),
                 startLabel: (mode, mins) => `开始${({work:'专注',shortBreak:'短休息',longBreak:'长休息'}[mode])} (${mins}m)`,
                 switchLabel: (mode, mins) => `切换${({work:'专注',shortBreak:'短休息',longBreak:'长休息'}[mode])} (${mins}m)`,
+                phaseDoneMsg: (next) => `已进入${({work:'专注',shortBreak:'短休息',longBreak:'长休息'}[next])}`,
+                fsEnteredMsg: '已进入全萤幕', zenExitMsg: '已退出 Zen 模式', newVersionMsg: '发现新版本！点击设定查看',
                 foldExpand: '展开控制按钮', foldCollapse: '收起控制按钮',
 				zenBanner: '已进入 Zen 沉浸模式（点击屏幕任意处或按 ESC 可退出）',
-				getStarted: '探索 v1.2.2 正式版，开始使用',
+				getStarted: '探索 v1.2.3 正式版，开始使用',
             },
             'ja': {
                 appTitle: 'AURA Studio - フォーカスタイマー。',
@@ -4196,9 +4391,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 focusLabel: (mode, mm, ss) => ({ work: `集中フェーズ (${mm}:${ss})`, shortBreak: `短い休憩 (${mm}:${ss})`, longBreak: `長い休憩 (${mm}:${ss})` }[mode]),
                 startLabel: (mode, mins) => `${({work:'集中',shortBreak:'短い休憩',longBreak:'長い休憩'}[mode])}を開始 (${mins}m)`,
                 switchLabel: (mode, mins) => `${({work:'集中',shortBreak:'短い休憩',longBreak:'長い休憩'}[mode])}に切替 (${mins}m)`,
+                phaseDoneMsg: (next) => `${({work:'集中',shortBreak:'短い休憩',longBreak:'長い休憩'}[next])}を開始`,
+                fsEnteredMsg: '全画面表示になりました', zenExitMsg: 'Zenモードを終了しました', newVersionMsg: '新しいバージョンがあります。設定を確認してください',
                 foldExpand: 'コントロールを展開', foldCollapse: 'コントロールを折りたたむ',
 				zenBanner: 'Zen没入モードに入りました（画面をタップまたはESCで終了）',
-				getStarted: 'v1.2.2 正式版を見る、使ってみる',
+				getStarted: 'v1.2.3 正式版を見る、使ってみる',
             },
             'ko': {
                 appTitle: 'AURA Studio - 집중을 위한 타이머.',
@@ -4221,9 +4418,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 focusLabel: (mode, mm, ss) => ({ work: `집중 단계 (${mm}:${ss})`, shortBreak: `짧은 휴식 (${mm}:${ss})`, longBreak: `긴 휴식 (${mm}:${ss})` }[mode]),
                 startLabel: (mode, mins) => `${({work:'집중',shortBreak:'짧은 휴식',longBreak:'긴 휴식'}[mode])} 시작 (${mins}m)`,
                 switchLabel: (mode, mins) => `${({work:'집중',shortBreak:'짧은 휴식',longBreak:'긴 휴식'}[mode])}(으)로 전환 (${mins}m)`,
+                phaseDoneMsg: (next) => `${({work:'집중',shortBreak:'짧은 휴식',longBreak:'긴 휴식'}[next])} 시작`,
+                fsEnteredMsg: '전체 화면으로 전환됨', zenExitMsg: 'Zen 모드를 종료했습니다', newVersionMsg: '새 버전이 있습니다! 설정에서 확인하세요',
                 foldExpand: '컨트롤 펼치기', foldCollapse: '컨트롤 접기',
 				zenBanner: 'Zen 몰입 모드에 진입했습니다 (화면 아무 곳이나 탭하거나 ESC를 누르면 종료)',
-				getStarted: 'v1.2.2 정식 버전 살펴보기, 시작하기',
+				getStarted: 'v1.2.3 정식 버전 살펴보기, 시작하기',
             },
             'fr': {
                 appTitle: "AURA Studio - Une minuterie de concentration.",
@@ -4246,9 +4445,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 focusLabel: (mode, mm, ss) => ({ work: `Phase de concentration (${mm}:${ss})`, shortBreak: `Pause courte (${mm}:${ss})`, longBreak: `Pause longue (${mm}:${ss})` }[mode]),
                 startLabel: (mode, mins) => `Démarrer ${({work:'la concentration',shortBreak:'la pause courte',longBreak:'la pause longue'}[mode])} (${mins}m)`,
                 switchLabel: (mode, mins) => `Passer à ${({work:'la concentration',shortBreak:'la pause courte',longBreak:'la pause longue'}[mode])} (${mins}m)`,
+                phaseDoneMsg: (next) => `Passage à ${({work:'la concentration',shortBreak:'la pause courte',longBreak:'la pause longue'}[next])}`,
+                fsEnteredMsg: 'Plein écran activé', zenExitMsg: 'Mode Zen désactivé', newVersionMsg: 'Nouvelle version disponible — voir les paramètres',
                 foldExpand: 'Déplier les commandes', foldCollapse: 'Replier les commandes',
 				zenBanner: "Mode Zen immersif activé (appuyez n'importe où à l'écran ou sur ÉCHAP pour quitter)",
-				getStarted: 'Découvrir la version v1.2.2, commencer',
+				getStarted: 'Découvrir la version v1.2.3, commencer',
             },
             'ru': {
                 appTitle: "AURA Studio - Таймер для концентрации.",
@@ -4271,9 +4472,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 focusLabel: (mode, mm, ss) => ({ work: `Фаза фокусировки (${mm}:${ss})`, shortBreak: `Короткий перерыв (${mm}:${ss})`, longBreak: `Длинный перерыв (${mm}:${ss})` }[mode]),
                 startLabel: (mode, mins) => `Начать: ${({work:'фокусировка',shortBreak:'короткий перерыв',longBreak:'длинный перерыв'}[mode])} (${mins}m)`,
                 switchLabel: (mode, mins) => `Перейти к: ${({work:'фокусировка',shortBreak:'короткий перерыв',longBreak:'длинный перерыв'}[mode])} (${mins}m)`,
+                phaseDoneMsg: (next) => `Переход к: ${({work:'фокусировка',shortBreak:'короткий перерыв',longBreak:'длинный перерыв'}[next])}`,
+                fsEnteredMsg: 'Включён полноэкранный режим', zenExitMsg: 'Режим Zen выключен', newVersionMsg: 'Доступна новая версия — см. настройки',
                 foldExpand: 'Развернуть элементы управления', foldCollapse: 'Свернуть элементы управления',
 				zenBanner: 'Включён режим Zen (нажмите в любом месте экрана или ESC, чтобы выйти)',
-				getStarted: 'Узнать о v1.2.2, начать работу',
+				getStarted: 'Узнать о v1.2.3, начать работу',
             },
             'es': {
                 appTitle: "AURA Studio - Un temporizador de concentración.",
@@ -4296,9 +4499,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 focusLabel: (mode, mm, ss) => ({ work: `Fase de concentración (${mm}:${ss})`, shortBreak: `Descanso corto (${mm}:${ss})`, longBreak: `Descanso largo (${mm}:${ss})` }[mode]),
                 startLabel: (mode, mins) => `Iniciar ${({work:'concentración',shortBreak:'descanso corto',longBreak:'descanso largo'}[mode])} (${mins}m)`,
                 switchLabel: (mode, mins) => `Cambiar a ${({work:'concentración',shortBreak:'descanso corto',longBreak:'descanso largo'}[mode])} (${mins}m)`,
+                phaseDoneMsg: (next) => `Ahora en ${({work:'concentración',shortBreak:'descanso corto',longBreak:'descanso largo'}[next])}`,
+                fsEnteredMsg: 'Pantalla completa activada', zenExitMsg: 'Modo Zen desactivado', newVersionMsg: 'Nueva versión disponible: revisa los ajustes',
                 foldExpand: 'Expandir controles', foldCollapse: 'Contraer controles',
 				zenBanner: 'Modo Zen activado (toca cualquier parte de la pantalla o pulsa ESC para salir)',
-				getStarted: 'Explora la versión v1.2.2, empieza ahora',
+				getStarted: 'Explora la versión v1.2.3, empieza ahora',
             },
             'hi': {
                 appTitle: "AURA Studio - एक फ़ोकस टाइमर।",
@@ -4321,9 +4526,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 focusLabel: (mode, mm, ss) => ({ work: `फ़ोकस चरण (${mm}:${ss})`, shortBreak: `छोटा ब्रेक (${mm}:${ss})`, longBreak: `लंबा ब्रेक (${mm}:${ss})` }[mode]),
                 startLabel: (mode, mins) => `${({work:'फ़ोकस',shortBreak:'छोटा ब्रेक',longBreak:'लंबा ब्रेक'}[mode])} शुरू करें (${mins}m)`,
                 switchLabel: (mode, mins) => `${({work:'फ़ोकस',shortBreak:'छोटे ब्रेक',longBreak:'लंबे ब्रेक'}[mode])} पर जाएँ (${mins}m)`,
+                phaseDoneMsg: (next) => `अब ${({work:'फ़ोकस',shortBreak:'छोटे ब्रेक',longBreak:'लंबे ब्रेक'}[next])} शुरू`,
+                fsEnteredMsg: 'फुलस्क्रीन चालू हुआ', zenExitMsg: 'Zen मोड बंद हुआ', newVersionMsg: 'नया वर्शन उपलब्ध है! सेटिंग्स देखें',
                 foldExpand: 'नियंत्रण विस्तृत करें', foldCollapse: 'नियंत्रण संक्षिप्त करें',
 				zenBanner: 'Zen इमर्सिव मोड चालू हो गया (बाहर निकलने के लिए स्क्रीन पर कहीं भी टैप करें या ESC दबाएँ)',
-				getStarted: 'v1.2.2 आधिकारिक संस्करण देखें, शुरू करें',
+				getStarted: 'v1.2.3 आधिकारिक संस्करण देखें, शुरू करें',
             },
             'pt': {
                 appTitle: "AURA Studio - Um cronômetro de foco.",
@@ -4346,9 +4553,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 focusLabel: (mode, mm, ss) => ({ work: `Fase de foco (${mm}:${ss})`, shortBreak: `Pausa curta (${mm}:${ss})`, longBreak: `Pausa longa (${mm}:${ss})` }[mode]),
                 startLabel: (mode, mins) => `Iniciar ${({work:'foco',shortBreak:'pausa curta',longBreak:'pausa longa'}[mode])} (${mins}m)`,
                 switchLabel: (mode, mins) => `Mudar para ${({work:'foco',shortBreak:'pausa curta',longBreak:'pausa longa'}[mode])} (${mins}m)`,
+                phaseDoneMsg: (next) => `Agora em ${({work:'foco',shortBreak:'pausa curta',longBreak:'pausa longa'}[next])}`,
+                fsEnteredMsg: 'Tela cheia ativada', zenExitMsg: 'Modo Zen desativado', newVersionMsg: 'Nova versão disponível — veja as configurações',
                 foldExpand: 'Expandir controles', foldCollapse: 'Recolher controles',
 				zenBanner: 'Modo Zen ativado (toque em qualquer lugar da tela ou pressione ESC para sair)',
-				getStarted: 'Conheça a v1.2.2, comece agora',
+				getStarted: 'Conheça a v1.2.3, comece agora',
             }
         };
 
@@ -4480,12 +4689,6 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 titleEl.textContent = t('appTitle');
             }
 
-            const tech = breathingTechniques && breathingTechniques[breathingState && breathingState.technique || 'box'];
-            if (tech) {
-                const sub = document.getElementById('breathingSubtitle');
-                if (sub) sub.textContent = (currentLang === 'zh-TW') ? tech.subtitle : (tech['_subtitle_' + currentLang] || tech._subtitleEn || tech.subtitle);
-            }
-
             const foldTooltip = document.getElementById('pomoFoldTooltip');
             if (foldTooltip) {
                 if (typeof isPomoFolded === 'boolean' && !isPomoFolded) {
@@ -4494,9 +4697,6 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                     foldTooltip.textContent = t('foldExpand');
                 }
             }
-
-            const zenBanner = document.getElementById('zenNotice');
-            if (zenBanner) zenBanner.textContent = t('zenBanner');
 
             const savePomoBtn = document.getElementById('saveCustomPomoBtn');
             if (savePomoBtn) savePomoBtn.textContent = t('confirmBtn');
@@ -4562,7 +4762,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
 
         const STORAGE_KEY = 'aura_focus_studio_settings';
         const MEMO_STORAGE_KEY = 'aura_focus_studio_memo';
-        const WHATS_NEW_KEY = 'aura_whats_new_seen_v1_2_2';
+        const WHATS_NEW_KEY = 'aura_whats_new_seen_v1_2_3';
         const hadPriorVisit = (() => { try { return !!localStorage.getItem(STORAGE_KEY); } catch (e) { return false; } })();
         function hasSeenWhatsNew() { try { return localStorage.getItem(WHATS_NEW_KEY) === 'true'; } catch (e) { return true; } }
 
@@ -4570,6 +4770,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             lowPerformance: false, thunderEnabled: false, autoHideUI: false, glassInteraction: false, showFps: false,
             speed: 1.0, density: 1.0, windAngle: -2.5, clock24h: true, showSeconds: true, showQuote: false, autoPomo: false, soundChime: true,
             customQuoteText: "", clockFont: 'sans', clockScale: 1.0, ringStyle: 'simple', theme: 'night_library', youtubeVideoId: '', ytProjecting: false,
+            allowTextSelect: false, disableMediaSession: false, ytVolume: 100,
             pomoMode: 'work', pomoRunning: false, pomoSecondsLeft: 25 * 60, pomoTotalSeconds: 25 * 60, pomoInterval: null,
             masterAudioOn: false, volumes: { rain: 0.7, alpha: 0.3, fire: 0.2, chime: 0.4 }, tasks: [{ id: 1, text: '範例事項', done: false }],
             pipWindow: null, isPipActive: false
@@ -4604,36 +4805,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
 
         const breathingTechniques = {
             box: {
-                name: '4-4-4-4 箱式呼吸',
-                nameEn: '4-4-4-4 Box Breathing',
-                subtitle: '美國海豹部隊專用，快速平復高壓與焦慮',
-                _subtitleEn: 'Used by Navy SEALs — quickly calms stress & anxiety',
                 phases: [
-                    { _zh: '吸氣', _en: 'Inhale', duration: 4, scale: 1.25, glow: 'rgba(56, 189, 248, 0.4)', textCls: 'text-sky-200' },
-                    { _zh: '屏息', _en: 'Hold', duration: 4, scale: 1.25, glow: 'rgba(168, 85, 247, 0.4)', textCls: 'text-purple-200' },
-                    { _zh: '呼氣', _en: 'Exhale', duration: 4, scale: 0.75, glow: 'rgba(99, 102, 241, 0.4)', textCls: 'text-indigo-200' },
-                    { _zh: '屏息', _en: 'Hold', duration: 4, scale: 0.75, glow: 'rgba(45, 212, 191, 0.4)', textCls: 'text-teal-200' }
-                ]
-            },
-            relax: {
-                name: '4-7-8 放鬆呼吸',
-                nameEn: '4-7-8 Relaxing Breath',
-                subtitle: '哈佛醫師推薦，深層放鬆大腦與助眠減壓',
-                _subtitleEn: 'Harvard-recommended — deep brain relaxation & sleep aid',
-                phases: [
-                    { _zh: '吸氣', _en: 'Inhale', duration: 4, scale: 1.3, glow: 'rgba(56, 189, 248, 0.4)', textCls: 'text-sky-200' },
-                    { _zh: '屏息', _en: 'Hold', duration: 7, scale: 1.3, glow: 'rgba(251, 146, 60, 0.4)', textCls: 'text-amber-200' },
-                    { _zh: '呼氣', _en: 'Exhale', duration: 8, scale: 0.7, glow: 'rgba(244, 63, 94, 0.4)', textCls: 'text-rose-200' }
-                ]
-            },
-            calm: {
-                name: '5-5 均勻呼吸',
-                nameEn: '5-5 Coherent Breathing',
-                subtitle: '和諧安穩節奏，引導進入深層心流冥想',
-                _subtitleEn: 'Harmonious rhythm — guides you into deep flow meditation',
-                phases: [
-                    { _zh: '吸氣', _en: 'Inhale', duration: 5, scale: 1.2, glow: 'rgba(52, 211, 153, 0.4)', textCls: 'text-emerald-200' },
-                    { _zh: '呼氣', _en: 'Exhale', duration: 5, scale: 0.8, glow: 'rgba(99, 102, 241, 0.4)', textCls: 'text-indigo-200' }
+                    { _zh: '吸氣', _en: 'Inhale', duration: 4, textCls: 'text-sky-200' },
+                    { _zh: '屏息', _en: 'Hold', duration: 4, textCls: 'text-purple-200' },
+                    { _zh: '呼氣', _en: 'Exhale', duration: 4, textCls: 'text-indigo-200' },
+                    { _zh: '屏息', _en: 'Hold', duration: 4, textCls: 'text-teal-200' }
                 ]
             }
         };
@@ -4661,35 +4837,9 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         function updateBreathingUI() {
             const tech = breathingTechniques[breathingState.technique];
             const currentPhase = tech.phases[breathingState.phaseIndex];
-
-            const phaseTextEl = document.getElementById('breathingPhaseText');
-            const timerTextEl = document.getElementById('breathingTimerText');
-            const subtitleEl = document.getElementById('breathingSubtitle');
-            const glowCircle = document.getElementById('breathingGlowCircle');
-            const outerRing = document.getElementById('breathingOuterRing');
-            const innerRing = document.getElementById('breathingInnerRing');
-            const cycleCountEl = document.getElementById('breathingCycleCount');
-
             const phaseName = (currentLang === 'zh-TW') ? (currentPhase._zh || currentPhase._en) : (currentPhase._zh ? trExt(currentPhase._zh) : currentPhase._en);
-            if (phaseTextEl) { phaseTextEl.textContent = phaseName; phaseTextEl.className = `text-2xl sm:text-3xl font-light tracking-widest text-shadow-glow ${currentPhase.textCls}`; }
-            if (timerTextEl) timerTextEl.textContent = breathingState.timer;
-            if (subtitleEl) subtitleEl.textContent = (currentLang === 'zh-TW') ? tech.subtitle : (tech['_subtitle_' + currentLang] || tech._subtitleEn || tech.subtitle);
-            if (cycleCountEl) cycleCountEl.textContent = t('completedCycles')(breathingState.completedCycles);
-
-            const transitionSec = currentPhase.duration;
-            if (glowCircle) {
-                glowCircle.style.transitionDuration = `${transitionSec}s`;
-                glowCircle.style.transform = `scale(${currentPhase.scale})`;
-                glowCircle.style.backgroundColor = currentPhase.glow;
-            }
-            if (outerRing) {
-                outerRing.style.transitionDuration = `${transitionSec}s`;
-                outerRing.style.transform = `scale(${currentPhase.scale})`;
-            }
-            if (innerRing) {
-                innerRing.style.transitionDuration = `${transitionSec}s`;
-                innerRing.style.transform = `scale(${currentPhase.scale})`;
-            }
+            const iconCls = `fa-solid fa-lungs ${currentPhase.textCls || 'text-sky-200'} text-sm shrink-0`;
+            showIslandNoticeSticky(`${phaseName} · ${breathingState.timer}`, iconCls);
         }
 
         function nextBreathingStep() {
@@ -4715,8 +4865,8 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             const tech = breathingTechniques[breathingState.technique];
             breathingState.timer = tech.phases[0].duration;
 
-            const modal = document.getElementById('breathingModal');
-            if (modal) modal.classList.remove('opacity-0', 'pointer-events-none');
+            const btn = document.getElementById('breathingToggleBtn');
+            if (btn) { btn.classList.add('bg-sky-400', 'text-slate-900', 'shadow-md'); btn.classList.remove('bg-white/5', 'text-white/80'); }
 
             updateBreathingUI();
             playBreathPhaseTone(1.0);
@@ -4728,43 +4878,13 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         function stopBreathingGuide() {
             breathingState.active = false;
             clearInterval(breathingState.interval);
-            const modal = document.getElementById('breathingModal');
-            if (modal) modal.classList.add('opacity-0', 'pointer-events-none');
+            const btn = document.getElementById('breathingToggleBtn');
+            if (btn) { btn.classList.remove('bg-sky-400', 'text-slate-900', 'shadow-md'); btn.classList.add('bg-white/5', 'text-white/80'); }
+            hideIslandNoticeSticky();
         }
 
-        window.setBreathingTechnique = function(type) {
-            if (!breathingTechniques[type]) return;
-            breathingState.technique = type;
-            breathingState.phaseIndex = 0;
-            breathingState.completedCycles = 0;
-            const tech = breathingTechniques[type];
-            breathingState.timer = tech.phases[0].duration;
-
-            const btns = { box: 'btnBreathBox', relax: 'btnBreathRelax', calm: 'btnBreathCalm' };
-            Object.keys(btns).forEach(key => {
-                const btn = document.getElementById(btns[key]);
-                if (!btn) return;
-                if (key === type) {
-                    btn.className = "bg-sky-500/20 border border-sky-400/40 text-sky-200 py-2 rounded-xl font-semibold transition active:scale-95";
-                } else {
-                    btn.className = "bg-white/5 border border-transparent text-white/70 hover:bg-white/10 py-2 rounded-xl font-semibold transition active:scale-95";
-                }
-            });
-
-            updateBreathingUI();
-            playBreathPhaseTone(1.1);
-        };
-
-        document.getElementById('breathingToggleBtn')?.addEventListener('click', startBreathingGuide);
-        document.getElementById('closeBreathingBtn')?.addEventListener('click', stopBreathingGuide);
-        document.getElementById('toggleBreathSoundBtn')?.addEventListener('click', () => {
-            breathingState.soundEnabled = !breathingState.soundEnabled;
-            const btn = document.getElementById('toggleBreathSoundBtn');
-            if (btn) {
-                const label = breathingState.soundEnabled ? t('chimeOn') : t('chimeOff');
-                const cls = breathingState.soundEnabled ? 'fa-solid fa-volume-high text-sky-400 mr-1' : 'fa-solid fa-volume-xmark text-white/40 mr-1';
-                btn.innerHTML = `<i class="${cls}"></i><span>${label}</span>`;
-            }
+        document.getElementById('breathingToggleBtn')?.addEventListener('click', () => {
+            if (breathingState.active) stopBreathingGuide(); else startBreathingGuide();
         });
 
         function syncUIFromState() {
@@ -4794,6 +4914,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 const showQuoteToggle = document.getElementById('showQuoteToggle'); if (showQuoteToggle) showQuoteToggle.checked = state.showQuote;
                 const autoPomoToggle = document.getElementById('autoPomoToggle'); if (autoPomoToggle) autoPomoToggle.checked = state.autoPomo;
                 const soundChimeToggle = document.getElementById('soundChimeToggle'); if (soundChimeToggle) soundChimeToggle.checked = state.soundChime;
+                const allowTextSelectToggle = document.getElementById('allowTextSelectToggle'); if (allowTextSelectToggle) allowTextSelectToggle.checked = state.allowTextSelect;
+                document.body.classList.toggle('allow-text-select', !!state.allowTextSelect);
+                const ytWidgetVolumeSlider = document.getElementById('ytWidgetVolumeSlider'); if (ytWidgetVolumeSlider) ytWidgetVolumeSlider.value = (typeof state.ytVolume === 'number') ? state.ytVolume : 100;
+                const ytWidgetVolumeVal = document.getElementById('ytWidgetVolumeVal'); if (ytWidgetVolumeVal) ytWidgetVolumeVal.textContent = `${(typeof state.ytVolume === 'number') ? state.ytVolume : 100}%`;
+                if (typeof updateYtVolumeIcon === 'function') updateYtVolumeIcon((typeof state.ytVolume === 'number') ? state.ytVolume : 100);
 
                 toggleFpsDisplay(state.showFps);
                 const customQuoteInput = document.getElementById('customQuoteInput'); if (customQuoteInput) customQuoteInput.value = state.customQuoteText || '';
@@ -4840,7 +4965,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
 
         function saveSettings() {
             try {
-                const dataToSave = { lowPerformance: state.lowPerformance, thunderEnabled: state.thunderEnabled, autoHideUI: state.autoHideUI, glassInteraction: state.glassInteraction, showFps: state.showFps, speed: state.speed, density: state.density, clock24h: state.clock24h, showSeconds: state.showSeconds, showQuote: state.showQuote, autoPomo: state.autoPomo, soundChime: state.soundChime, customQuoteText: state.customQuoteText, clockFont: state.clockFont, clockScale: state.clockScale, ringStyle: state.ringStyle, theme: state.theme, masterAudioOn: state.masterAudioOn, volumes: state.volumes, tasks: state.tasks, youtubeVideoId: state.youtubeVideoId, lang: currentLang };
+                const dataToSave = { lowPerformance: state.lowPerformance, thunderEnabled: state.thunderEnabled, autoHideUI: state.autoHideUI, glassInteraction: state.glassInteraction, showFps: state.showFps, speed: state.speed, density: state.density, clock24h: state.clock24h, showSeconds: state.showSeconds, showQuote: state.showQuote, autoPomo: state.autoPomo, soundChime: state.soundChime, customQuoteText: state.customQuoteText, clockFont: state.clockFont, clockScale: state.clockScale, ringStyle: state.ringStyle, theme: state.theme, masterAudioOn: state.masterAudioOn, volumes: state.volumes, tasks: state.tasks, youtubeVideoId: state.youtubeVideoId, lang: currentLang, allowTextSelect: state.allowTextSelect, disableMediaSession: state.disableMediaSession, ytVolume: state.ytVolume };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
                 const memoEl = document.getElementById('memoInput');
                 if (memoEl) localStorage.setItem(MEMO_STORAGE_KEY, memoEl.value);
@@ -4943,12 +5068,40 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             }
         }
 
-        function showYtWidget() { document.getElementById('ytProjectionWidget')?.classList.remove('hidden'); }
-        function hideYtWidget() { document.getElementById('ytProjectionWidget')?.classList.add('hidden'); }
+        function showYtWidget() { document.getElementById('ytProjectionWidget')?.classList.remove('hidden'); if (typeof updateIslandActiveState === 'function') updateIslandActiveState(); }
+        function hideYtWidget() { document.getElementById('ytProjectionWidget')?.classList.add('hidden'); if (typeof updateIslandActiveState === 'function') updateIslandActiveState(); }
 
         function destroyYtPlayer() {
             try { if (ytPlayerAPI && ytPlayerAPI.destroy) ytPlayerAPI.destroy(); } catch (e) {}
             ytPlayerAPI = null; ytPlayerReady = false;
+        }
+
+        function setupMediaSession() {
+            if (!('mediaSession' in navigator) || state.disableMediaSession || !state.youtubeVideoId) return;
+            try {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: 'AURA Studio 專注音樂',
+                    artist: 'AURA Studio',
+                    artwork: [{ src: 'icon-512.png', sizes: '512x512', type: 'image/png' }]
+                });
+                navigator.mediaSession.setActionHandler('play', () => { if (ytPlayerAPI && ytPlayerReady) ytPlayerAPI.playVideo(); });
+                navigator.mediaSession.setActionHandler('pause', () => { if (ytPlayerAPI && ytPlayerReady) ytPlayerAPI.pauseVideo(); });
+                navigator.mediaSession.setActionHandler('seekbackward', () => { if (ytPlayerAPI && ytPlayerReady) ytPlayerAPI.seekTo(Math.max(0, ytPlayerAPI.getCurrentTime() - 10), true); });
+                navigator.mediaSession.setActionHandler('seekforward', () => { if (ytPlayerAPI && ytPlayerReady) ytPlayerAPI.seekTo(ytPlayerAPI.getCurrentTime() + 10, true); });
+                navigator.mediaSession.playbackState = 'playing';
+            } catch (e) {}
+        }
+
+        function clearMediaSession() {
+            if (!('mediaSession' in navigator)) return;
+            try {
+                navigator.mediaSession.metadata = null;
+                navigator.mediaSession.setActionHandler('play', null);
+                navigator.mediaSession.setActionHandler('pause', null);
+                navigator.mediaSession.setActionHandler('seekbackward', null);
+                navigator.mediaSession.setActionHandler('seekforward', null);
+                navigator.mediaSession.playbackState = 'none';
+            } catch (e) {}
         }
 
         function createDrawerYtPlayer(startAt, autoPlay) {
@@ -4964,8 +5117,8 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                     videoId: state.youtubeVideoId,
                     playerVars: { autoplay: autoPlay ? 1 : 0, start: startAt || 0, enablejsapi: 1, playsinline: 1 },
                     events: {
-                        onReady: (e) => { ytPlayerReady = true; stretchYtIframe(e.target.getIframe()); if (autoPlay) e.target.playVideo(); updateYtPlayPauseIcon(!!autoPlay); if (badge) { badge.textContent = t('statusPlaying'); badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 font-medium'; } },
-                        onStateChange: (e) => { if (e.data === YT.PlayerState.PLAYING) updateYtPlayPauseIcon(true); else if (e.data === YT.PlayerState.PAUSED) updateYtPlayPauseIcon(false); }
+                        onReady: (e) => { ytPlayerReady = true; stretchYtIframe(e.target.getIframe()); try { e.target.setVolume((typeof state.ytVolume === 'number') ? state.ytVolume : 100); } catch (err) {} if (autoPlay) e.target.playVideo(); updateYtPlayPauseIcon(!!autoPlay); setupMediaSession(); if (badge) { badge.textContent = t('statusPlaying'); badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/30 font-medium'; } },
+                        onStateChange: (e) => { if (e.data === YT.PlayerState.PLAYING) { updateYtPlayPauseIcon(true); if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing'; } else if (e.data === YT.PlayerState.PAUSED) { updateYtPlayPauseIcon(false); if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused'; } }
                     }
                 });
             });
@@ -4981,8 +5134,8 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                     videoId: state.youtubeVideoId,
                     playerVars: { autoplay: 1, start: startAt || 0, controls: 0, modestbranding: 1, rel: 0, playsinline: 1, enablejsapi: 1 },
                     events: {
-                        onReady: (e) => { ytPlayerReady = true; stretchYtIframe(e.target.getIframe()); e.target.playVideo(); updateYtPlayPauseIcon(true); },
-                        onStateChange: (e) => { if (e.data === YT.PlayerState.PLAYING) updateYtPlayPauseIcon(true); else if (e.data === YT.PlayerState.PAUSED) updateYtPlayPauseIcon(false); }
+                        onReady: (e) => { ytPlayerReady = true; stretchYtIframe(e.target.getIframe()); try { e.target.setVolume((typeof state.ytVolume === 'number') ? state.ytVolume : 100); } catch (err) {} e.target.playVideo(); updateYtPlayPauseIcon(true); setupMediaSession(); },
+                        onStateChange: (e) => { if (e.data === YT.PlayerState.PLAYING) { updateYtPlayPauseIcon(true); if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing'; } else if (e.data === YT.PlayerState.PAUSED) { updateYtPlayPauseIcon(false); if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused'; } }
                     }
                 });
             });
@@ -5005,6 +5158,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         function clearYouTubeVideo() {
             if (state.ytProjecting) exitYtProjection(false);
             destroyYtPlayer();
+            clearMediaSession();
             const playerContainer = document.getElementById('ytPlayerContainer'), badge = document.getElementById('ytStatusBadge');
             playerContainer.classList.add('hidden'); playerContainer.innerHTML = '';
             if (badge) { badge.textContent = t('statusLoading'); badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-white/40'; }
@@ -5013,6 +5167,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             saveSettings();
         }
 
+        document.getElementById('ytOpenSiteBtn')?.addEventListener('click', () => { window.open('https://www.youtube.com', '_blank', 'noopener'); });
         document.getElementById('ytLoadBtn')?.addEventListener('click', () => { const val = document.getElementById('ytUrlInput').value.trim(); if (val) loadYouTubeVideo(val, true); });
         document.getElementById('ytUrlInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); document.getElementById('ytLoadBtn').click(); } });
         document.getElementById('ytClearBtn')?.addEventListener('click', clearYouTubeVideo);
@@ -5073,6 +5228,31 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             if (!ytPlayerAPI || !ytPlayerReady) return;
             ytPlayerAPI.seekTo(ytPlayerAPI.getCurrentTime() + 10, true);
         });
+
+        function updateYtVolumeIcon(v) {
+            const icon = document.getElementById('ytVolumeIcon');
+            if (!icon) return;
+            icon.className = v === 0 ? 'fa-solid fa-volume-xmark text-xs' : (v < 50 ? 'fa-solid fa-volume-low text-xs' : 'fa-solid fa-volume-high text-xs');
+        }
+        document.getElementById('ytVolumeBtn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('ytVolumePopover')?.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            const popover = document.getElementById('ytVolumePopover'), btn = document.getElementById('ytVolumeBtn');
+            if (popover && !popover.classList.contains('hidden') && !popover.contains(e.target) && e.target !== btn && !btn?.contains(e.target)) {
+                popover.classList.add('hidden');
+            }
+        });
+        document.getElementById('ytWidgetVolumeSlider')?.addEventListener('input', (e) => {
+            const v = parseInt(e.target.value, 10);
+            state.ytVolume = v;
+            const valEl = document.getElementById('ytWidgetVolumeVal'); if (valEl) valEl.textContent = `${v}%`;
+            updateYtVolumeIcon(v);
+            if (ytPlayerAPI && ytPlayerReady && ytPlayerAPI.setVolume) { try { ytPlayerAPI.setVolume(v); } catch (err) {} }
+            saveSettings();
+        });
+        document.getElementById('ytStopMediaBtn')?.addEventListener('click', clearYouTubeVideo);
 
         function toggleFpsDisplay(visible) {
             const badge = document.getElementById('fpsBadge');
@@ -5596,11 +5776,97 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             document.getElementById('pomoBtnLabel').textContent = `${pauseLabel} (${m}m)`;
         }
 
+        let islandShowTimer = null, islandHideTimer = null;
+        let islandRestoreTimer = null;
+        function pushYtIslandDown() {
+            clearTimeout(islandRestoreTimer);
+            document.getElementById('ytProjectionWidget')?.classList.add('yt-island-pushed');
+            updateIslandActiveState();
+        }
+        function scheduleRestoreYtIsland(delay = 0) {
+            clearTimeout(islandRestoreTimer);
+            islandRestoreTimer = setTimeout(() => {
+                document.getElementById('ytProjectionWidget')?.classList.remove('yt-island-pushed');
+                updateIslandActiveState();
+            }, delay);
+        }
+        function updateIslandActiveState() {
+            const pill = document.getElementById('islandPill');
+            const ytWidget = document.getElementById('ytProjectionWidget');
+            const noticeOpen = pill && parseInt(pill.style.width, 10) > 14;
+            const ytVisible = ytWidget && !ytWidget.classList.contains('hidden');
+            document.body.classList.toggle('island-active', !!(noticeOpen || ytVisible));
+        }
+
+        function showIslandNotice(text, iconClass = 'fa-solid fa-circle-check text-emerald-400 text-sm shrink-0', duration = 3200) {
+            const pill = document.getElementById('islandPill'), content = document.getElementById('islandContent'), textEl = document.getElementById('islandText'), iconEl = document.getElementById('islandIcon');
+            if (!pill || !content || !textEl) return;
+            clearTimeout(islandShowTimer); clearTimeout(islandHideTimer);
+            pushYtIslandDown();
+
+            const collapse = () => { pill.style.width = '14px'; pill.classList.remove('island-open'); scheduleRestoreYtIsland(250); updateIslandActiveState(); };
+            const expandAndReveal = () => {
+                textEl.textContent = text;
+                if (iconEl) iconEl.className = iconClass;
+                content.style.visibility = 'hidden'; content.style.position = 'absolute'; content.style.opacity = '1';
+                const naturalWidth = Math.ceil(content.scrollWidth);
+                content.style.position = ''; content.style.visibility = ''; content.style.opacity = '0';
+                pill.classList.add('island-open');
+                pill.style.width = Math.max(14, naturalWidth) + 'px';
+                pill.style.height = '38px';
+                updateIslandActiveState();
+                islandShowTimer = setTimeout(() => { content.style.opacity = '1'; }, 160);
+                islandHideTimer = setTimeout(() => {
+                    content.style.opacity = '0';
+                    setTimeout(collapse, 220);
+                }, duration);
+            };
+
+            const alreadyOpen = parseInt(pill.style.width, 10) > 14;
+            if (alreadyOpen) {
+                content.style.opacity = '0';
+                setTimeout(() => { collapse(); setTimeout(expandAndReveal, 260); }, 180);
+            } else {
+                expandAndReveal();
+            }
+        }
+
+        function showIslandNoticeSticky(text, iconClass) {
+            const pill = document.getElementById('islandPill'), content = document.getElementById('islandContent'), textEl = document.getElementById('islandText'), iconEl = document.getElementById('islandIcon');
+            if (!pill || !content || !textEl) return;
+            clearTimeout(islandShowTimer); clearTimeout(islandHideTimer);
+            pushYtIslandDown();
+            const isOpen = parseInt(pill.style.width, 10) > 14;
+            textEl.textContent = text;
+            if (iconEl) iconEl.className = iconClass;
+            content.style.position = 'absolute'; content.style.visibility = 'hidden'; content.style.opacity = '1';
+            const naturalWidth = Math.ceil(content.scrollWidth);
+            content.style.position = ''; content.style.visibility = '';
+            if (isOpen) {
+                pill.style.width = Math.max(14, naturalWidth) + 'px';
+            } else {
+                content.style.opacity = '0';
+                pill.classList.add('island-open');
+                pill.style.width = Math.max(14, naturalWidth) + 'px';
+                pill.style.height = '38px';
+                setTimeout(() => { content.style.opacity = '1'; }, 160);
+            }
+            updateIslandActiveState();
+        }
+        function hideIslandNoticeSticky() {
+            const pill = document.getElementById('islandPill'), content = document.getElementById('islandContent');
+            if (!pill || !content) return;
+            content.style.opacity = '0';
+            setTimeout(() => { pill.style.width = '14px'; pill.classList.remove('island-open'); scheduleRestoreYtIsland(250); updateIslandActiveState(); }, 220);
+        }
+
         function finishPomo() {
             clearInterval(state.pomoInterval); state.pomoRunning = false;
             playCompletionChime();
             if (state.pomoMode === 'work') state.pomoWorkDone++;
             const next = state.pomoMode === 'work' ? (state.pomoWorkDone % 4 === 0 ? 'longBreak' : 'shortBreak') : 'work';
+            const phaseIcon = next === 'work' ? 'fa-solid fa-brain text-indigo-300 text-sm shrink-0' : 'fa-solid fa-mug-hot text-amber-300 text-sm shrink-0';
+            showIslandNotice(t('phaseDoneMsg')(next), phaseIcon);
             setPomoMode(next);
             if (state.autoPomo) startPomoTicking();
         }
@@ -5758,12 +6024,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                     console.warn("Document PiP 啟動失敗:", e); 
                 }
             } else {
-                const zenNotice = document.getElementById('zenNotice');
-                if (zenNotice) {
-                    zenNotice.innerHTML = `<i class="fa-solid fa-circle-info text-amber-400 mr-2"></i>您的瀏覽器尚未支援原生懸浮視窗（建議使用 Chrome / Edge 瀏覽器）`;
-                    zenNotice.classList.remove('opacity-0', '-translate-y-4');
-                    setTimeout(() => { zenNotice.classList.add('opacity-0', '-translate-y-4'); }, 4000);
-                }
+                showIslandNotice('您的瀏覽器尚未支援原生懸浮視窗（建議使用 Chrome / Edge 瀏覽器）', 'fa-solid fa-circle-info text-amber-400 text-sm shrink-0', 4000);
             }
         }
         document.getElementById('shareBtn')?.addEventListener('click', async () => {
@@ -6051,6 +6312,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 whatsNewBtnText.textContent = hasNew ? '發現新版本！' : '最新升級特色';
                 whatsNewBtnText.className = hasNew ? 'text-rose-400 font-bold animate-pulse' : '';
             }
+            if (hasNew) showIslandNotice(t('newVersionMsg'), 'fa-solid fa-sparkles text-rose-300 text-sm shrink-0', 4500);
         }
 
         function clearVersionBadge() {
@@ -6096,25 +6358,8 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
 
         document.getElementById('memoInput')?.addEventListener('input', () => saveSettings());
 
-        const taskDrawer = document.getElementById('taskDrawer'), audioMixerDrawer = document.getElementById('audioMixerDrawer');
-        const taskDrawerBtn = document.getElementById('toggleTaskDrawerBtn'), audioMixerBtn = document.getElementById('toggleAudioMixerBtn');
-
-        taskDrawerBtn?.addEventListener('click', () => {
-            const isOpen = !taskDrawer.classList.contains('opacity-0');
-            if (isOpen) {
-                taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full');
-                taskDrawerBtn.classList.remove('ring-2', 'ring-indigo-400/60', 'border-indigo-400/60', 'bg-indigo-950/40');
-            } else {
-                taskDrawer.classList.remove('opacity-0', 'pointer-events-none', '-translate-x-full');
-                taskDrawerBtn.classList.add('ring-2', 'ring-indigo-400/60', 'border-indigo-400/60', 'bg-indigo-950/40');
-                audioMixerDrawer.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full');
-                audioMixerBtn?.classList.remove('ring-2', 'ring-teal-400/60', 'border-teal-400/60', 'bg-teal-950/40');
-            }
-        });
-        document.getElementById('closeTaskDrawerBtn')?.addEventListener('click', () => {
-            taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full');
-            taskDrawerBtn?.classList.remove('ring-2', 'ring-indigo-400/60', 'border-indigo-400/60', 'bg-indigo-950/40');
-        });
+        const audioMixerDrawer = document.getElementById('audioMixerDrawer');
+        const audioMixerBtn = document.getElementById('toggleAudioMixerBtn');
 
         audioMixerBtn?.addEventListener('click', () => {
             const isOpen = !audioMixerDrawer.classList.contains('opacity-0');
@@ -6124,8 +6369,6 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             } else {
                 audioMixerDrawer.classList.remove('opacity-0', 'pointer-events-none', 'translate-x-full');
                 audioMixerBtn.classList.add('ring-2', 'ring-teal-400/60', 'border-teal-400/60', 'bg-teal-950/40');
-                taskDrawer.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full');
-                taskDrawerBtn?.classList.remove('ring-2', 'ring-indigo-400/60', 'border-indigo-400/60', 'bg-indigo-950/40');
             }
         });
         document.getElementById('closeAudioMixerBtn')?.addEventListener('click', () => {
@@ -6136,8 +6379,8 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         document.getElementById('lowPerfToggleBtn')?.addEventListener('click', () => {
             state.lowPerformance = !state.lowPerformance;
             const btn = document.getElementById('lowPerfToggleBtn'), icon = document.getElementById('lowPerfIcon'), text = document.getElementById('lowPerfText');
-            if (state.lowPerformance) { document.body.classList.add('low-performance'); btn.classList.add('bg-green-900/40', 'border-green-500/50'); if (text) text.textContent = "性能: 節能"; if (icon) icon.className = "fa-solid fa-leaf text-xs text-green-300"; }
-            else { document.body.classList.remove('low-performance'); btn.classList.remove('bg-green-900/40', 'border-green-500/50'); if (text) text.textContent = "性能: 標準"; if (icon) icon.className = "fa-solid fa-leaf text-xs text-green-400"; }
+            if (state.lowPerformance) { document.body.classList.add('low-performance'); btn.classList.add('bg-green-900/40', 'border-green-500/50'); if (text) text.textContent = "性能: 節能"; if (icon) icon.className = "fa-solid fa-leaf text-xs text-green-300"; showIslandNotice(t('perfEco'), 'fa-solid fa-leaf text-green-300 text-sm shrink-0'); }
+            else { document.body.classList.remove('low-performance'); btn.classList.remove('bg-green-900/40', 'border-green-500/50'); if (text) text.textContent = "性能: 標準"; if (icon) icon.className = "fa-solid fa-leaf text-xs text-green-400"; showIslandNotice(t('perfStd'), 'fa-solid fa-leaf text-green-400 text-sm shrink-0'); }
             initRain(); saveSettings();
         });
 
@@ -6198,10 +6441,6 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
 
                 if (dist < cardRect.width * 0.45) {
                     card.classList.add('is-centered');
-                    const cardTheme = card.dataset.iosTheme;
-                    if (state.theme !== cardTheme && isEditModeActive) {
-                        applyTheme(cardTheme);
-                    }
                 } else {
                     card.classList.remove('is-centered');
                 }
@@ -6345,6 +6584,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             }
             updateIosCardsActiveState();
             if (!isList) updateIosCardsCenteredState();
+            requestAnimationFrame(() => { initCardCanvases(); });
             if (!skipSave) {
                 try { localStorage.setItem('auraThemeListMode', isList ? '1' : '0'); } catch (err) {}
             }
@@ -6413,8 +6653,6 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         window.addEventListener('touchmove', cancelPressTimer, { passive: true });
 
         let isZenMode = false, autoHideTimer = null, isUIHiddenByIdle = false;
-        const zenNotice = document.getElementById('zenNotice');
-        const zenNoticeDefaultHTML = zenNotice ? zenNotice.innerHTML : '';
 
         function hideUI() {
             const topHud = document.getElementById('topHud'), bottomHud = document.getElementById('bottomHud'), quoteDisplay = getClockEl('quoteDisplay');
@@ -6435,7 +6673,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             if (isUIHiddenByIdle && !isZenMode) { showUI(); isUIHiddenByIdle = false; }
             if (!state.autoHideUI || isZenMode) return;
             autoHideTimer = setTimeout(() => {
-                const isDrawerOpen = (taskDrawer && !taskDrawer.classList.contains('opacity-0')) || (audioMixerDrawer && !audioMixerDrawer.classList.contains('opacity-0'));
+                const isDrawerOpen = (audioMixerDrawer && !audioMixerDrawer.classList.contains('opacity-0'));
                 const isModalOpen = (settingsModal && !settingsModal.classList.contains('opacity-0')) || (whatsNewModal && !whatsNewModal.classList.contains('opacity-0')) || (pomoCustomModal && !pomoCustomModal.classList.contains('opacity-0')) || (iosThemeModal && !iosThemeModal.classList.contains('opacity-0')) || document.getElementById('pwaInstallModal')?.classList.contains('opacity-0') === false || document.body.classList.contains('split-view-active');
                 if (!isDrawerOpen && !isModalOpen && state.autoHideUI && !isZenMode) { hideUI(); isUIHiddenByIdle = true; }
             }, 5000);
@@ -6498,10 +6736,11 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         function toggleZenMode(enable) {
             isZenMode = enable !== undefined ? enable : !isZenMode;
             if (isZenMode) {
-                hideUI(); taskDrawer?.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full'); audioMixerDrawer?.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full'); closeWinClockModal();
-                if (zenNotice) { zenNotice.innerHTML = zenNoticeDefaultHTML; zenNotice.classList.remove('opacity-0', '-translate-y-4'); setTimeout(() => { if (isZenMode && zenNotice) zenNotice.classList.add('opacity-0', '-translate-y-4'); }, 3000); }
+                hideUI(); audioMixerDrawer?.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full'); closeWinClockModal();
+                showIslandNotice(t('zenBanner'), 'fa-solid fa-spa text-indigo-300 text-sm shrink-0', 3000);
             } else {
-                showUI(); isUIHiddenByIdle = false; if (zenNotice) zenNotice.classList.add('opacity-0', '-translate-y-4'); resetAutoHideTimer();
+                showUI(); isUIHiddenByIdle = false; resetAutoHideTimer();
+                showIslandNotice(t('zenExitMsg'), 'fa-solid fa-circle-check text-emerald-300 text-sm shrink-0');
             }
         }
 
@@ -6658,6 +6897,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         document.getElementById('customQuoteInput')?.addEventListener('input', e => { state.customQuoteText = e.target.value; updateClock(); saveSettings(); });
         document.getElementById('binauralSelect')?.addEventListener('change', e => { updateBinauralFrequencies(e.target.value); saveSettings(); });
         document.getElementById('showFpsToggle')?.addEventListener('change', e => { state.showFps = e.target.checked; toggleFpsDisplay(state.showFps); saveSettings(); });
+        document.getElementById('allowTextSelectToggle')?.addEventListener('change', e => { state.allowTextSelect = e.target.checked; document.body.classList.toggle('allow-text-select', state.allowTextSelect); saveSettings(); });
         document.getElementById('autoHideToggle')?.addEventListener('change', e => { state.autoHideUI = e.target.checked; resetAutoHideTimer(); saveSettings(); });
         document.getElementById('glassInteractionToggle')?.addEventListener('change', e => { state.glassInteraction = e.target.checked; saveSettings(); });
         document.getElementById('format24Toggle')?.addEventListener('change', e => { state.clock24h = e.target.checked; updateClock(); saveSettings(); });
@@ -6677,12 +6917,13 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             const req = el.requestFullscreen || el.webkitRequestFullscreen;
             const exit = document.exitFullscreen || document.webkitExitFullscreen;
             if (document.fullscreenElement || document.webkitFullscreenElement) { if (exit) exit.call(document); return; }
-            if (req) { const p = req.call(el); if (p && p.catch) p.catch(() => {}); return; }
-            if (zenNotice) {
-                zenNotice.innerHTML = `<i class="fa-solid fa-circle-info text-amber-400 mr-2"></i>此瀏覽器不支援全螢幕（iPhone 請用「加入主畫面」以 App 模式開啟）`;
-                zenNotice.classList.remove('opacity-0', '-translate-y-4');
-                setTimeout(() => { zenNotice.classList.add('opacity-0', '-translate-y-4'); }, 4000);
+            if (req) {
+                const p = req.call(el);
+                const onOk = () => showIslandNotice(t('fsEnteredMsg'), 'fa-solid fa-expand text-indigo-300 text-sm shrink-0');
+                if (p && p.then) p.then(onOk).catch(() => {}); else onOk();
+                return;
             }
+            showIslandNotice('此瀏覽器不支援全螢幕（iPhone 請用「加入主畫面」以 App 模式開啟）', 'fa-solid fa-circle-info text-amber-400 text-sm shrink-0', 4000);
         });
 
         let isPomoFolded = true;
@@ -6704,7 +6945,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 closeIosThemeModal();
                 closeWinClockModal();
                 settingsModal?.classList.add('opacity-0', 'pointer-events-none'); hideWhatsNewModal();
-                pomoCustomModal?.classList.add('opacity-0', 'pointer-events-none'); closePwaInstallModal(); taskDrawer?.classList.add('opacity-0', 'pointer-events-none', '-translate-x-full');
+                pomoCustomModal?.classList.add('opacity-0', 'pointer-events-none'); closePwaInstallModal();
                 audioMixerDrawer?.classList.add('opacity-0', 'pointer-events-none', 'translate-x-full'); return;
             }
             if (e.ctrlKey || e.metaKey) return;
