@@ -64,7 +64,7 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
 
 #ytProjectionWidget {
     transform: translateX(-50%);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, left 0.46s cubic-bezier(0.2, 0, 0, 1);
 }
 #ytProjectionWidget.yt-island-pushed {
     transform: translateX(-50%) translateY(52px);
@@ -394,7 +394,7 @@ body.split-view-active #winClockSplitPane {
     }
     body.split-view-active #islandNotice,
     body.split-view-active #ytProjectionWidget {
-        left: calc(var(--split) * 0.5 * 1%) !important;
+        left: calc(var(--split) * 0.5%) !important;
     }
     /* 主題卡片原本以整個視窗寬度計算，改以左半寬度為基準 */
     body.split-view-active .ios-adjacent-card {
@@ -995,7 +995,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         </div>
 
         <!-- 頂部工具列 -->
-        <div id="islandNotice" class="fixed top-3 left-1/2 -translate-x-1/2 z-[70] pointer-events-none">
+        <div id="islandNotice" class="fixed top-3 left-1/2 -translate-x-1/2 z-[70] pointer-events-none" style="transition: left 0.46s cubic-bezier(0.2,0,0,1);">
             <div id="islandPill" class="rounded-full border flex items-center justify-center overflow-hidden" style="width:14px;height:38px;">
                 <div id="islandContent" class="flex items-center space-x-2 px-4 py-2.5 whitespace-nowrap opacity-0">
                     <i id="islandIcon" class="fa-solid fa-circle-check text-emerald-400 text-sm shrink-0"></i>
@@ -5818,7 +5818,14 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 islandShowTimer = setTimeout(() => { content.style.opacity = '1'; }, 160);
                 islandHideTimer = setTimeout(() => {
                     content.style.opacity = '0';
-                    setTimeout(collapse, 220);
+                    setTimeout(() => {
+                        if (typeof breathingState !== 'undefined' && breathingState.active) {
+                            updateBreathingUI();
+                            content.style.opacity = '1';
+                        } else {
+                            collapse();
+                        }
+                    }, 220);
                 }, duration);
             };
 
