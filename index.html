@@ -62,12 +62,15 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
     transition: opacity 0.28s ease;
 }
 
-#ytProjectionWidget {
+#persistentIslandStack {
     transform: translateX(-50%);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, left 0.46s cubic-bezier(0.2, 0, 0, 1);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), left 0.46s cubic-bezier(0.2, 0, 0, 1);
 }
-#ytProjectionWidget.yt-island-pushed {
+#persistentIslandStack.yt-island-pushed {
     transform: translateX(-50%) translateY(52px);
+}
+#ytProjectionWidget, #quoteIslandWidget {
+    transition: opacity 0.3s ease;
 }
 
 /* 窄螢幕上，靈動島顯示時先淡出頂部按鈕列，避免重疊 */
@@ -688,9 +691,6 @@ body.theme-is-light #pomoStatusBadge {
     border-color: rgba(14, 165, 233, 0.35) !important;
     color: #0284c7 !important;
 }
-body.theme-is-light #quoteDisplay {
-    color: #334155 !important;
-}
 body.theme-is-light .glass-panel {
     background: rgba(255, 255, 255, 0.75) !important;
     border-color: rgba(0, 0, 0, 0.1) !important;
@@ -987,7 +987,6 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                     </div>
                 </div>
             </div>
-            <div id="quoteDisplay" class="font-serif italic text-xs sm:text-sm text-white/70 max-w-lg mt-6 px-6 leading-relaxed transition-opacity duration-700" style="display: none;">「專注於眼前的小事，平靜是進入高效流道的鑰匙。」</div>
         </div>
 
         <!-- 頂部工具列 -->
@@ -1062,7 +1061,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 <div class="flex items-center space-x-2 text-teal-300 font-semibold text-sm">
                     <i class="fa-brands fa-youtube"></i><span>YouTube 專注音樂</span>
                 </div>
-                <button id="closeAudioMixerBtn" class="text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                <button id="closeAudioMixerBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="space-y-4 text-xs">
                 <div>
@@ -1080,22 +1079,28 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             </div>
         </div>
 
-        <div id="ytProjectionWidget" class="hidden hud-element fixed top-3 left-1/2 z-[24] bg-black/90 backdrop-blur-xl rounded-full px-3 border border-white/10 shadow-2xl flex items-center space-x-1.5" style="height:38px;">
-            <i class="fa-brands fa-youtube text-red-500 text-sm ml-0.5 mr-0.5"></i>
-            <button id="ytBgRewindBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="倒退 10 秒"><i class="fa-solid fa-rotate-left text-xs"></i><span class="tooltip-text">倒退 10 秒</span></button>
-            <button id="ytBgPlayPauseBtn" class="w-9 h-9 flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-md"><i id="ytBgPlayPauseIcon" class="fa-solid fa-pause text-xs"></i></button>
-            <button id="ytBgForwardBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="前進 10 秒"><i class="fa-solid fa-rotate-right text-xs"></i><span class="tooltip-text">前進 10 秒</span></button>
-            <div class="h-5 w-[1px] bg-white/15 mx-0.5"></div>
-            <div class="relative">
-                <button id="ytVolumeBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="音量調整"><i id="ytVolumeIcon" class="fa-solid fa-volume-high text-xs"></i><span class="tooltip-text">音量調整</span></button>
-                <div id="ytVolumePopover" class="hidden absolute top-full right-0 mt-2 glass-panel rounded-xl p-3 border border-white/15 shadow-2xl w-36 z-[26]">
-                    <div class="flex justify-between text-[10px] text-white/60 mb-1.5"><span>音量</span><span id="ytWidgetVolumeVal" class="font-mono text-white/80">100%</span></div>
-                    <input id="ytWidgetVolumeSlider" type="range" min="0" max="100" step="1" value="100" class="w-full accent-indigo-400 bg-white/10 rounded-lg cursor-pointer h-1.5">
+        <div id="persistentIslandStack" class="fixed top-3 left-1/2 z-[24] flex flex-col items-center gap-2 pointer-events-none">
+            <div id="ytProjectionWidget" class="hidden hud-element pointer-events-auto bg-black/90 backdrop-blur-xl rounded-full px-3 border border-white/10 shadow-2xl flex items-center space-x-1.5" style="height:38px;">
+                <i class="fa-brands fa-youtube text-red-500 text-sm ml-0.5 mr-0.5"></i>
+                <button id="ytBgRewindBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="倒退 10 秒"><i class="fa-solid fa-rotate-left text-xs"></i><span class="tooltip-text">倒退 10 秒</span></button>
+                <button id="ytBgPlayPauseBtn" class="w-9 h-9 flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-md"><i id="ytBgPlayPauseIcon" class="fa-solid fa-pause text-xs"></i></button>
+                <button id="ytBgForwardBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="前進 10 秒"><i class="fa-solid fa-rotate-right text-xs"></i><span class="tooltip-text">前進 10 秒</span></button>
+                <div class="h-5 w-[1px] bg-white/15 mx-0.5"></div>
+                <div class="relative">
+                    <button id="ytVolumeBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="音量調整"><i id="ytVolumeIcon" class="fa-solid fa-volume-high text-xs"></i><span class="tooltip-text">音量調整</span></button>
+                    <div id="ytVolumePopover" class="hidden absolute top-full right-0 mt-2 glass-panel rounded-xl p-3 border border-white/15 shadow-2xl w-36 z-[26]">
+                        <div class="flex justify-between text-[10px] text-white/60 mb-1.5"><span>音量</span><span id="ytWidgetVolumeVal" class="font-mono text-white/80">100%</span></div>
+                        <input id="ytWidgetVolumeSlider" type="range" min="0" max="100" step="1" value="100" class="w-full accent-indigo-400 bg-white/10 rounded-lg cursor-pointer h-1.5">
+                    </div>
                 </div>
+                <button id="ytStopMediaBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-rose-500/80 text-white/80 hover:text-white transition tooltip" title="關閉媒體"><i class="fa-solid fa-stop text-xs"></i><span class="tooltip-text">關閉媒體</span></button>
+                <div class="h-5 w-[1px] bg-white/15 mx-0.5"></div>
+                <button id="ytCastToggleBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="投影到背景"><i id="ytCastToggleIcon" class="fa-solid fa-tv text-xs"></i><span id="ytCastToggleTooltip" class="tooltip-text">投影到背景</span></button>
             </div>
-            <button id="ytStopMediaBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-rose-500/80 text-white/80 hover:text-white transition tooltip" title="關閉媒體"><i class="fa-solid fa-stop text-xs"></i><span class="tooltip-text">關閉媒體</span></button>
-            <div class="h-5 w-[1px] bg-white/15 mx-0.5"></div>
-            <button id="ytCastToggleBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="投影到背景"><i id="ytCastToggleIcon" class="fa-solid fa-tv text-xs"></i><span id="ytCastToggleTooltip" class="tooltip-text">投影到背景</span></button>
+            <div id="quoteIslandWidget" class="hidden hud-element pointer-events-auto bg-black/90 backdrop-blur-xl rounded-full px-4 border border-white/10 shadow-2xl flex items-center space-x-2 max-w-[90vw]" style="height:38px;">
+                <i class="fa-solid fa-feather-pointed text-purple-300 text-xs shrink-0"></i>
+                <span id="quoteIslandText" class="font-serif italic text-white/85 text-xs truncate">「專注於眼前的小事，平靜是進入高效流道的鑰匙。」</span>
+            </div>
         </div>
 
         <!-- 底部控制列 -->
@@ -1172,7 +1177,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 <button id="expandWinClockBtn" class="hidden md:flex w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 items-center justify-center text-white/70 hover:text-white transition cursor-pointer" title="全螢幕顯示面板">
                     <i class="fa-solid fa-expand text-xs"></i>
                 </button>
-                <button id="closeWinClockBtn" class="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition cursor-pointer" title="關閉分割視窗">
+                <button id="closeWinClockBtn" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition cursor-pointer" title="關閉分割視窗">
                     <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
             </div>
@@ -1260,12 +1265,15 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                     <i id="settingsHeaderIcon" class="fa-solid fa-sliders text-indigo-400 text-lg"></i>
                     <h3 id="settingsHeaderTitle" class="font-bold text-white text-base">專注與顯示進階設定</h3>
                 </div>
-                <button id="closeSettingsBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
+                <div class="flex items-center space-x-2">
+                    <button id="feedbackBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition tooltip" title="意見反應與功能建議"><i class="fa-solid fa-comment-dots text-sm"></i><span class="tooltip-text">意見反應與功能建議</span></button>
+                    <button id="closeSettingsBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
+                </div>
             </div>
             <div class="flex flex-col sm:flex-row flex-1 overflow-hidden min-h-[400px] relative">
                 <!-- 第一層：分類選單頁 (iOS Category List Layer) -->
                 <div id="settingsCategoryList" class="ios-settings-page-transition w-full sm:w-1/3 sm:border-r border-white/10 p-4 sm:p-5 flex flex-col gap-2 overflow-y-auto custom-scrollbar bg-black/10 shrink-0">
-                    <button class="settings-tab-btn w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-amber-500/10 text-amber-300 text-xs font-semibold transition shrink-0 border border-amber-500/20" data-tab="tab-visual" data-title="視覺與特效" data-icon="fa-solid fa-wand-magic-sparkles text-amber-400" data-active-bg="bg-amber-500/10" data-active-text="text-amber-300" data-active-border="border-amber-500/20">
+                    <button class="settings-tab-btn w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-amber-500/10 text-amber-300 text-xs font-semibold transition shrink-0 border border-amber-500/20 active:scale-[0.98]" data-tab="tab-visual" data-title="視覺與特效" data-icon="fa-solid fa-wand-magic-sparkles text-amber-400" data-active-bg="bg-amber-500/10" data-active-text="text-amber-300" data-active-border="border-amber-500/20">
                         <div class="flex items-center space-x-3 text-left">
                             <i class="fa-solid fa-wand-magic-sparkles text-amber-400 w-4 text-center"></i>
                             <div>
@@ -1682,7 +1690,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         <div class="modal-slide-up glass-panel w-full max-w-sm rounded-3xl p-6 flex flex-col space-y-4 border border-white/15 shadow-2xl">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
                 <h3 class="font-bold text-white text-sm">自訂專注倒數時間</h3>
-                <button id="closePomoModalBtn" class="text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                <button id="closePomoModalBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="space-y-3 text-xs">
                 <div><label class="block text-white/60 mb-1">設定分鐘數：</label><input id="customMinutesInput" type="number" min="1" max="180" value="25" class="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-indigo-500"></div>
@@ -1705,7 +1713,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                     <h3 class="font-bold text-white text-sm">安裝 AURA Studio</h3>
                     <p class="pwa-desc text-[11px] text-white/50 mt-0.5">選擇安裝方式</p>
                 </div>
-                <button id="closePwaInstallBtn" class="text-white/50 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                <button id="closePwaInstallBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="space-y-3 text-xs">
                 <button id="pwaInstallActionBtn" class="w-full text-left flex items-start space-x-3 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-400/30 rounded-2xl p-4 transition cursor-pointer">
@@ -1930,6 +1938,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "Clock & Appearance",
             "專注與系統": "Focus & System",
             "快捷鍵指南": "Keyboard Shortcuts",
+            "意見反應與功能建議": "Feedback & Feature Requests",
             "開發者設定": "Developer Settings",
             "允許選取文字": "Allow Text Selection",
             "媒體控制": "Media Controls",
@@ -2209,6 +2218,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "时钟与外观",
             "專注與系統": "专注与系统",
             "快捷鍵指南": "快捷键指南",
+            "意見反應與功能建議": "意见反馈与功能建议",
             "開發者設定": "开发者设定",
             "允許選取文字": "允许选取文字",
             "媒體控制": "媒体控制",
@@ -2488,6 +2498,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "時計と外観",
             "專注與系統": "集中とシステム",
             "快捷鍵指南": "キーボードショートカット",
+            "意見反應與功能建議": "フィードバックと機能リクエスト",
             "開發者設定": "開発者設定",
             "允許選取文字": "テキスト選択を許可",
             "媒體控制": "メディアコントロール",
@@ -2767,6 +2778,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "시계와 디자인",
             "專注與系統": "집중과 시스템",
             "快捷鍵指南": "단축키 안내",
+            "意見反應與功能建議": "피드백 및 기능 제안",
             "開發者設定": "개발자 설정",
             "允許選取文字": "텍스트 선택 허용",
             "媒體控制": "미디어 제어",
@@ -3046,6 +3058,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "Horloge et apparence",
             "專注與系統": "Concentration et système",
             "快捷鍵指南": "Guide des raccourcis clavier",
+            "意見反應與功能建議": "Retour et suggestions de fonctionnalités",
             "開發者設定": "Paramètres développeur",
             "允許選取文字": "Autoriser la sélection de texte",
             "媒體控制": "Contrôles multimédias",
@@ -3325,6 +3338,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "Часы и внешний вид",
             "專注與系統": "Фокусировка и система",
             "快捷鍵指南": "Руководство по горячим клавишам",
+            "意見反應與功能建議": "Отзывы и предложения функций",
             "開發者設定": "Настройки разработчика",
             "允許選取文字": "Разрешить выделение текста",
             "媒體控制": "Управление медиа",
@@ -3604,6 +3618,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "Reloj y apariencia",
             "專注與系統": "Concentración y sistema",
             "快捷鍵指南": "Guía de atajos de teclado",
+            "意見反應與功能建議": "Comentarios y sugerencias de funciones",
             "開發者設定": "Ajustes de desarrollador",
             "允許選取文字": "Permitir selección de texto",
             "媒體控制": "Controles de medios",
@@ -3883,6 +3898,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "घड़ी और रूप-रंग",
             "專注與系統": "फ़ोकस और सिस्टम",
             "快捷鍵指南": "कीबोर्ड शॉर्टकट गाइड",
+            "意見反應與功能建議": "फ़ीडबैक और फ़ीचर सुझाव",
             "開發者設定": "डेवलपर सेटिंग्स",
             "允許選取文字": "टेक्स्ट चयन की अनुमति दें",
             "媒體控制": "मीडिया नियंत्रण",
@@ -4162,6 +4178,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "時鐘與外觀": "Relógio e aparência",
             "專注與系統": "Foco e sistema",
             "快捷鍵指南": "Guia de atalhos de teclado",
+            "意見反應與功能建議": "Feedback e sugestões de recursos",
             "開發者設定": "Configurações do desenvolvedor",
             "允許選取文字": "Permitir seleção de texto",
             "媒體控制": "Controles de mídia",
@@ -4908,6 +4925,8 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 const format24Toggle = document.getElementById('format24Toggle'); if (format24Toggle) format24Toggle.checked = state.clock24h;
                 const showSecondsToggle = document.getElementById('showSecondsToggle'); if (showSecondsToggle) showSecondsToggle.checked = state.showSeconds;
                 const showQuoteToggle = document.getElementById('showQuoteToggle'); if (showQuoteToggle) showQuoteToggle.checked = state.showQuote;
+                const quoteIslandWidget = document.getElementById('quoteIslandWidget'); if (quoteIslandWidget) quoteIslandWidget.classList.toggle('hidden', !state.showQuote);
+                if (typeof updateIslandActiveState === 'function') updateIslandActiveState();
                 const autoPomoToggle = document.getElementById('autoPomoToggle'); if (autoPomoToggle) autoPomoToggle.checked = state.autoPomo;
                 const soundChimeToggle = document.getElementById('soundChimeToggle'); if (soundChimeToggle) soundChimeToggle.checked = state.soundChime;
                 const allowTextSelectToggle = document.getElementById('allowTextSelectToggle'); if (allowTextSelectToggle) allowTextSelectToggle.checked = state.allowTextSelect;
@@ -5712,15 +5731,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             const cardDateStr = formatCardDate(now);
             document.querySelectorAll('.card-date-display').forEach(el => el.textContent = cardDateStr);
 
-            const quoteEl = getClockEl('quoteDisplay');
-            if (quoteEl) {
-                const qArr = studyQuotes[currentLang] || studyQuotes['zh-TW'];
-                if (state.customQuoteText.trim()) {
-                    quoteEl.textContent = (currentLang === 'en') ? `"${state.customQuoteText}"` : ((currentLang === 'fr' || currentLang === 'ru' || currentLang === 'es' || currentLang === 'pt') ? `« ${state.customQuoteText} »` : ((currentLang === 'hi') ? `“${state.customQuoteText}”` : `「${state.customQuoteText}」`));
-                } else if (now.getSeconds() === 0 && now.getMinutes() % 5 === 0) {
-                    quoteIndex = (quoteIndex + 1) % qArr.length; quoteEl.textContent = qArr[quoteIndex];
-                } else if (!quoteEl.textContent || quoteEl.textContent.length < 5) {
-                    quoteEl.textContent = qArr[quoteIndex];
+            if (state.showQuote) {
+                const quoteEl = document.getElementById('quoteIslandText');
+                if (quoteEl) {
+                    const qArr = studyQuotes[currentLang] || studyQuotes['zh-TW'];
+                    if (state.customQuoteText.trim()) {
+                        quoteEl.textContent = (currentLang === 'en') ? `"${state.customQuoteText}"` : ((currentLang === 'fr' || currentLang === 'ru' || currentLang === 'es' || currentLang === 'pt') ? `« ${state.customQuoteText} »` : ((currentLang === 'hi') ? `“${state.customQuoteText}”` : `「${state.customQuoteText}」`));
+                    } else if (now.getSeconds() === 0 && now.getMinutes() % 5 === 0) {
+                        quoteIndex = (quoteIndex + 1) % qArr.length; quoteEl.textContent = qArr[quoteIndex];
+                    } else if (!quoteEl.textContent || quoteEl.textContent.length < 5) {
+                        quoteEl.textContent = qArr[quoteIndex];
+                    }
                 }
             }
         }
@@ -5775,7 +5796,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         let islandShowTimer = null, islandHideTimer = null;
         function updateIslandHorizontalPosition() {
             const islandNotice = document.getElementById('islandNotice');
-            const ytWidget = document.getElementById('ytProjectionWidget');
+            const stack = document.getElementById('persistentIslandStack');
             const appStage = document.getElementById('appStage');
             let centerPx = window.innerWidth / 2;
             const isSplit = document.body.classList.contains('split-view-active');
@@ -5785,7 +5806,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 if (rect.width > 0) centerPx = rect.left + rect.width / 2;
             }
             if (islandNotice) islandNotice.style.left = centerPx + 'px';
-            if (ytWidget) ytWidget.style.left = centerPx + 'px';
+            if (stack) stack.style.left = centerPx + 'px';
         }
         window.addEventListener('resize', updateIslandHorizontalPosition);
         updateIslandHorizontalPosition();
@@ -5793,22 +5814,24 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         let islandRestoreTimer = null;
         function pushYtIslandDown() {
             clearTimeout(islandRestoreTimer);
-            document.getElementById('ytProjectionWidget')?.classList.add('yt-island-pushed');
+            document.getElementById('persistentIslandStack')?.classList.add('yt-island-pushed');
             updateIslandActiveState();
         }
         function scheduleRestoreYtIsland(delay = 0) {
             clearTimeout(islandRestoreTimer);
             islandRestoreTimer = setTimeout(() => {
-                document.getElementById('ytProjectionWidget')?.classList.remove('yt-island-pushed');
+                document.getElementById('persistentIslandStack')?.classList.remove('yt-island-pushed');
                 updateIslandActiveState();
             }, delay);
         }
         function updateIslandActiveState() {
             const pill = document.getElementById('islandPill');
             const ytWidget = document.getElementById('ytProjectionWidget');
+            const quoteWidget = document.getElementById('quoteIslandWidget');
             const noticeOpen = pill && parseInt(pill.style.width, 10) > 14;
             const ytVisible = ytWidget && !ytWidget.classList.contains('hidden');
-            document.body.classList.toggle('island-active', !!(noticeOpen || ytVisible));
+            const quoteVisible = quoteWidget && !quoteWidget.classList.contains('hidden');
+            document.body.classList.toggle('island-active', !!(noticeOpen || ytVisible || quoteVisible));
         }
 
         function showIslandNotice(text, iconClass = 'fa-solid fa-circle-check text-emerald-400 text-sm shrink-0', duration = 3200) {
@@ -6683,17 +6706,15 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         let isZenMode = false, autoHideTimer = null, isUIHiddenByIdle = false;
 
         function hideUI() {
-            const topHud = document.getElementById('topHud'), bottomHud = document.getElementById('bottomHud'), quoteDisplay = getClockEl('quoteDisplay');
+            const topHud = document.getElementById('topHud'), bottomHud = document.getElementById('bottomHud');
             if (topHud) { topHud.style.opacity = '0'; topHud.style.pointerEvents = 'none'; }
             if (bottomHud) { bottomHud.style.opacity = '0'; bottomHud.style.pointerEvents = 'none'; }
-            if (quoteDisplay && state.showQuote) quoteDisplay.style.opacity = '0';
         }
 
         function showUI() {
-            const topHud = document.getElementById('topHud'), bottomHud = document.getElementById('bottomHud'), quoteDisplay = getClockEl('quoteDisplay');
+            const topHud = document.getElementById('topHud'), bottomHud = document.getElementById('bottomHud');
             if (topHud) { topHud.style.opacity = '1'; topHud.style.pointerEvents = 'auto'; }
             if (bottomHud) { bottomHud.style.opacity = '1'; bottomHud.style.pointerEvents = 'auto'; }
-            if (quoteDisplay && state.showQuote) quoteDisplay.style.opacity = '1';
         }
 
         function resetAutoHideTimer() {
@@ -6883,6 +6904,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         window.addEventListener('resize', updateSettingsViewMode);
 
         document.getElementById('closeSettingsBtn')?.addEventListener('click', () => settingsModal?.classList.add('opacity-0', 'pointer-events-none'));
+        document.getElementById('feedbackBtn')?.addEventListener('click', () => { window.open('https://github.com/henry01151111/AURA-Studio/issues', '_blank', 'noopener'); });
 
         document.getElementById('speedSlider')?.addEventListener('input', e => { state.speed = parseFloat(e.target.value); document.getElementById('speedVal').textContent = `${state.speed.toFixed(1)}x`; saveSettings(); });
         document.getElementById('densitySlider')?.addEventListener('input', e => { state.density = parseFloat(e.target.value); document.getElementById('densityVal').textContent = state.density < 0.8 ? "極簡" : state.density > 1.2 ? "密集" : "標準"; initRain(); saveSettings(); });
@@ -6930,7 +6952,14 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         document.getElementById('glassInteractionToggle')?.addEventListener('change', e => { state.glassInteraction = e.target.checked; saveSettings(); });
         document.getElementById('format24Toggle')?.addEventListener('change', e => { state.clock24h = e.target.checked; updateClock(); saveSettings(); });
         document.getElementById('showSecondsToggle')?.addEventListener('change', e => { state.showSeconds = e.target.checked; updateClock(); saveSettings(); });
-        document.getElementById('showQuoteToggle')?.addEventListener('change', e => { state.showQuote = e.target.checked; const q = getClockEl('quoteDisplay'); if (q) q.style.display = state.showQuote ? 'block' : 'none'; saveSettings(); });
+        document.getElementById('showQuoteToggle')?.addEventListener('change', e => {
+            state.showQuote = e.target.checked;
+            const w = document.getElementById('quoteIslandWidget');
+            if (w) w.classList.toggle('hidden', !state.showQuote);
+            if (typeof updateIslandActiveState === 'function') updateIslandActiveState();
+            if (state.showQuote) updateClock();
+            saveSettings();
+        });
         document.getElementById('autoPomoToggle')?.addEventListener('change', e => { state.autoPomo = e.target.checked; saveSettings(); });
         document.getElementById('soundChimeToggle')?.addEventListener('change', e => { state.soundChime = e.target.checked; saveSettings(); });
 
