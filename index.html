@@ -392,10 +392,7 @@ body.split-view-active #winClockSplitPane {
     body.split-view-active .ios-mode-backdrop {
         right: calc((100 - var(--split)) * 1%) !important;
     }
-    body.split-view-active #islandNotice,
-    body.split-view-active #ytProjectionWidget {
-        left: calc(var(--split) * 0.5%) !important;
-    }
+
     /* 主題卡片原本以整個視窗寬度計算，改以左半寬度為基準 */
     body.split-view-active .ios-adjacent-card {
         width: calc(var(--split) * 0.62vw) !important;
@@ -429,8 +426,7 @@ body.split-view-active #winClockSplitPane {
     body.split-view-active.clock-expanded .ios-mode-backdrop {
         right: 0 !important;
     }
-    body.split-view-active.clock-expanded #islandNotice,
-    body.split-view-active.clock-expanded #ytProjectionWidget { left: 50% !important; }
+
     body.split-view-active.clock-expanded .ios-adjacent-card { width: 62vw !important; }
     body.split-view-active.clock-expanded #iosCardsContainer {
         padding-left: calc(50vw - 31vw) !important;
@@ -4718,7 +4714,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
 
             try { syncUIFromState(); } catch(e){}
             try { updateClock(); } catch(e){}
-            try { updateBreathingUI(); } catch(e){}
+            try { if (breathingState.active) updateBreathingUI(); } catch(e){}
             try { updatePomoDisplay(); } catch(e){}
             try { syncPomoLabels(); } catch(e){}
             try { renderTasks(); } catch(e){}
@@ -5777,6 +5773,23 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         }
 
         let islandShowTimer = null, islandHideTimer = null;
+        function updateIslandHorizontalPosition() {
+            const islandNotice = document.getElementById('islandNotice');
+            const ytWidget = document.getElementById('ytProjectionWidget');
+            const appStage = document.getElementById('appStage');
+            let centerPx = window.innerWidth / 2;
+            const isSplit = document.body.classList.contains('split-view-active');
+            const isExpanded = document.body.classList.contains('clock-expanded');
+            if (isSplit && !isExpanded && appStage && window.innerWidth >= 768) {
+                const rect = appStage.getBoundingClientRect();
+                if (rect.width > 0) centerPx = rect.left + rect.width / 2;
+            }
+            if (islandNotice) islandNotice.style.left = centerPx + 'px';
+            if (ytWidget) ytWidget.style.left = centerPx + 'px';
+        }
+        window.addEventListener('resize', updateIslandHorizontalPosition);
+        updateIslandHorizontalPosition();
+
         let islandRestoreTimer = null;
         function pushYtIslandDown() {
             clearTimeout(islandRestoreTimer);
@@ -6103,6 +6116,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
     // 直接從右側滑入，appStage 同步縮到左半邊
     document.body.classList.add('split-view-active');
     if (winClockBtn) winClockBtn.classList.add('ring-2','ring-sky-400/60','border-sky-400/60','bg-sky-950/50');
+    if (typeof updateIslandHorizontalPosition === 'function') requestAnimationFrame(updateIslandHorizontalPosition);
 
     requestAnimationFrame(() => {
         width = canvas.width = appStage ? appStage.clientWidth : window.innerWidth / 2;
@@ -6117,6 +6131,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             initRain();
             if (lightningCanvas) { lightningCanvas.width = width; lightningCanvas.height = height; }
         });
+        if (typeof updateIslandHorizontalPosition === 'function') updateIslandHorizontalPosition();
         isSplitTransitioning = false;
     }, 460);
 }
@@ -6131,6 +6146,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             document.documentElement.style.setProperty('--split', '50'); // 不記住拖曳比例
             resetExtensionPane(); // 下次打開從擴充功能列表開始
             if (winClockBtn) winClockBtn.classList.remove('ring-2','ring-sky-400/60','border-sky-400/60','bg-sky-950/50');
+            if (typeof updateIslandHorizontalPosition === 'function') requestAnimationFrame(updateIslandHorizontalPosition);
 
             setTimeout(() => {
                 // 退場結束後確保寬度與時鐘完全校正
@@ -6156,6 +6172,10 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 expandWinClockBtn.title = (currentLang === 'zh-TW') ? zh : trExt(zh);
                 const icon = expandWinClockBtn.querySelector('i');
                 if (icon) icon.className = on ? 'fa-solid fa-compress text-xs' : 'fa-solid fa-expand text-xs';
+            }
+            if (typeof updateIslandHorizontalPosition === 'function') {
+                requestAnimationFrame(updateIslandHorizontalPosition);
+                setTimeout(updateIslandHorizontalPosition, 480);
             }
         }
         // ── 擴充功能商店：列表 / 搜尋 / 開啟 ──
@@ -6244,6 +6264,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         function setSplitPct(pct) {
             pct = Math.min(SPLIT_MAX, Math.max(SPLIT_MIN, pct));
             document.documentElement.style.setProperty('--split', pct.toFixed(2));
+            if (typeof updateIslandHorizontalPosition === 'function') updateIslandHorizontalPosition();
             return pct;
         }
         function syncRainCanvas(rebuild) {
