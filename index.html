@@ -45,6 +45,113 @@ body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
 .canvas-layer { z-index: 2; }
 
+/* ========== Liquid Glass 元件（取自 liquid_glass.html 預設設定） ========== */
+:root {
+    --lg-blur: 16px;
+    --lg-bright: 1.1;
+    --lg-success: #42e6a4;
+}
+.lg-icon-btn, .lg-pill-btn {
+    position: relative;
+    backdrop-filter: blur(var(--lg-blur)) saturate(180%) brightness(var(--lg-bright));
+    -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(180%) brightness(var(--lg-bright));
+    background: rgba(196, 201, 210, 0.35);
+    border: none;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.55),
+        inset 0 0 10px rgba(255, 255, 255, 0.2),
+        0 2px 10px rgba(0, 0, 0, 0.15);
+    transition: background 0.25s, box-shadow 0.25s, transform 0.25s;
+    color: rgba(255, 255, 255, 0.92);
+}
+.lg-icon-btn:hover, .lg-pill-btn:hover {
+    background: rgba(205, 210, 218, 0.5);
+}
+.lg-icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+.lg-pill-btn {
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* 開關 (liquid glass switch) */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.lg-switch {
+    display: inline-block;
+    position: relative;
+    width: 44px;
+    height: 24px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    cursor: pointer;
+    transition: background 0.3s;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+.lg-switch-thumb {
+    position: absolute;
+    left: 3px;
+    top: 2.5px;
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: #fff;
+    pointer-events: none;
+    transform: translateX(0) scale(1);
+    transform-origin: center;
+    transition: transform 380ms cubic-bezier(0.22, 1.2, 0.36, 1), background-color 200ms ease, box-shadow 200ms ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.lg-switch.is-checked { background: linear-gradient(135deg, var(--lg-success), #34c78e); }
+.lg-switch.is-checked .lg-switch-thumb { transform: translateX(20px) scale(1); }
+.lg-switch.morphing:not(.is-checked) .lg-switch-thumb { transform: translateX(0) scale(1.32, 1.18); }
+.lg-switch.morphing.is-checked .lg-switch-thumb { transform: translateX(20px) scale(1.32, 1.18); }
+.lg-switch.sliding:not(.is-checked) .lg-switch-thumb { transform: translateX(0) scale(1.32, 1.18); }
+.lg-switch.sliding.is-checked .lg-switch-thumb { transform: translateX(20px) scale(1.32, 1.18); }
+
+/* 滑桿 (liquid glass slider) */
+.lg-slider-track {
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    outline: none;
+}
+.lg-slider-track::-webkit-slider-runnable-track { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.18); }
+.lg-slider-track::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    margin-top: -6px;
+    cursor: grab;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.lg-slider-track::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.lg-slider-track::-moz-range-track { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.18); }
+.lg-slider-track::-moz-range-thumb {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    cursor: grab;
+}
+
+/* 輸入框 */
+.lg-input {
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(var(--lg-blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(160%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 0 8px rgba(255, 255, 255, 0.04);
+}
+
 #islandPill {
     background-color: transparent;
     border-color: transparent;
@@ -82,7 +189,17 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
     }
 }
 .hud-element { transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-.glass-panel { background: rgba(13, 18, 30, 0.82); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65); transition: background 0.6s ease, border-color 0.6s ease, color 0.6s ease, box-shadow 0.6s ease; }
+.glass-panel {
+    background: rgba(28, 32, 44, 0.55);
+    backdrop-filter: blur(28px) saturate(180%) brightness(var(--lg-bright));
+    -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(var(--lg-bright));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.18),
+        inset 0 0 24px rgba(255, 255, 255, 0.06),
+        0 20px 50px rgba(0, 0, 0, 0.5);
+    transition: background 0.6s ease, border-color 0.6s ease, color 0.6s ease, box-shadow 0.6s ease;
+}
 .text-shadow-glow { text-shadow: 0 0 30px rgba(255, 255, 255, 0.6), 0 0 60px rgba(99, 102, 241, 0.4); }
 .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 6px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
@@ -94,7 +211,7 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
 .tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
 .modal-slide-up { transform: translateY(100vh); transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1); }
 #whatsNewModal:not(.opacity-0) .modal-slide-up, #settingsModal:not(.opacity-0) .modal-slide-up, #pomoCustomModal:not(.opacity-0) .modal-slide-up, #pwaInstallModal:not(.opacity-0) .modal-slide-up, #winClockSplitPane:not(.opacity-0) .modal-slide-up { transform: translateY(0); }
-body.low-performance .drawer-slide, body.low-performance .modal-slide-up, body.low-performance #whatsNewModal, body.low-performance #settingsModal, body.low-performance #pomoCustomModal, body.low-performance #pwaInstallModal, body.low-performance #winClockSplitPane, body.low-performance #splitPlaceholder, body.low-performance #splitDivider, body.low-performance #audioMixerDrawer, body.low-performance .hud-element, body.low-performance #appStage, body.low-performance .ios-mode-backdrop, body.low-performance .ios-adjacent-card, body.low-performance #iosThemeModal, body.low-performance #iosTopHeader, body.low-performance #iosBottomFooter, body.low-performance #iosPrevThemeBtn, body.low-performance #iosNextThemeBtn { transition: none !important; }
+body.low-performance .drawer-slide, body.low-performance .modal-slide-up, body.low-performance #whatsNewModal, body.low-performance #settingsModal, body.low-performance #pomoCustomModal, body.low-performance #pwaInstallModal, body.low-performance #winClockSplitPane, body.low-performance #splitDivider, body.low-performance #audioMixerDrawer, body.low-performance .hud-element, body.low-performance #appStage, body.low-performance .ios-mode-backdrop, body.low-performance .ios-adjacent-card, body.low-performance #iosThemeModal, body.low-performance #iosTopHeader, body.low-performance #iosBottomFooter, body.low-performance #iosPrevThemeBtn, body.low-performance #iosNextThemeBtn { transition: none !important; }
 .font-sans { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important; }
 .font-mono { font-family: 'JetBrains Mono', monospace !important; }
 .font-serif { font-family: 'Playfair Display', serif !important; }
@@ -235,96 +352,6 @@ body.split-view-active #bottomHud {
 }
 body.split-view-active #topHud {
     padding: 0.75rem 1rem !important;
-}
-
-/* 階段二：骨架卡片生成與分屏佈局建立 (Placeholder Cards) */
-#splitPlaceholder {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100dvh;
-    z-index: 980;
-    display: flex;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.22s cubic-bezier(0.2, 0, 0, 1);
-}
-#splitPlaceholder.visible {
-    opacity: 1;
-}
-
-#splitPlaceholder .ph-half {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    background: #ffffff;
-    color: #0f172a;
-    transition: transform 0.44s cubic-bezier(0.2, 0, 0, 1), opacity 0.32s cubic-bezier(0.2, 0, 0, 1);
-    transform: scale(0.88);
-    opacity: 0;
-    border-radius: 24px;
-    margin: 12px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
-    position: relative;
-    overflow: hidden;
-}
-
-#splitPlaceholder.visible .ph-half {
-    transform: scale(1);
-    opacity: 1;
-}
-
-#splitPlaceholder .ph-left {
-    margin-right: 6px;
-    flex: var(--split) 1 0;
-}
-#splitPlaceholder .ph-right {
-    margin-left: 6px;
-    flex: calc(100 - var(--split)) 1 0;
-    transition-delay: 0.04s;
-}
-
-/* 骨架卡片內圖示與標籤 */
-.ph-icon-box {
-    width: 64px;
-    height: 64px;
-    border-radius: 20px;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #0284c7;
-    font-size: 26px;
-    box-shadow: 0 8px 24px rgba(2, 132, 199, 0.15);
-    animation: phIconBreathe 1.6s ease-in-out infinite;
-}
-@keyframes phIconBreathe {
-    0%, 100% { transform: scale(0.96); opacity: 0.85; }
-    50% { transform: scale(1.05); opacity: 1; }
-}
-
-.ph-text-group {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
-.ph-title {
-    font-size: 15px;
-    font-weight: 700;
-    color: #0f172a;
-    letter-spacing: -0.01em;
-}
-.ph-desc {
-    font-size: 12px;
-    font-weight: 500;
-    color: #64748b;
-    letter-spacing: 0.04em;
 }
 
 /* 右側面板（初始：居中微縮待命，供第三階段展開） */
@@ -516,7 +543,6 @@ body.theme-is-light #taskDeprecationNotice { color: #92400e !important; backgrou
 
 /* 低效能模式：停用過渡動畫 */
 body.low-performance #winClockSplitPane,
-body.low-performance #splitPlaceholder,
 body.low-performance #splitDivider {
     transition: none !important;
     animation: none !important;
@@ -898,6 +924,13 @@ body.theme-is-light #densityVal {
 body.theme-is-light input[type="range"] {
     background-color: rgba(0, 0, 0, 0.1) !important;
 }
+body.theme-is-light .lg-switch:not(.is-checked) {
+    background: rgba(0, 0, 0, 0.12);
+    border-color: rgba(0, 0, 0, 0.12);
+}
+body.theme-is-light .lg-slider-track { background: rgba(0, 0, 0, 0.12); }
+body.theme-is-light .lg-slider-track::-webkit-slider-runnable-track { background: rgba(0, 0, 0, 0.12); }
+body.theme-is-light .lg-slider-track::-moz-range-track { background: rgba(0, 0, 0, 0.12); }
 body.theme-is-light input[type="text"],
 body.theme-is-light input[type="number"],
 body.theme-is-light textarea,
@@ -1002,7 +1035,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         <header id="topHud" class="hud-element absolute top-0 left-0 right-0 z-20 flex justify-between items-center p-4 sm:p-6 text-xs sm:text-sm">
             <div class="flex items-center space-x-3">
                 <div id="langDropdownWrap" class="relative">
-                    <button id="langToggleBtn" title="切換語言" class="group flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-3.5 py-2 rounded-full border border-white/15 hover:border-indigo-400/50 hover:shadow-[0_0_15px_rgba(99,102,241,0.25)] hover:scale-105 active:scale-95 text-white/90 transition-all duration-300 shadow-lg cursor-pointer">
+                    <button id="langToggleBtn" title="切換語言" class="lg-pill-btn group space-x-2 px-3.5 py-2 active:scale-95 cursor-pointer">
                         <i class="fa-solid fa-globe text-indigo-400 group-hover:rotate-45 transition-transform duration-300"></i>
                         <span id="langBtnText" class="hud-label font-medium">繁中</span>
                         <i class="fa-solid fa-chevron-down text-[9px] text-white/40 transition-transform duration-200"></i>
@@ -1040,16 +1073,16 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                         </button>
                     </div>
                 </div>
-                <button id="toggleWinClockBtn" class="group flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 hover:border-sky-400/50 hover:shadow-[0_0_15px_rgba(56,189,248,0.25)] hover:scale-105 active:scale-95 text-white/90 transition-all duration-300 shadow-lg cursor-pointer" title="開啟擴充功能 (Alt + C)">
+                <button id="toggleWinClockBtn" class="lg-pill-btn group space-x-2 px-4 py-2 active:scale-95 cursor-pointer" title="開啟擴充功能 (Alt + C)">
                     <i class="fa-solid fa-table-cells-large text-sky-400 group-hover:scale-110 transition-transform duration-300"></i>
                     <span class="hud-label font-medium">擴充功能</span>
                 </button>
             </div>
             <div class="flex items-center space-x-3">
-                <button id="pwaInstallBtn" title="安裝 App" class="flex items-center space-x-2 cursor-pointer bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-full border border-indigo-400/30 transition shadow-lg text-xs font-semibold">
+                <button id="pwaInstallBtn" title="安裝 App" class="lg-pill-btn space-x-2 px-4 py-2 cursor-pointer text-xs font-semibold">
                     <i class="fa-solid fa-download"></i><span class="hud-label">安裝 App</span>
                 </button>
-                <button id="toggleAudioMixerBtn" title="專注音效" class="group flex items-center space-x-2 bg-black/50 hover:bg-black/70 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 hover:border-teal-400/50 hover:shadow-[0_0_15px_rgba(45,212,191,0.25)] hover:scale-105 active:scale-95 text-white/90 transition-all duration-300 shadow-lg cursor-pointer">
+                <button id="toggleAudioMixerBtn" title="專注音效" class="lg-pill-btn group space-x-2 px-4 py-2 active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-headphones text-teal-400 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300"></i><span class="hud-label font-medium">專注音效</span>
                 </button>
             </div>
@@ -1061,7 +1094,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 <div class="flex items-center space-x-2 text-teal-300 font-semibold text-sm">
                     <i class="fa-brands fa-youtube"></i><span>YouTube 專注音樂</span>
                 </div>
-                <button id="closeAudioMixerBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
+                <button id="closeAudioMixerBtn" class="lg-icon-btn"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="space-y-4 text-xs">
                 <div>
@@ -1070,7 +1103,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                         <span id="ytStatusBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-white/40">未載入</span>
                     </div>
                     <div class="flex items-center space-x-1.5 mb-2">
-                        <input id="ytUrlInput" type="text" placeholder="貼上影片或直播網址..." class="w-full bg-black/40 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-red-500 transition">
+                        <input id="ytUrlInput" type="text" placeholder="貼上影片或直播網址..." class="lg-input w-full border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-red-500 transition">
                         <button id="ytLoadBtn" class="bg-red-600 hover:bg-red-500 text-white text-xs px-2.5 py-1.5 rounded-xl shrink-0 font-medium transition shadow-md shadow-red-600/20 active:scale-95">載入</button>
                     </div>
                     <button id="ytOpenSiteBtn" class="w-full flex items-center justify-center space-x-1.5 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white text-[11px] py-1.5 rounded-xl transition border border-white/5"><i class="fa-brands fa-youtube text-red-500"></i><span id="ytOpenSiteLabel">開啟 YouTube 網站</span></button>
@@ -1082,20 +1115,20 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         <div id="persistentIslandStack" class="fixed top-3 left-1/2 z-[24] flex flex-col items-center gap-2 pointer-events-none">
             <div id="ytProjectionWidget" class="hidden hud-element pointer-events-auto bg-black/90 backdrop-blur-xl rounded-full px-3 border border-white/10 shadow-2xl flex items-center space-x-1.5" style="height:38px;">
                 <i class="fa-brands fa-youtube text-red-500 text-sm ml-0.5 mr-0.5"></i>
-                <button id="ytBgRewindBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="倒退 10 秒"><i class="fa-solid fa-rotate-left text-xs"></i><span class="tooltip-text">倒退 10 秒</span></button>
+                <button id="ytBgRewindBtn" class="lg-icon-btn tooltip" style="width:32px;height:32px;" title="倒退 10 秒"><i class="fa-solid fa-rotate-left text-xs"></i><span class="tooltip-text">倒退 10 秒</span></button>
                 <button id="ytBgPlayPauseBtn" class="w-9 h-9 flex items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition shadow-md"><i id="ytBgPlayPauseIcon" class="fa-solid fa-pause text-xs"></i></button>
-                <button id="ytBgForwardBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="前進 10 秒"><i class="fa-solid fa-rotate-right text-xs"></i><span class="tooltip-text">前進 10 秒</span></button>
+                <button id="ytBgForwardBtn" class="lg-icon-btn tooltip" style="width:32px;height:32px;" title="前進 10 秒"><i class="fa-solid fa-rotate-right text-xs"></i><span class="tooltip-text">前進 10 秒</span></button>
                 <div class="h-5 w-[1px] bg-white/15 mx-0.5"></div>
                 <div class="relative">
-                    <button id="ytVolumeBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="音量調整"><i id="ytVolumeIcon" class="fa-solid fa-volume-high text-xs"></i><span class="tooltip-text">音量調整</span></button>
+                    <button id="ytVolumeBtn" class="lg-icon-btn tooltip" style="width:32px;height:32px;" title="音量調整"><i id="ytVolumeIcon" class="fa-solid fa-volume-high text-xs"></i><span class="tooltip-text">音量調整</span></button>
                     <div id="ytVolumePopover" class="hidden absolute top-full right-0 mt-2 glass-panel rounded-xl p-3 border border-white/15 shadow-2xl w-36 z-[26]">
                         <div class="flex justify-between text-[10px] text-white/60 mb-1.5"><span>音量</span><span id="ytWidgetVolumeVal" class="font-mono text-white/80">100%</span></div>
-                        <input id="ytWidgetVolumeSlider" type="range" min="0" max="100" step="1" value="100" class="w-full accent-indigo-400 bg-white/10 rounded-lg cursor-pointer h-1.5">
+                        <input id="ytWidgetVolumeSlider" type="range" min="0" max="100" step="1" value="100" class="lg-slider-track w-full h-1.5">
                     </div>
                 </div>
                 <button id="ytStopMediaBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-rose-500/80 text-white/80 hover:text-white transition tooltip" title="關閉媒體"><i class="fa-solid fa-stop text-xs"></i><span class="tooltip-text">關閉媒體</span></button>
                 <div class="h-5 w-[1px] bg-white/15 mx-0.5"></div>
-                <button id="ytCastToggleBtn" class="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition tooltip" title="投影到背景"><i id="ytCastToggleIcon" class="fa-solid fa-tv text-xs"></i><span id="ytCastToggleTooltip" class="tooltip-text">投影到背景</span></button>
+                <button id="ytCastToggleBtn" class="lg-icon-btn tooltip" style="width:32px;height:32px;" title="投影到背景"><i id="ytCastToggleIcon" class="fa-solid fa-tv text-xs"></i><span id="ytCastToggleTooltip" class="tooltip-text">投影到背景</span></button>
             </div>
             <div id="quoteIslandWidget" class="hidden hud-element pointer-events-auto bg-black/90 backdrop-blur-xl rounded-full px-4 border border-white/10 shadow-2xl flex items-center space-x-2 max-w-[90vw]" style="height:38px;">
                 <i class="fa-solid fa-feather-pointed text-purple-300 text-xs shrink-0"></i>
@@ -1120,7 +1153,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
 
             <div class="glass-panel w-full px-4 py-2 rounded-2xl flex items-center justify-between shadow-2xl transition-all duration-300">
                 <div class="flex items-center space-x-1.5">
-                    <button id="togglePomoFoldBtn" class="p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-white/70 hover:text-white transition tooltip flex items-center space-x-1">
+                    <button id="togglePomoFoldBtn" class="lg-icon-btn tooltip space-x-1" style="width:auto;height:auto;padding:6px 10px;border-radius:14px;">
                         <i id="pomoFoldIcon" class="fa-solid fa-stopwatch text-xs text-indigo-400"></i>
                         <span class="tooltip-text" id="pomoFoldTooltip">展開控制按鈕</span>
                     </button>
@@ -1129,13 +1162,13 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 <div class="h-4 w-[1px] bg-white/15 mx-1 hidden sm:block"></div>
 
                 <div id="bottomHudActionRow" class="flex items-center space-x-1 min-w-0">
-                    <button id="shareBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="分享網站"><i class="fa-solid fa-share-nodes text-xs text-indigo-300"></i><span class="tooltip-text">分享網站</span></button>
-                    <button id="pipBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="懸浮時鐘 (Alt + P)"><i class="fa-solid fa-arrow-up-right-from-square text-xs text-indigo-300"></i><span class="tooltip-text">子母畫面</span></button>
-                    <button id="lowPerfToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="切換性能模式"><i id="lowPerfIcon" class="fa-solid fa-leaf text-xs text-green-400"></i><span id="lowPerfText" class="tooltip-text">性能: 標準</span></button>
-                    <button id="breathingToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="正念呼吸引導 (B)"><i class="fa-solid fa-lungs text-xs text-sky-300"></i><span class="tooltip-text">正念呼吸</span></button>
-                    <button id="zenModeBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="Zen 沉浸專注模式"><i class="fa-solid fa-spa text-xs"></i><span class="tooltip-text">Zen 模式</span></button>
-                    <button id="thunderToggleBtn" class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="打雷視覺效果"><i id="thunderIcon" class="fa-solid fa-bolt text-xs text-white/50"></i><span class="tooltip-text">打雷效果</span></button>
-                    <button id="openSettingsBtn" class="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/15 text-white/80 hover:text-white transition tooltip" title="進階設定">
+                    <button id="shareBtn" class="lg-icon-btn tooltip" title="分享網站"><i class="fa-solid fa-share-nodes text-xs text-indigo-300"></i><span class="tooltip-text">分享網站</span></button>
+                    <button id="pipBtn" class="lg-icon-btn tooltip" title="懸浮時鐘 (Alt + P)"><i class="fa-solid fa-arrow-up-right-from-square text-xs text-indigo-300"></i><span class="tooltip-text">子母畫面</span></button>
+                    <button id="lowPerfToggleBtn" class="lg-icon-btn tooltip" title="切換性能模式"><i id="lowPerfIcon" class="fa-solid fa-leaf text-xs text-green-400"></i><span id="lowPerfText" class="tooltip-text">性能: 標準</span></button>
+                    <button id="breathingToggleBtn" class="lg-icon-btn tooltip" title="正念呼吸引導 (B)"><i class="fa-solid fa-lungs text-xs text-sky-300"></i><span class="tooltip-text">正念呼吸</span></button>
+                    <button id="zenModeBtn" class="lg-icon-btn tooltip" title="Zen 沉浸專注模式"><i class="fa-solid fa-spa text-xs"></i><span class="tooltip-text">Zen 模式</span></button>
+                    <button id="thunderToggleBtn" class="lg-icon-btn tooltip" title="打雷視覺效果"><i id="thunderIcon" class="fa-solid fa-bolt text-xs text-white/50"></i><span class="tooltip-text">打雷效果</span></button>
+                    <button id="openSettingsBtn" class="lg-icon-btn tooltip relative" title="進階設定">
                         <i class="fa-solid fa-sliders text-xs"></i>
                         <span id="settingsBadge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center shadow-lg border border-slate-900 animate-pulse">1</span>
                         <span class="tooltip-text">進階設定</span>
@@ -1149,7 +1182,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
     <div id="winClockSplitPane" class="pointer-events-auto">
         <div class="flex justify-between items-center border-b border-white/10 px-4 py-2.5 bg-black/50 backdrop-blur-md shrink-0">
             <div class="flex items-center space-x-2.5 min-w-0">
-                <button id="extBackBtn" class="hidden flex w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 items-center justify-center text-white/70 hover:text-white transition cursor-pointer shrink-0" title="返回擴充功能列表">
+                <button id="extBackBtn" class="hidden flex lg-icon-btn cursor-pointer shrink-0" style="width:28px;height:28px;border-radius:10px;" title="返回擴充功能列表">
                     <i class="fa-solid fa-arrow-left text-xs"></i>
                 </button>
                 <div id="extHeaderIconStore" class="w-6 h-6 rounded-lg bg-sky-500/20 border border-sky-400/30 flex items-center justify-center text-sky-400 text-xs shrink-0">
@@ -1174,10 +1207,10 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 <h3 id="extHeaderTitleGemini" class="hidden font-semibold text-white text-xs sm:text-sm truncate">Gemini 對話助手</h3>
             </div>
             <div class="flex items-center space-x-1.5">
-                <button id="expandWinClockBtn" class="hidden md:flex w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 items-center justify-center text-white/70 hover:text-white transition cursor-pointer" title="全螢幕顯示面板">
+                <button id="expandWinClockBtn" class="hidden md:flex lg-icon-btn cursor-pointer" style="width:28px;height:28px;border-radius:10px;" title="全螢幕顯示面板">
                     <i class="fa-solid fa-expand text-xs"></i>
                 </button>
-                <button id="closeWinClockBtn" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition cursor-pointer" title="關閉分割視窗">
+                <button id="closeWinClockBtn" class="lg-icon-btn" style="width:32px;height:32px;" title="關閉分割視窗">
                     <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
             </div>
@@ -1192,7 +1225,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                     </div>
                     <div class="relative">
                         <i class="ext-muted fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-white/40 text-xs"></i>
-                        <input id="extSearchInput" type="text" autocomplete="off" placeholder="搜尋擴充功能" class="ext-search w-full bg-white/10 border border-white/15 focus:border-sky-400/60 rounded-full pl-10 pr-4 py-2.5 text-xs text-white placeholder-white/40 focus:outline-none transition">
+                        <input id="extSearchInput" type="text" autocomplete="off" placeholder="搜尋擴充功能" class="ext-search lg-input w-full border border-white/15 focus:border-sky-400/60 rounded-full pl-10 pr-4 py-2.5 text-xs text-white placeholder-white/40 focus:outline-none transition">
                     </div>
                     <div>
                         <div class="flex items-baseline justify-between mb-3">
@@ -1232,28 +1265,6 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
     <!-- 分割線（第二階段出現） -->
     <div id="splitDivider" title="拖曳調整分割大小（雙擊還原）"></div>
 
-    <!-- 骨架卡片（第二階段：純白背景載入卡片與分割提示） -->
-    <div id="splitPlaceholder">
-        <div class="ph-half ph-left">
-            <div class="ph-icon-box">
-                <i class="fa-solid fa-clock"></i>
-            </div>
-            <div class="ph-text-group">
-                <span class="ph-title">左分割螢幕</span>
-                <span class="ph-desc">專注時鐘</span>
-            </div>
-        </div>
-        <div class="ph-half ph-right">
-            <div class="ph-icon-box">
-                <i class="fa-solid fa-table-cells-large"></i>
-            </div>
-            <div class="ph-text-group">
-                <span class="ph-title">右分割螢幕</span>
-                <span class="ph-desc">擴充功能</span>
-            </div>
-        </div>
-    </div>
-
     <!-- 進階設定彈窗 -->
     <div id="settingsModal" class="fixed inset-0 z-40 bg-black/75 backdrop-blur-xl flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500 p-4 overflow-hidden">
         <div class="modal-slide-up glass-panel w-full max-w-2xl rounded-3xl flex flex-col border border-white/15 shadow-2xl overflow-hidden max-h-[90vh]">
@@ -1266,8 +1277,8 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                     <h3 id="settingsHeaderTitle" class="font-bold text-white text-base">專注與顯示進階設定</h3>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <button id="feedbackBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition tooltip" title="意見反應與功能建議"><i class="fa-solid fa-comment-dots text-sm"></i><span class="tooltip-text">意見反應與功能建議</span></button>
-                    <button id="closeSettingsBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
+                    <button id="feedbackBtn" class="lg-icon-btn tooltip" title="意見反應與功能建議"><i class="fa-solid fa-comment-dots text-sm"></i><span class="tooltip-text">意見反應與功能建議</span></button>
+                    <button id="closeSettingsBtn" class="lg-icon-btn"><i class="fa-solid fa-xmark"></i></button>
                 </div>
             </div>
             <div class="flex flex-col sm:flex-row flex-1 overflow-hidden min-h-[400px] relative">
@@ -1342,20 +1353,20 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                     <div id="tab-visual" class="settings-tab-content space-y-6 text-xs block">
                         <div>
                             <div class="flex justify-between font-semibold mb-2"><span class="text-white/70">雨滴滑落速度</span><span id="speedVal" class="text-amber-400 font-mono">1.0x</span></div>
-                            <input id="speedSlider" type="range" min="0.3" max="2.0" step="0.1" value="1.0" class="w-full accent-amber-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
+                            <input id="speedSlider" type="range" min="0.3" max="2.0" step="0.1" value="1.0" class="lg-slider-track w-full h-1.5">
                         </div>
                         <div>
                             <div class="flex justify-between font-semibold mb-2"><span class="text-white/70">玻璃水珠密度</span><span id="densityVal" class="text-amber-400 font-mono">標準</span></div>
-                            <input id="densitySlider" type="range" min="0.5" max="2.0" step="0.25" value="1.0" class="w-full accent-amber-500 bg-white/10 rounded-lg cursor-pointer h-1.5">
+                            <input id="densitySlider" type="range" min="0.5" max="2.0" step="0.25" value="1.0" class="lg-slider-track w-full h-1.5">
                         </div>
                         <div class="pt-3 border-t border-white/10 space-y-4">
-                            <div class="flex items-center justify-between"><span class="text-white/80">滑鼠/觸控與雨滴玻璃互動</span><input type="checkbox" id="glassInteractionToggle" class="w-4 h-4 accent-amber-500 rounded cursor-pointer"></div>
+                            <div class="flex items-center justify-between"><span class="text-white/80">滑鼠/觸控與雨滴玻璃互動</span><input type="checkbox" id="glassInteractionToggle" class="sr-only lg-switch-input"><label for="glassInteractionToggle" class="lg-switch"><span class="lg-switch-thumb"></span></label></div>
                         </div>
                     </div>
                     <div id="tab-dev" class="settings-tab-content space-y-6 text-xs hidden">
                         <div class="space-y-4">
-                            <div class="flex items-center justify-between"><span class="text-white/80">允許選取文字</span><input type="checkbox" id="allowTextSelectToggle" class="w-4 h-4 accent-slate-400 rounded cursor-pointer"></div>
-                            <div class="flex items-center justify-between"><span class="text-white/80">顯示即時 FPS 影格率</span><input type="checkbox" id="showFpsToggle" class="w-4 h-4 accent-slate-400 rounded cursor-pointer"></div>
+                            <div class="flex items-center justify-between"><span class="text-white/80">允許選取文字</span><input type="checkbox" id="allowTextSelectToggle" class="sr-only lg-switch-input"><label for="allowTextSelectToggle" class="lg-switch"><span class="lg-switch-thumb"></span></label></div>
+                            <div class="flex items-center justify-between"><span class="text-white/80">顯示即時 FPS 影格率</span><input type="checkbox" id="showFpsToggle" class="sr-only lg-switch-input"><label for="showFpsToggle" class="lg-switch"><span class="lg-switch-thumb"></span></label></div>
                         </div>
                     </div>
                     <div id="tab-clock" class="settings-tab-content space-y-6 text-xs hidden">
@@ -1384,20 +1395,20 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                             </div>
                         </div>
                         <div class="pt-3 border-t border-white/10 space-y-4">
-                            <div class="flex items-center justify-between"><span class="text-white/80">顯示 24 小時制時鐘</span><input type="checkbox" id="format24Toggle" checked class="w-4 h-4 accent-cyan-500 rounded cursor-pointer"></div>
-                            <div class="flex items-center justify-between"><span class="text-white/80">顯示即時秒數</span><input type="checkbox" id="showSecondsToggle" checked class="w-4 h-4 accent-cyan-500 rounded cursor-pointer"></div>
+                            <div class="flex items-center justify-between"><span class="text-white/80">顯示 24 小時制時鐘</span><input type="checkbox" id="format24Toggle" checked class="sr-only lg-switch-input"><label for="format24Toggle" class="lg-switch is-checked"><span class="lg-switch-thumb"></span></label></div>
+                            <div class="flex items-center justify-between"><span class="text-white/80">顯示即時秒數</span><input type="checkbox" id="showSecondsToggle" checked class="sr-only lg-switch-input"><label for="showSecondsToggle" class="lg-switch is-checked"><span class="lg-switch-thumb"></span></label></div>
                         </div>
                     </div>
                     <div id="tab-focus" class="settings-tab-content space-y-6 text-xs hidden">
                         <div>
                             <label class="block text-white/70 font-semibold mb-1.5">自訂專注格言 / 座右銘</label>
-                            <input id="customQuoteInput" type="text" placeholder="輸入專屬激勵小語..." class="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500 transition">
+                            <input id="customQuoteInput" type="text" placeholder="輸入專屬激勵小語..." class="lg-input w-full border border-white/15 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500 transition">
                         </div>
                         <div class="pt-3 border-t border-white/10 space-y-4">
-                            <div class="flex items-center justify-between"><span class="text-white/80">顯示專注語錄</span><input type="checkbox" id="showQuoteToggle" class="w-4 h-4 accent-purple-500 rounded cursor-pointer"></div>
-                            <div class="flex items-center justify-between"><span class="text-white/80">番茄鐘階段自動連播</span><input type="checkbox" id="autoPomoToggle" class="w-4 h-4 accent-purple-500 rounded cursor-pointer"></div>
-                            <div class="flex items-center justify-between"><span class="text-white/80">倒數結束播放提醒聲音</span><input type="checkbox" id="soundChimeToggle" checked class="w-4 h-4 accent-purple-500 rounded cursor-pointer"></div>
-                            <div class="flex items-center justify-between"><span class="text-white/80">無操作 5 秒後自動隱藏介面</span><input type="checkbox" id="autoHideToggle" class="w-4 h-4 accent-purple-500 rounded cursor-pointer"></div>
+                            <div class="flex items-center justify-between"><span class="text-white/80">顯示專注語錄</span><input type="checkbox" id="showQuoteToggle" class="sr-only lg-switch-input"><label for="showQuoteToggle" class="lg-switch"><span class="lg-switch-thumb"></span></label></div>
+                            <div class="flex items-center justify-between"><span class="text-white/80">番茄鐘階段自動連播</span><input type="checkbox" id="autoPomoToggle" class="sr-only lg-switch-input"><label for="autoPomoToggle" class="lg-switch"><span class="lg-switch-thumb"></span></label></div>
+                            <div class="flex items-center justify-between"><span class="text-white/80">倒數結束播放提醒聲音</span><input type="checkbox" id="soundChimeToggle" checked class="sr-only lg-switch-input"><label for="soundChimeToggle" class="lg-switch is-checked"><span class="lg-switch-thumb"></span></label></div>
+                            <div class="flex items-center justify-between"><span class="text-white/80">無操作 5 秒後自動隱藏介面</span><input type="checkbox" id="autoHideToggle" class="sr-only lg-switch-input"><label for="autoHideToggle" class="lg-switch"><span class="lg-switch-thumb"></span></label></div>
                         </div>
                     </div>
                     <div id="tab-shortcuts" class="settings-tab-content space-y-3 text-xs hidden">
@@ -1428,7 +1439,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             <span id="iosThemeHint" class="text-[11px] text-white/50">左右滑動或點擊兩側按鈕切換專注主題氛圍</span>
         </div>
 
-        <button id="iosThemeLayoutToggleBtn" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-50 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 active:scale-90 text-white/80 hover:text-white backdrop-blur-md border border-white/20 transition-all duration-300 shadow-xl tooltip" title="切換為直向條列選單">
+        <button id="iosThemeLayoutToggleBtn" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-50 lg-icon-btn active:scale-90 transition-all duration-300 tooltip" style="width:36px;height:36px;" title="切換為直向條列選單">
             <i id="iosThemeLayoutToggleIcon" class="fa-solid fa-bars text-sm"></i>
             <span class="tooltip-text">切換為直向條列選單</span>
         </button>
@@ -1690,7 +1701,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         <div class="modal-slide-up glass-panel w-full max-w-sm rounded-3xl p-6 flex flex-col space-y-4 border border-white/15 shadow-2xl">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
                 <h3 class="font-bold text-white text-sm">自訂專注倒數時間</h3>
-                <button id="closePomoModalBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
+                <button id="closePomoModalBtn" class="lg-icon-btn"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="space-y-3 text-xs">
                 <div><label class="block text-white/60 mb-1">設定分鐘數：</label><input id="customMinutesInput" type="number" min="1" max="180" value="25" class="w-full bg-black/40 border border-white/15 rounded-xl px-3 py-2 text-white font-mono focus:outline-none focus:border-indigo-500"></div>
@@ -1713,7 +1724,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                     <h3 class="font-bold text-white text-sm">安裝 AURA Studio</h3>
                     <p class="pwa-desc text-[11px] text-white/50 mt-0.5">選擇安裝方式</p>
                 </div>
-                <button id="closePwaInstallBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
+                <button id="closePwaInstallBtn" class="lg-icon-btn"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="space-y-3 text-xs">
                 <button id="pwaInstallActionBtn" class="w-full text-left flex items-start space-x-3 bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-400/30 rounded-2xl p-4 transition cursor-pointer">
@@ -1742,7 +1753,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 <div class="w-9 h-9 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-base border border-indigo-500/30 shadow-lg shadow-indigo-500/10"><i class="fa-solid fa-sparkles"></i></div>
                 <div><h3 class="font-bold text-white text-base">AURA Studio v1.2.3 正式版</h3><p class="text-[10px] text-indigo-300/80 font-mono uppercase tracking-wider">v1.2.3 Official Release Notes</p></div>
             </div>
-            <button id="closeWhatsNewModalBtn" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 flex items-center justify-center text-white/60 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
+            <button id="closeWhatsNewModalBtn" class="lg-icon-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-3 text-xs">
             <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
@@ -4936,6 +4947,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 if (typeof updateYtVolumeIcon === 'function') updateYtVolumeIcon((typeof state.ytVolume === 'number') ? state.ytVolume : 100);
 
                 toggleFpsDisplay(state.showFps);
+                if (typeof syncLiquidSwitches === 'function') syncLiquidSwitches();
                 const customQuoteInput = document.getElementById('customQuoteInput'); if (customQuoteInput) customQuoteInput.value = state.customQuoteText || '';
 
                 const thunderBtn = document.getElementById('thunderToggleBtn'), thunderIcon = document.getElementById('thunderIcon');
@@ -5268,6 +5280,31 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             saveSettings();
         });
         document.getElementById('ytStopMediaBtn')?.addEventListener('click', clearYouTubeVideo);
+
+        function syncLiquidSwitches() {
+            document.querySelectorAll('.lg-switch').forEach(label => {
+                const input = document.getElementById(label.getAttribute('for'));
+                if (input) label.classList.toggle('is-checked', input.checked);
+            });
+        }
+        function setupLiquidSwitches() {
+            document.querySelectorAll('.lg-switch').forEach(label => {
+                if (label.dataset.lgBound) return;
+                label.dataset.lgBound = '1';
+                const input = document.getElementById(label.getAttribute('for'));
+                if (!input) return;
+                label.addEventListener('click', () => {
+                    label.classList.add('morphing');
+                    setTimeout(() => {
+                        label.classList.remove('morphing');
+                        label.classList.add('sliding');
+                        label.classList.toggle('is-checked', input.checked);
+                    }, 160);
+                    setTimeout(() => { label.classList.remove('sliding'); }, 340);
+                });
+            });
+        }
+        setupLiquidSwitches();
 
         function toggleFpsDisplay(visible) {
             const badge = document.getElementById('fpsBadge');
