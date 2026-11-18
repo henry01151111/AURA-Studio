@@ -66,6 +66,17 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
 }
 .lg-icon-btn:hover, .lg-pill-btn:hover {
     background: rgba(205, 210, 218, 0.5);
+    transform: translateY(-1px);
+}
+.lg-icon-btn:active, .lg-pill-btn:active {
+    transform: scale(1.08);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px) saturate(180%) brightness(1.1);
+    -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(1.1);
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.25),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 .lg-icon-btn {
     width: 38px;
@@ -136,12 +147,25 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .lg-slider-track::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.lg-slider-track:active::-webkit-slider-thumb {
+    transform: scale(1.35);
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    cursor: grabbing;
+}
 .lg-slider-track::-moz-range-track { height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.18); }
 .lg-slider-track::-moz-range-thumb {
     width: 20px; height: 20px; border-radius: 50%;
     background: #fff; border: none;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     cursor: grab;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.lg-slider-track:active::-moz-range-thumb {
+    transform: scale(1.35);
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+    cursor: grabbing;
 }
 
 /* 輸入框 */
@@ -1035,7 +1059,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         <header id="topHud" class="hud-element absolute top-0 left-0 right-0 z-20 flex justify-between items-center p-4 sm:p-6 text-xs sm:text-sm">
             <div class="flex items-center space-x-3">
                 <div id="langDropdownWrap" class="relative">
-                    <button id="langToggleBtn" title="切換語言" class="lg-pill-btn group space-x-2 px-3.5 py-2 active:scale-95 cursor-pointer">
+                    <button id="langToggleBtn" title="切換語言" class="lg-pill-btn group space-x-2 px-3.5 py-2 cursor-pointer">
                         <i class="fa-solid fa-globe text-indigo-400 group-hover:rotate-45 transition-transform duration-300"></i>
                         <span id="langBtnText" class="hud-label font-medium">繁中</span>
                         <i class="fa-solid fa-chevron-down text-[9px] text-white/40 transition-transform duration-200"></i>
@@ -1073,7 +1097,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                         </button>
                     </div>
                 </div>
-                <button id="toggleWinClockBtn" class="lg-pill-btn group space-x-2 px-4 py-2 active:scale-95 cursor-pointer" title="開啟擴充功能 (Alt + C)">
+                <button id="toggleWinClockBtn" class="lg-pill-btn group space-x-2 px-4 py-2 cursor-pointer" title="開啟擴充功能 (Alt + C)">
                     <i class="fa-solid fa-table-cells-large text-sky-400 group-hover:scale-110 transition-transform duration-300"></i>
                     <span class="hud-label font-medium">擴充功能</span>
                 </button>
@@ -1082,7 +1106,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 <button id="pwaInstallBtn" title="安裝 App" class="lg-pill-btn space-x-2 px-4 py-2 cursor-pointer text-xs font-semibold">
                     <i class="fa-solid fa-download"></i><span class="hud-label">安裝 App</span>
                 </button>
-                <button id="toggleAudioMixerBtn" title="專注音效" class="lg-pill-btn group space-x-2 px-4 py-2 active:scale-95 cursor-pointer">
+                <button id="toggleAudioMixerBtn" title="專注音效" class="lg-pill-btn group space-x-2 px-4 py-2 cursor-pointer">
                     <i class="fa-solid fa-headphones text-teal-400 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-300"></i><span class="hud-label font-medium">專注音效</span>
                 </button>
             </div>
@@ -1439,7 +1463,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             <span id="iosThemeHint" class="text-[11px] text-white/50">左右滑動或點擊兩側按鈕切換專注主題氛圍</span>
         </div>
 
-        <button id="iosThemeLayoutToggleBtn" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-50 lg-icon-btn active:scale-90 transition-all duration-300 tooltip" style="width:36px;height:36px;" title="切換為直向條列選單">
+        <button id="iosThemeLayoutToggleBtn" class="absolute top-4 right-4 sm:top-6 sm:right-6 z-50 lg-icon-btn transition-all duration-300 tooltip" style="width:36px;height:36px;" title="切換為直向條列選單">
             <i id="iosThemeLayoutToggleIcon" class="fa-solid fa-bars text-sm"></i>
             <span class="tooltip-text">切換為直向條列選單</span>
         </button>
