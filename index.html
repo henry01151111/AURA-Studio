@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n-html="pageTitle_zh">AURA Studio - 一個專注時鐘。</title>
     
-    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-title" content="AURA Studio">
+    <link rel="manifest" href="/site.webmanifest">
     <meta name="theme-color" content="#030712">
     <meta name="referrer" content="strict-origin-when-cross-origin">
 
@@ -82,8 +87,9 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
 }
 .lg-pill-btn {
@@ -742,16 +748,27 @@ body.theme-is-light #pomoStatusBadge {
     color: #0284c7 !important;
 }
 body.theme-is-light .glass-panel {
-    background: rgba(255, 255, 255, 0.75) !important;
+    background: rgba(255, 255, 255, 0.45) !important;
+    backdrop-filter: blur(28px) saturate(180%) brightness(1.05) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.05) !important;
     border-color: rgba(0, 0, 0, 0.1) !important;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 0 24px rgba(255, 255, 255, 0.15),
+        0 20px 50px rgba(0, 0, 0, 0.12) !important;
     color: #0f172a !important;
 }
 body.theme-is-light #topHud button:not(#pwaInstallBtn),
 body.theme-is-light #quickThemeBtn {
-    background-color: rgba(255, 255, 255, 0.78) !important;
+    background-color: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(16px) saturate(180%) brightness(1.05) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(1.05) !important;
     color: #0f172a !important;
-    border-color: rgba(0, 0, 0, 0.12) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 0 10px rgba(255, 255, 255, 0.25),
+        0 2px 10px rgba(0, 0, 0, 0.08) !important;
 }
 body.theme-is-light #pwaInstallBtn {
     background-color: #4f46e5 !important;
@@ -767,11 +784,16 @@ body.theme-is-light #pomoMainBtn {
 }
 body.theme-is-light #pomoModeBtn,
 body.theme-is-light #bottomHud button:not(#pomoMainBtn):not(#fullscreenBtn) {
-    background-color: rgba(0, 0, 0, 0.06) !important;
+    background-color: rgba(255, 255, 255, 0.35) !important;
+    backdrop-filter: blur(16px) saturate(180%) brightness(1.05) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(1.05) !important;
     color: #1e293b !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        inset 0 0 8px rgba(255, 255, 255, 0.2) !important;
 }
 body.theme-is-light #bottomHud button:not(#pomoMainBtn):not(#fullscreenBtn):hover {
-    background-color: rgba(0, 0, 0, 0.12) !important;
+    background-color: rgba(255, 255, 255, 0.5) !important;
 }
 body.theme-is-light #clockContainer svg circle:first-child {
     stroke: rgba(0, 0, 0, 0.12) !important;
@@ -955,6 +977,11 @@ body.theme-is-light .lg-switch:not(.is-checked) {
 body.theme-is-light .lg-slider-track { background: rgba(0, 0, 0, 0.12); }
 body.theme-is-light .lg-slider-track::-webkit-slider-runnable-track { background: rgba(0, 0, 0, 0.12); }
 body.theme-is-light .lg-slider-track::-moz-range-track { background: rgba(0, 0, 0, 0.12); }
+body.theme-is-light .lg-input {
+    background: rgba(255, 255, 255, 0.5) !important;
+    color: #0f172a !important;
+}
+body.theme-is-light .lg-input::placeholder { color: rgba(15, 23, 42, 0.4); }
 body.theme-is-light input[type="text"],
 body.theme-is-light input[type="number"],
 body.theme-is-light textarea,
@@ -981,23 +1008,21 @@ body.theme-is-light #tab-shortcuts kbd {
 
 body.theme-is-light #closeSettingsBtn,
 body.theme-is-light #closeWinClockBtn,
-body.theme-is-light #expandWinClockBtn,
-body.theme-is-light #closeTaskDrawerBtn,
-body.theme-is-light #closeAudioMixerBtn,
-body.theme-is-light #closePomoModalBtn,
-body.theme-is-light #closeWhatsNewModalBtn {
-    color: #475569 !important;
-    background-color: rgba(0, 0, 0, 0.05) !important;
+body.theme-is-light .lg-icon-btn,
+body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn) {
+    background-color: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(16px) saturate(180%) brightness(1.05) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(1.05) !important;
+    color: #334155 !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.65),
+        inset 0 0 10px rgba(255, 255, 255, 0.3),
+        0 2px 10px rgba(0, 0, 0, 0.08) !important;
 }
-body.theme-is-light #closeSettingsBtn:hover,
-body.theme-is-light #closeWinClockBtn:hover,
-body.theme-is-light #expandWinClockBtn:hover,
-body.theme-is-light #closeTaskDrawerBtn:hover,
-body.theme-is-light #closeAudioMixerBtn:hover,
-body.theme-is-light #closePomoModalBtn:hover,
-body.theme-is-light #closeWhatsNewModalBtn:hover {
+body.theme-is-light .lg-icon-btn:hover,
+body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
     color: #0f172a !important;
-    background-color: rgba(0, 0, 0, 0.12) !important;
+    background-color: rgba(255, 255, 255, 0.58) !important;
 }
     </style>
 </head>
@@ -5223,7 +5248,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: 'AURA Studio 專注音樂',
                     artist: 'AURA Studio',
-                    artwork: [{ src: 'icon-512.png', sizes: '512x512', type: 'image/png' }]
+                    artwork: [{ src: 'web-app-manifest-512x512.png', sizes: '512x512', type: 'image/png' }]
                 });
                 navigator.mediaSession.setActionHandler('play', () => { if (ytPlayerAPI && ytPlayerReady) ytPlayerAPI.playVideo(); });
                 navigator.mediaSession.setActionHandler('pause', () => { if (ytPlayerAPI && ytPlayerReady) ytPlayerAPI.pauseVideo(); });
