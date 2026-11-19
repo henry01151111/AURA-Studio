@@ -1,15 +1,21 @@
-const CACHE_NAME = 'aura-studio-v3';
+const CACHE_NAME = 'aura-studio-v4';
 
 // 1. 定義預先快取的資源清單
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/manifest.json',
+  '/site.webmanifest',
   '/sw.js',
   '/clock_app.html',
   '/taskmaster.html',
   '/notepad.html',
   '/gemini_web_chat.html',
+  '/favicon.ico',
+  '/favicon.svg',
+  '/favicon-96x96.png',
+  '/apple-touch-icon.png',
+  '/web-app-manifest-192x192.png',
+  '/web-app-manifest-512x512.png',
   'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'

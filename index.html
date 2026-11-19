@@ -5,7 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title data-i18n-html="pageTitle_zh">AURA Studio - 一個專注時鐘。</title>
     
-    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-title" content="AURA Studio">
+    <link rel="manifest" href="/site.webmanifest">
     <meta name="theme-color" content="#030712">
     <meta name="referrer" content="strict-origin-when-cross-origin">
 
@@ -82,8 +87,9 @@ canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display
     width: 38px;
     height: 38px;
     border-radius: 50%;
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
 }
 .lg-pill-btn {
@@ -742,16 +748,27 @@ body.theme-is-light #pomoStatusBadge {
     color: #0284c7 !important;
 }
 body.theme-is-light .glass-panel {
-    background: rgba(255, 255, 255, 0.75) !important;
+    background: rgba(255, 255, 255, 0.45) !important;
+    backdrop-filter: blur(28px) saturate(180%) brightness(1.05) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.05) !important;
     border-color: rgba(0, 0, 0, 0.1) !important;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 0 24px rgba(255, 255, 255, 0.15),
+        0 20px 50px rgba(0, 0, 0, 0.12) !important;
     color: #0f172a !important;
 }
 body.theme-is-light #topHud button:not(#pwaInstallBtn),
 body.theme-is-light #quickThemeBtn {
-    background-color: rgba(255, 255, 255, 0.78) !important;
+    background-color: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(16px) saturate(180%) brightness(1.05) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(1.05) !important;
     color: #0f172a !important;
-    border-color: rgba(0, 0, 0, 0.12) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 0 10px rgba(255, 255, 255, 0.25),
+        0 2px 10px rgba(0, 0, 0, 0.08) !important;
 }
 body.theme-is-light #pwaInstallBtn {
     background-color: #4f46e5 !important;
@@ -767,11 +784,16 @@ body.theme-is-light #pomoMainBtn {
 }
 body.theme-is-light #pomoModeBtn,
 body.theme-is-light #bottomHud button:not(#pomoMainBtn):not(#fullscreenBtn) {
-    background-color: rgba(0, 0, 0, 0.06) !important;
+    background-color: rgba(255, 255, 255, 0.35) !important;
+    backdrop-filter: blur(16px) saturate(180%) brightness(1.05) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(1.05) !important;
     color: #1e293b !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        inset 0 0 8px rgba(255, 255, 255, 0.2) !important;
 }
 body.theme-is-light #bottomHud button:not(#pomoMainBtn):not(#fullscreenBtn):hover {
-    background-color: rgba(0, 0, 0, 0.12) !important;
+    background-color: rgba(255, 255, 255, 0.5) !important;
 }
 body.theme-is-light #clockContainer svg circle:first-child {
     stroke: rgba(0, 0, 0, 0.12) !important;
@@ -955,6 +977,11 @@ body.theme-is-light .lg-switch:not(.is-checked) {
 body.theme-is-light .lg-slider-track { background: rgba(0, 0, 0, 0.12); }
 body.theme-is-light .lg-slider-track::-webkit-slider-runnable-track { background: rgba(0, 0, 0, 0.12); }
 body.theme-is-light .lg-slider-track::-moz-range-track { background: rgba(0, 0, 0, 0.12); }
+body.theme-is-light .lg-input {
+    background: rgba(255, 255, 255, 0.5) !important;
+    color: #0f172a !important;
+}
+body.theme-is-light .lg-input::placeholder { color: rgba(15, 23, 42, 0.4); }
 body.theme-is-light input[type="text"],
 body.theme-is-light input[type="number"],
 body.theme-is-light textarea,
@@ -981,23 +1008,21 @@ body.theme-is-light #tab-shortcuts kbd {
 
 body.theme-is-light #closeSettingsBtn,
 body.theme-is-light #closeWinClockBtn,
-body.theme-is-light #expandWinClockBtn,
-body.theme-is-light #closeTaskDrawerBtn,
-body.theme-is-light #closeAudioMixerBtn,
-body.theme-is-light #closePomoModalBtn,
-body.theme-is-light #closeWhatsNewModalBtn {
-    color: #475569 !important;
-    background-color: rgba(0, 0, 0, 0.05) !important;
+body.theme-is-light .lg-icon-btn,
+body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn) {
+    background-color: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(16px) saturate(180%) brightness(1.05) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) brightness(1.05) !important;
+    color: #334155 !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.65),
+        inset 0 0 10px rgba(255, 255, 255, 0.3),
+        0 2px 10px rgba(0, 0, 0, 0.08) !important;
 }
-body.theme-is-light #closeSettingsBtn:hover,
-body.theme-is-light #closeWinClockBtn:hover,
-body.theme-is-light #expandWinClockBtn:hover,
-body.theme-is-light #closeTaskDrawerBtn:hover,
-body.theme-is-light #closeAudioMixerBtn:hover,
-body.theme-is-light #closePomoModalBtn:hover,
-body.theme-is-light #closeWhatsNewModalBtn:hover {
+body.theme-is-light .lg-icon-btn:hover,
+body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
     color: #0f172a !important;
-    background-color: rgba(0, 0, 0, 0.12) !important;
+    background-color: rgba(255, 255, 255, 0.58) !important;
 }
     </style>
 </head>
@@ -1775,30 +1800,30 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
         <div class="flex justify-between items-center border-b border-white/10 pb-4">
             <div class="flex items-center space-x-3">
                 <div class="w-9 h-9 rounded-2xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center text-base border border-indigo-500/30 shadow-lg shadow-indigo-500/10"><i class="fa-solid fa-sparkles"></i></div>
-                <div><h3 class="font-bold text-white text-base">AURA Studio v1.2.3 正式版</h3><p class="text-[10px] text-indigo-300/80 font-mono uppercase tracking-wider">v1.2.3 Official Release Notes</p></div>
+                <div><h3 class="font-bold text-white text-base">AURA Studio v1.3.1 正式版</h3><p class="text-[10px] text-indigo-300/80 font-mono uppercase tracking-wider">v1.3.1 Official Release Notes</p></div>
             </div>
             <button id="closeWhatsNewModalBtn" class="lg-icon-btn"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="space-y-3 text-xs">
             <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                <div class="w-7 h-7 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-circle-notch text-xs"></i></div>
-                <div><h4 class="font-semibold text-white/90 mb-0.5">1. 全新「靈動島」通知樣式</h4><p class="text-white/60 leading-relaxed text-[11px]">所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。</p></div>
+                <div class="w-7 h-7 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-layer-group text-xs"></i></div>
+                <div><h4 class="font-semibold text-white/90 mb-0.5">1. 全站導入 Liquid Glass 玻璃風格</h4><p class="text-white/60 leading-relaxed text-[11px]">按鈕、開關、滑桿、輸入框、所有面板全部換成玻璃材質質感；按下去會放大並提升模糊與亮度，滑桿拖曳時把手會變成透明玻璃透鏡，開關切換有變形滑動動畫。</p></div>
             </div>
             <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                <div class="w-7 h-7 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-lungs text-xs"></i></div>
-                <div><h4 class="font-semibold text-white/90 mb-0.5">2. 正念呼吸簡化為靈動島顯示</h4><p class="text-white/60 leading-relaxed text-[11px]">移除全螢幕呼吸引導畫面，改成按下工具列按鈕即反白啟動，呼吸階段與倒數直接顯示在靈動島上。</p></div>
+                <div class="w-7 h-7 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-feather-pointed text-xs"></i></div>
+                <div><h4 class="font-semibold text-white/90 mb-0.5">2. 專注語錄搬到靈動島</h4><p class="text-white/60 leading-relaxed text-[11px]">專注語錄改成常駐顯示在靈動島上，跟 YouTube 控制項目一樣會自動避讓其他通知。</p></div>
             </div>
             <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                <div class="w-7 h-7 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-volume-high text-xs"></i></div>
-                <div><h4 class="font-semibold text-white/90 mb-0.5">3. YouTube 控制整合進靈動島</h4><p class="text-white/60 leading-relaxed text-[11px]">YouTube 控制項目移到靈動島上常駐顯示，支援音量調整、關閉媒體與系統媒體控制整合；遇到其他通知時會自動往下避讓，窄螢幕顯示時頂部按鈕會先淡出；專注音效面板新增「開啟 YouTube 網站」按鈕。</p></div>
+                <div class="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-bug text-xs"></i></div>
+                <div><h4 class="font-semibold text-white/90 mb-0.5">3. 靈動島系列問題修復</h4><p class="text-white/60 leading-relaxed text-[11px]">修正分割畫面中靈動島位置偏移的問題；修正切換語言會意外觸發正念呼吸顯示的 bug。</p></div>
             </div>
             <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
-                <div class="w-7 h-7 rounded-xl bg-slate-500/20 text-slate-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-code text-xs"></i></div>
-                <div><h4 class="font-semibold text-white/90 mb-0.5">4. 新增「開發者設定」分頁</h4><p class="text-white/60 leading-relaxed text-[11px]">可開啟「允許選取文字」，並把「顯示即時 FPS」選項移到這裡集中管理。</p></div>
+                <div class="w-7 h-7 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-comment-dots text-xs"></i></div>
+                <div><h4 class="font-semibold text-white/90 mb-0.5">4. 新增意見反應按鈕</h4><p class="text-white/60 leading-relaxed text-[11px]">設定視窗右上角新增意見反應與功能建議按鈕，可直接連到 GitHub Issues；所有視窗的關閉按鈕也統一成同一種圓形樣式。</p></div>
             </div>
             <div class="flex items-start space-x-3 bg-white/5 p-3 rounded-2xl border border-white/5">
                 <div class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0 mt-0.5"><i class="fa-solid fa-broom text-xs"></i></div>
-                <div><h4 class="font-semibold text-white/90 mb-0.5">5. 介面修正與清理</h4><p class="text-white/60 leading-relaxed text-[11px]">移除「任務與草稿」功能；修正主題選單「使用中」標示與雨滴效果即時性問題；淺色主題分組排列；底部按鈕列在窄螢幕自動縮窄；移除重複的番茄鐘時間顯示。</p></div>
+                <div><h4 class="font-semibold text-white/90 mb-0.5">5. 細節修正與清理</h4><p class="text-white/60 leading-relaxed text-[11px]">修正「視覺與特效」分頁按下去沒有回彈效果的問題；移除分割畫面殘留的呼吸動畫死代碼。</p></div>
             </div>
         </div>
         <div class="pt-2 border-t border-white/10 flex items-center gap-2">
@@ -1806,7 +1831,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             <a href="https://github.com/henry01151111/AURA-Studio/" target="_blank" rel="noopener noreferrer" class="flex-1 bg-white hover:bg-slate-100 text-slate-900 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center space-x-1.5 shadow-md active:scale-95"><i class="fa-brands fa-github text-sm"></i><span>GitHub 開源專案</span></a>
         </div>
         <div class="pt-1 flex flex-col space-y-2.5">
-            <button id="startFocusBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i><span>探索 v1.2.3 正式版，開始使用</span></button>
+            <button id="startFocusBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-2xl font-semibold text-xs shadow-lg shadow-indigo-600/30 transition flex items-center justify-center space-x-2 active:scale-95"><i class="fa-solid fa-wand-magic-sparkles"></i><span>探索 v1.3.1 正式版，開始使用</span></button>
         </div>
     </div>
 </div>
@@ -2058,7 +2083,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "October",
             "十一月": "November",
             "十二月": "December",
-            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 Official",
+            "AURA Studio v1.3.1 正式版": "AURA Studio v1.3.1 Official",
+            "1. 全站導入 Liquid Glass 玻璃風格": "1. Liquid Glass Style Across the App",
+            "按鈕、開關、滑桿、輸入框、所有面板全部換成玻璃材質質感；按下去會放大並提升模糊與亮度，滑桿拖曳時把手會變成透明玻璃透鏡，開關切換有變形滑動動畫。": "Buttons, switches, sliders, inputs, and every panel now use a liquid-glass material; presses grow and intensify blur/brightness, slider thumbs turn into a transparent glass lens while dragging, and switches morph and slide when toggled.",
+            "2. 專注語錄搬到靈動島": "2. Focus Quote Moved to the Dynamic Island",
+            "專注語錄改成常駐顯示在靈動島上，跟 YouTube 控制項目一樣會自動避讓其他通知。": "The focus quote now displays persistently on the Dynamic Island, yielding to other notices just like the YouTube controls.",
+            "3. 靈動島系列問題修復": "3. Dynamic Island Bug Fixes",
+            "修正分割畫面中靈動島位置偏移的問題；修正切換語言會意外觸發正念呼吸顯示的 bug。": "Fixed the Dynamic Island's position drifting in split view; fixed a bug where switching languages could accidentally trigger the breathing display.",
+            "4. 新增意見反應按鈕": "4. New Feedback Button",
+            "設定視窗右上角新增意見反應與功能建議按鈕，可直接連到 GitHub Issues；所有視窗的關閉按鈕也統一成同一種圓形樣式。": "A feedback & feature-request button was added to the top-right of Settings, linking straight to GitHub Issues; all close buttons across the app are now unified into the same circular style.",
+            "5. 細節修正與清理": "5. Minor Fixes & Cleanup",
+            "修正「視覺與特效」分頁按下去沒有回彈效果的問題；移除分割畫面殘留的呼吸動畫死代碼。": "Fixed the “Visual & Effects” tab missing its press-bounce effect; removed leftover dead code for the old split-view breathing animation.",
             "1. 全新「靈動島」通知樣式": "1. Brand-New “Dynamic Island” Notifications",
             "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "All system notices now expand from a top-center dot in Dynamic Island style; shown on exiting Zen Mode, toggling performance mode, entering fullscreen, Pomodoro phase changes, and new version alerts.",
             "2. 正念呼吸簡化為靈動島顯示": "2. Mindful Breathing Simplified to the Island",
@@ -2089,7 +2124,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "AURA Studio now greets you with a simple fade-in title and a soft breathing glow every time you open it.",
             "5. 新增 Gemini 對話助手": "5. New Gemini Chat Assistant",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "A new AI chat tool, \"Gemini Chat Assistant,\" has been added to Extensions, connecting to Google Gemini AI Studio so you can ask questions and organize your thoughts right in the split view; the Install App window also gained a \"Learn More\" button with detailed install instructions.",
-            "探索 v1.2.3 正式版，開始使用": "Explore v1.2.3 — Get Started"
+            "探索 v1.3.1 正式版，開始使用": "Explore v1.3.1 — Get Started"
         };
         const enToZhMap = Object.fromEntries(Object.entries(zhToEnMap).map(([k,v]) => [v, k]));
         const zhToCnMap = {
@@ -2338,7 +2373,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "十月",
             "十一月": "十一月",
             "十二月": "十二月",
-            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 正式版",
+            "AURA Studio v1.3.1 正式版": "AURA Studio v1.3.1 正式版",
+            "1. 全站導入 Liquid Glass 玻璃風格": "1. 全站导入 Liquid Glass 玻璃风格",
+            "按鈕、開關、滑桿、輸入框、所有面板全部換成玻璃材質質感；按下去會放大並提升模糊與亮度，滑桿拖曳時把手會變成透明玻璃透鏡，開關切換有變形滑動動畫。": "按钮、开关、滑杆、输入框、所有面板全部换成玻璃材质质感；按下去会放大并提升模糊与亮度，滑杆拖曳时把手会变成透明玻璃透镜，开关切换有变形滑动动画。",
+            "2. 專注語錄搬到靈動島": "2. 专注语录搬到灵动岛",
+            "專注語錄改成常駐顯示在靈動島上，跟 YouTube 控制項目一樣會自動避讓其他通知。": "专注语录改成常驻显示在灵动岛上，跟 YouTube 控制项目一样会自动避让其他通知。",
+            "3. 靈動島系列問題修復": "3. 灵动岛系列问题修复",
+            "修正分割畫面中靈動島位置偏移的問題；修正切換語言會意外觸發正念呼吸顯示的 bug。": "修正分割画面中灵动岛位置偏移的问题；修正切换语言会意外触发正念呼吸显示的 bug。",
+            "4. 新增意見反應按鈕": "4. 新增意见反馈按钮",
+            "設定視窗右上角新增意見反應與功能建議按鈕，可直接連到 GitHub Issues；所有視窗的關閉按鈕也統一成同一種圓形樣式。": "设定窗口右上角新增意见反馈与功能建议按钮，可直接连到 GitHub Issues；所有窗口的关闭按钮也统一成同一种圆形样式。",
+            "5. 細節修正與清理": "5. 细节修正与清理",
+            "修正「視覺與特效」分頁按下去沒有回彈效果的問題；移除分割畫面殘留的呼吸動畫死代碼。": "修正「视觉与特效」分页按下去没有回弹效果的问题；移除分割画面残留的呼吸动画死代码。",
             "1. 全新「靈動島」通知樣式": "1. 全新「灵动岛」通知样式",
             "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "所有系统通知改成从顶部置中圆点左右展开的灵动岛样式；退出 Zen 模式、切换性能模式、进入全萤幕、番茄钟切换阶段、发现新版本时都会显示。",
             "2. 正念呼吸簡化為靈動島顯示": "2. 正念呼吸简化为灵动岛显示",
@@ -2369,7 +2414,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "每次开启 AURA Studio，都会先看到一段简约文字淡入与呼吸感光晕的开场画面。",
             "5. 新增 Gemini 對話助手": "5. 新增 Gemini 对话助手",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "扩充功能新增 AI 对话工具「Gemini 对话助手」，串接 Google Gemini AI Studio，可直接在分割画面中提问、整理想法；安装 App 视窗也新增「了解详情」按钮，可查看详细安装说明。",
-            "探索 v1.2.3 正式版，開始使用": "探索 v1.2.3 正式版，开始使用",
+            "探索 v1.3.1 正式版，開始使用": "探索 v1.3.1 正式版，开始使用",
         };
         const cnToZhMap = Object.fromEntries(Object.entries(zhToCnMap).map(([k,v]) => [v, k]));
         const zhToJaMap = {
@@ -2618,7 +2663,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "10月",
             "十一月": "11月",
             "十二月": "12月",
-            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 正式版",
+            "AURA Studio v1.3.1 正式版": "AURA Studio v1.3.1 正式版",
+            "1. 全站導入 Liquid Glass 玻璃風格": "1. 全体にリキッドグラスデザインを導入",
+            "按鈕、開關、滑桿、輸入框、所有面板全部換成玻璃材質質感；按下去會放大並提升模糊與亮度，滑桿拖曳時把手會變成透明玻璃透鏡，開關切換有變形滑動動畫。": "ボタン、スイッチ、スライダー、入力欄、すべてのパネルをガラス質感に変更。押すと拡大してぼかしと明るさが増し、スライダーのつまみはドラッグ中に透明なガラスレンズに変化、スイッチは切り替え時に変形しながらスライドします。",
+            "2. 專注語錄搬到靈動島": "2. 集中名言をダイナミックアイランドに移動",
+            "專注語錄改成常駐顯示在靈動島上，跟 YouTube 控制項目一樣會自動避讓其他通知。": "集中名言はダイナミックアイランドに常駐表示されるようになり、YouTubeコントロールと同様に他の通知が来ると道を譲ります。",
+            "3. 靈動島系列問題修復": "3. ダイナミックアイランド関連のバグ修正",
+            "修正分割畫面中靈動島位置偏移的問題；修正切換語言會意外觸發正念呼吸顯示的 bug。": "分割画面でダイナミックアイランドの位置がずれる問題を修正。言語切替で呼吸表示が誤って出てしまうバグを修正。",
+            "4. 新增意見反應按鈕": "4. フィードバックボタンを追加",
+            "設定視窗右上角新增意見反應與功能建議按鈕，可直接連到 GitHub Issues；所有視窗的關閉按鈕也統一成同一種圓形樣式。": "設定画面の右上にフィードバックと機能リクエストのボタンを追加し、GitHub Issuesに直接リンク。すべてのウィンドウの閉じるボタンも同じ丸型デザインに統一。",
+            "5. 細節修正與清理": "5. 細部の修正と整理",
+            "修正「視覺與特效」分頁按下去沒有回彈效果的問題；移除分割畫面殘留的呼吸動畫死代碼。": "「ビジュアルとエフェクト」タブを押しても跳ね返り効果がなかった問題を修正。分割画面に残っていた呼吸アニメーションの不要なコードを削除。",
             "1. 全新「靈動島」通知樣式": "1. 新しい「ダイナミックアイランド」通知スタイル",
             "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "すべてのシステム通知を、上部中央のドットから左右に広がるダイナミックアイランド風に変更。Zenモード終了、パフォーマンスモード切替、全画面表示、ポモドーロのフェーズ切替、新バージョン発見時に表示されます。",
             "2. 正念呼吸簡化為靈動島顯示": "2. マインドフル呼吸をアイランド表示に簡素化",
@@ -2649,7 +2704,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "AURA Studioを開くたびに、シンプルなタイトルのフェードインと穏やかな呼吸のような輝きで迎えてくれます。",
             "5. 新增 Gemini 對話助手": "5. Gemini チャットアシスタントを追加",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "拡張機能に新しいAIチャットツール「Geminiチャットアシスタント」が追加され、Google Gemini AI Studioと接続して分割画面内で直接質問したり考えを整理したりできます。アプリのインストールウィンドウにも「詳細を見る」ボタンが追加され、詳しいインストール手順を確認できます。",
-            "探索 v1.2.3 正式版，開始使用": "v1.2.3 正式版を見る、使ってみる",
+            "探索 v1.3.1 正式版，開始使用": "v1.3.1 正式版を見る、使ってみる",
         };
         const jaToZhMap = Object.fromEntries(Object.entries(zhToJaMap).map(([k,v]) => [v, k]));
         const zhToKoMap = {
@@ -2898,7 +2953,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "10월",
             "十一月": "11월",
             "十二月": "12월",
-            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 정식 버전",
+            "AURA Studio v1.3.1 正式版": "AURA Studio v1.3.1 정식 버전",
+            "1. 全站導入 Liquid Glass 玻璃風格": "1. 전체에 리퀴드 글래스 스타일 적용",
+            "按鈕、開關、滑桿、輸入框、所有面板全部換成玻璃材質質感；按下去會放大並提升模糊與亮度，滑桿拖曳時把手會變成透明玻璃透鏡，開關切換有變形滑動動畫。": "버튼, 스위치, 슬라이더, 입력창, 모든 패널을 리퀴드 글래스 재질로 변경; 누르면 커지면서 블러와 밝기가 강해지고, 슬라이더 손잡이는 드래그 중 투명한 유리 렌즈로 바뀌며, 스위치는 전환 시 변형하며 슬라이드됩니다.",
+            "2. 專注語錄搬到靈動島": "2. 포커스 명언이 다이나믹 아일랜드로 이동",
+            "專注語錄改成常駐顯示在靈動島上，跟 YouTube 控制項目一樣會自動避讓其他通知。": "포커스 명언이 이제 다이나믹 아일랜드에 상시 표시되며, YouTube 컨트롤과 마찬가지로 다른 알림에 자리를 양보합니다.",
+            "3. 靈動島系列問題修復": "3. 다이나믹 아일랜드 관련 버그 수정",
+            "修正分割畫面中靈動島位置偏移的問題；修正切換語言會意外觸發正念呼吸顯示的 bug。": "분할 화면에서 다이나믹 아일랜드 위치가 어긋나던 문제 수정; 언어 전환 시 호흡 표시가 의도치 않게 나타나던 버그 수정.",
+            "4. 新增意見反應按鈕": "4. 피드백 버튼 추가",
+            "設定視窗右上角新增意見反應與功能建議按鈕，可直接連到 GitHub Issues；所有視窗的關閉按鈕也統一成同一種圓形樣式。": "설정 창 우측 상단에 피드백 및 기능 제안 버튼 추가, GitHub Issues로 바로 연결됩니다; 모든 창의 닫기 버튼도 동일한 원형 스타일로 통일되었습니다.",
+            "5. 細節修正與清理": "5. 세부 수정 및 정리",
+            "修正「視覺與特效」分頁按下去沒有回彈效果的問題；移除分割畫面殘留的呼吸動畫死代碼。": "'비주얼 및 효과' 탭을 눌러도 바운스 효과가 없던 문제 수정; 분할 화면에 남아있던 호흡 애니메이션 잔여 코드 제거.",
             "1. 全新「靈動島」通知樣式": "1. 새로운 “다이나믹 아일랜드” 알림 스타일",
             "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "모든 시스템 알림이 상단 중앙 점에서 좌우로 펼쳐지는 다이나믹 아일랜드 스타일로 변경됨; Zen 모드 종료, 성능 모드 전환, 전체 화면 진입, 뽀모도로 단계 전환, 새 버전 발견 시 표시됩니다.",
             "2. 正念呼吸簡化為靈動島顯示": "2. 마인드풀 호흡이 아일랜드 표시로 간소화됨",
@@ -2929,7 +2994,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "AURA Studio를 열 때마다 간결한 타이틀 페이드인과 은은한 숨 쉬는 듯한 빛 효과로 맞이합니다.",
             "5. 新增 Gemini 對話助手": "5. Gemini 대화 도우미 추가",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "확장 기능에 AI 대화 도구 'Gemini 대화 도우미'가 추가되어 Google Gemini AI Studio와 연결해 분할 화면에서 바로 질문하고 생각을 정리할 수 있습니다. 앱 설치 창에도 '자세히 보기' 버튼이 추가되어 자세한 설치 안내를 볼 수 있습니다.",
-            "探索 v1.2.3 正式版，開始使用": "v1.2.3 정식 버전 살펴보기, 시작하기",
+            "探索 v1.3.1 正式版，開始使用": "v1.3.1 정식 버전 살펴보기, 시작하기",
         };
         const koToZhMap = Object.fromEntries(Object.entries(zhToKoMap).map(([k,v]) => [v, k]));
         const zhToFrMap = {
@@ -3178,7 +3243,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "Octobre",
             "十一月": "Novembre",
             "十二月": "Décembre",
-            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 Officielle",
+            "AURA Studio v1.3.1 正式版": "AURA Studio v1.3.1 Officielle",
+            "1. 全站導入 Liquid Glass 玻璃風格": "1. Style Liquid Glass sur toute l'application",
+            "按鈕、開關、滑桿、輸入框、所有面板全部換成玻璃材質質感；按下去會放大並提升模糊與亮度，滑桿拖曳時把手會變成透明玻璃透鏡，開關切換有變形滑動動畫。": "Boutons, interrupteurs, curseurs, champs de saisie et tous les panneaux adoptent désormais un matériau liquid glass ; une pression agrandit l'élément et intensifie le flou/la luminosité, le curseur se transforme en lentille de verre transparente pendant le glissement, et les interrupteurs se déforment en glissant lors du basculement.",
+            "2. 專注語錄搬到靈動島": "2. Citation de concentration déplacée sur la Dynamic Island",
+            "專注語錄改成常駐顯示在靈動島上，跟 YouTube 控制項目一樣會自動避讓其他通知。": "La citation de concentration s'affiche désormais en permanence sur la Dynamic Island, cédant la place aux autres notifications comme les contrôles YouTube.",
+            "3. 靈動島系列問題修復": "3. Corrections de bugs liés à la Dynamic Island",
+            "修正分割畫面中靈動島位置偏移的問題；修正切換語言會意外觸發正念呼吸顯示的 bug。": "Correction du décalage de position de la Dynamic Island en mode écran partagé ; correction d'un bug où changer de langue déclenchait accidentellement l'affichage de la respiration.",
+            "4. 新增意見反應按鈕": "4. Nouveau bouton de retour d'expérience",
+            "設定視窗右上角新增意見反應與功能建議按鈕，可直接連到 GitHub Issues；所有視窗的關閉按鈕也統一成同一種圓形樣式。": "Un bouton de retour d'expérience et de suggestions a été ajouté en haut à droite des paramètres, reliant directement aux GitHub Issues ; tous les boutons de fermeture de l'application sont désormais unifiés dans le même style circulaire.",
+            "5. 細節修正與清理": "5. Corrections mineures et nettoyage",
+            "修正「視覺與特效」分頁按下去沒有回彈效果的問題；移除分割畫面殘留的呼吸動畫死代碼。": "Correction de l'onglet « Visuel et effets » qui n'avait pas d'effet de rebond au clic ; suppression du code mort restant de l'ancienne animation de respiration de l'écran partagé.",
             "1. 全新「靈動島」通知樣式": "1. Nouveau style de notification « Dynamic Island »",
             "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "Toutes les notifications système se déploient désormais depuis un point centré en haut, façon Dynamic Island ; affichées en quittant le mode Zen, en changeant de mode performance, en entrant en plein écran, lors des changements de phase Pomodoro et des alertes de nouvelle version.",
             "2. 正念呼吸簡化為靈動島顯示": "2. Respiration consciente simplifiée sur l'île",
@@ -3209,7 +3284,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "AURA Studio vous accueille désormais, à chaque ouverture, par un titre qui apparaît en fondu accompagné d'une douce lueur respirante.",
             "5. 新增 Gemini 對話助手": "5. Nouvel assistant de chat Gemini",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "Un nouvel outil de chat IA, « Assistant de chat Gemini », a été ajouté aux extensions : connecté à Google Gemini AI Studio, il permet de poser des questions et d'organiser ses idées directement dans la vue partagée. La fenêtre d'installation de l'application comporte aussi un nouveau bouton « En savoir plus » avec des instructions d'installation détaillées.",
-            "探索 v1.2.3 正式版，開始使用": "Découvrir la version v1.2.3, commencer",
+            "探索 v1.3.1 正式版，開始使用": "Découvrir la version v1.3.1, commencer",
         };
         const frToZhMap = Object.fromEntries(Object.entries(zhToFrMap).map(([k,v]) => [v, k]));
         const zhToRuMap = {
@@ -3458,7 +3533,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "Октябрь",
             "十一月": "Ноябрь",
             "十二月": "Декабрь",
-            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 — официальный релиз",
+            "AURA Studio v1.3.1 正式版": "AURA Studio v1.3.1 — официальный релиз",
+            "1. 全站導入 Liquid Glass 玻璃風格": "1. Стиль Liquid Glass по всему приложению",
+            "按鈕、開關、滑桿、輸入框、所有面板全部換成玻璃材質質感；按下去會放大並提升模糊與亮度，滑桿拖曳時把手會變成透明玻璃透鏡，開關切換有變形滑動動畫。": "Кнопки, переключатели, ползунки, поля ввода и все панели теперь используют материал liquid glass; при нажатии элемент увеличивается, усиливается размытие и яркость, ползунок при перетаскивании превращается в прозрачную стеклянную линзу, а переключатели деформируются и скользят при переключении.",
+            "2. 專注語錄搬到靈動島": "2. Цитата для фокусировки перенесена на Dynamic Island",
+            "專注語錄改成常駐顯示在靈動島上，跟 YouTube 控制項目一樣會自動避讓其他通知。": "Цитата для фокусировки теперь постоянно отображается на Dynamic Island, уступая место другим уведомлениям, как и элементы управления YouTube.",
+            "3. 靈動島系列問題修復": "3. Исправления ошибок Dynamic Island",
+            "修正分割畫面中靈動島位置偏移的問題；修正切換語言會意外觸發正念呼吸顯示的 bug。": "Исправлено смещение позиции Dynamic Island в режиме разделённого экрана; исправлена ошибка, из-за которой переключение языка могло случайно вызвать отображение дыхания.",
+            "4. 新增意見反應按鈕": "4. Новая кнопка обратной связи",
+            "設定視窗右上角新增意見反應與功能建議按鈕，可直接連到 GitHub Issues；所有視窗的關閉按鈕也統一成同一種圓形樣式。": "В правом верхнем углу настроек добавлена кнопка обратной связи и предложений функций, ведущая прямо на GitHub Issues; все кнопки закрытия в приложении теперь объединены в единый круглый стиль.",
+            "5. 細節修正與清理": "5. Мелкие исправления и очистка",
+            "修正「視覺與特效」分頁按下去沒有回彈效果的問題；移除分割畫面殘留的呼吸動畫死代碼。": "Исправлена вкладка «Визуальные эффекты», в которой отсутствовал эффект отскока при нажатии; удалён оставшийся мёртвый код старой анимации дыхания разделённого экрана.",
             "1. 全新「靈動島」通知樣式": "1. Новый стиль уведомлений «Dynamic Island»",
             "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "Все системные уведомления теперь разворачиваются из точки по центру сверху в стиле Dynamic Island; отображаются при выходе из режима Zen, переключении режима производительности, входе в полноэкранный режим, смене фаз Pomodoro и обнаружении новой версии.",
             "2. 正念呼吸簡化為靈動島顯示": "2. Осознанное дыхание упрощено до отображения на острове",
@@ -3489,7 +3574,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "Теперь при каждом открытии AURA Studio вас встречает лаконичное название с плавным появлением и мягким дышащим свечением.",
             "5. 新增 Gemini 對話助手": "5. Новый чат-помощник Gemini",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "В расширения добавлен новый ИИ-инструмент для общения «Чат-помощник Gemini», подключённый к Google Gemini AI Studio — теперь можно задавать вопросы и упорядочивать мысли прямо в разделённом экране. В окне установки приложения также появилась кнопка «Узнать больше» с подробной инструкцией по установке.",
-            "探索 v1.2.3 正式版，開始使用": "Узнать о v1.2.3, начать работу",
+            "探索 v1.3.1 正式版，開始使用": "Узнать о v1.3.1, начать работу",
         };
         const ruToZhMap = Object.fromEntries(Object.entries(zhToRuMap).map(([k,v]) => [v, k]));
         const zhToEsMap = {
@@ -3738,7 +3823,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "Octubre",
             "十一月": "Noviembre",
             "十二月": "Diciembre",
-            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 Oficial",
+            "AURA Studio v1.3.1 正式版": "AURA Studio v1.3.1 Oficial",
+            "1. 全站導入 Liquid Glass 玻璃風格": "1. Estilo Liquid Glass en toda la aplicación",
+            "按鈕、開關、滑桿、輸入框、所有面板全部換成玻璃材質質感；按下去會放大並提升模糊與亮度，滑桿拖曳時把手會變成透明玻璃透鏡，開關切換有變形滑動動畫。": "Botones, interruptores, controles deslizantes, campos de entrada y todos los paneles ahora usan un material de vidrio líquido; al presionar se agrandan y aumentan el desenfoque/brillo, el control deslizante se convierte en una lente de vidrio transparente al arrastrarlo, y los interruptores se deforman y deslizan al cambiar.",
+            "2. 專注語錄搬到靈動島": "2. Cita de enfoque trasladada a la Dynamic Island",
+            "專注語錄改成常駐顯示在靈動島上，跟 YouTube 控制項目一樣會自動避讓其他通知。": "La cita de enfoque ahora se muestra de forma permanente en la Dynamic Island, cediendo paso a otros avisos igual que los controles de YouTube.",
+            "3. 靈動島系列問題修復": "3. Correcciones de errores de la Dynamic Island",
+            "修正分割畫面中靈動島位置偏移的問題；修正切換語言會意外觸發正念呼吸顯示的 bug。": "Se corrigió el desplazamiento de posición de la Dynamic Island en la vista dividida; se corrigió un error que hacía que cambiar de idioma activara accidentalmente la visualización de respiración.",
+            "4. 新增意見反應按鈕": "4. Nuevo botón de comentarios",
+            "設定視窗右上角新增意見反應與功能建議按鈕，可直接連到 GitHub Issues；所有視窗的關閉按鈕也統一成同一種圓形樣式。": "Se añadió un botón de comentarios y sugerencias de funciones en la esquina superior derecha de Ajustes, que enlaza directamente a GitHub Issues; todos los botones de cerrar de la aplicación ahora están unificados en el mismo estilo circular.",
+            "5. 細節修正與清理": "5. Correcciones menores y limpieza",
+            "修正「視覺與特效」分頁按下去沒有回彈效果的問題；移除分割畫面殘留的呼吸動畫死代碼。": "Se corrigió la pestaña «Visual y efectos» que no tenía efecto de rebote al presionar; se eliminó el código muerto restante de la antigua animación de respiración de la vista dividida.",
             "1. 全新「靈動島」通知樣式": "1. Nuevo estilo de notificaciones «Dynamic Island»",
             "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "Todos los avisos del sistema ahora se expanden desde un punto centrado arriba al estilo Dynamic Island; se muestran al salir del modo Zen, cambiar el modo de rendimiento, entrar en pantalla completa, cambiar de fase en el Pomodoro y al detectar una nueva versión.",
             "2. 正念呼吸簡化為靈動島顯示": "2. Respiración consciente simplificada en la isla",
@@ -3769,7 +3864,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "Cada vez que abres AURA Studio, te recibe un título que aparece suavemente junto con un resplandor que respira con calma.",
             "5. 新增 Gemini 對話助手": "5. Nuevo asistente de chat Gemini",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "Se añadió una nueva herramienta de chat con IA, «Asistente de chat Gemini», a Extensiones, conectada a Google Gemini AI Studio para que puedas hacer preguntas y organizar tus ideas directamente en la vista dividida; la ventana de instalación de la app también incorpora un botón «Más información» con instrucciones de instalación detalladas.",
-            "探索 v1.2.3 正式版，開始使用": "Explora la versión v1.2.3, empieza ahora",
+            "探索 v1.3.1 正式版，開始使用": "Explora la versión v1.3.1, empieza ahora",
         };
         const esToZhMap = Object.fromEntries(Object.entries(zhToEsMap).map(([k,v]) => [v, k]));
         const zhToHiMap = {
@@ -4018,7 +4113,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "अक्टूबर",
             "十一月": "नवंबर",
             "十二月": "दिसंबर",
-            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 आधिकारिक संस्करण",
+            "AURA Studio v1.3.1 正式版": "AURA Studio v1.3.1 आधिकारिक संस्करण",
+            "1. 全站導入 Liquid Glass 玻璃風格": "1. पूरे ऐप में Liquid Glass स्टाइल",
+            "按鈕、開關、滑桿、輸入框、所有面板全部換成玻璃材質質感；按下去會放大並提升模糊與亮度，滑桿拖曳時把手會變成透明玻璃透鏡，開關切換有變形滑動動畫。": "बटन, स्विच, स्लाइडर, इनपुट फ़ील्ड और सभी पैनल अब लिक्विड ग्लास मटीरियल में; दबाने पर बड़ा होकर ब्लर और ब्राइटनेस बढ़ जाती है, स्लाइडर का हैंडल खींचते समय पारदर्शी ग्लास लेंस में बदल जाता है, और स्विच टॉगल करने पर आकार बदलते हुए सरकता है।",
+            "2. 專注語錄搬到靈動島": "2. फ़ोकस कोट डायनामिक आइलैंड पर ले जाया गया",
+            "專注語錄改成常駐顯示在靈動島上，跟 YouTube 控制項目一樣會自動避讓其他通知。": "फ़ोकस कोट अब डायनामिक आइलैंड पर स्थायी रूप से दिखता है, और YouTube कंट्रोल की तरह ही दूसरी सूचनाओं के लिए जगह छोड़ देता है।",
+            "3. 靈動島系列問題修復": "3. डायनामिक आइलैंड से जुड़ी बग फ़िक्स",
+            "修正分割畫面中靈動島位置偏移的問題；修正切換語言會意外觸發正念呼吸顯示的 bug。": "स्प्लिट व्यू में डायनामिक आइलैंड की स्थिति खिसकने की समस्या ठीक की; भाषा बदलने पर गलती से ब्रीदिंग डिस्प्ले दिखने वाली बग ठीक की।",
+            "4. 新增意見反應按鈕": "4. नया फ़ीडबैक बटन",
+            "設定視窗右上角新增意見反應與功能建議按鈕，可直接連到 GitHub Issues；所有視窗的關閉按鈕也統一成同一種圓形樣式。": "सेटिंग्स विंडो के ऊपरी दाएँ कोने में फ़ीडबैक और फ़ीचर सुझाव बटन जोड़ा गया, जो सीधे GitHub Issues से जुड़ता है; ऐप के सभी बंद करने के बटन अब एक जैसी गोल शैली में एकीकृत कर दिए गए हैं।",
+            "5. 細節修正與清理": "5. छोटे सुधार और सफ़ाई",
+            "修正「視覺與特效」分頁按下去沒有回彈效果的問題；移除分割畫面殘留的呼吸動畫死代碼。": "'विज़ुअल और इफ़ेक्ट्स' टैब में दबाने पर बाउंस इफ़ेक्ट न होने की समस्या ठीक की; स्प्लिट व्यू में बचा हुआ पुराना ब्रीदिंग एनिमेशन डेड कोड हटाया।",
             "1. 全新「靈動島」通知樣式": "1. नई “डायनामिक आइलैंड” नोटिफ़िकेशन शैली",
             "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "सभी सिस्टम नोटिफ़िकेशन अब ऊपर बीच के एक बिंदु से डायनामिक आइलैंड शैली में दाएँ-बाएँ फैलते हैं; Zen मोड से बाहर निकलने, परफ़ॉर्मेंस मोड बदलने, फ़ुलस्क्रीन में जाने, पोमोडोरो चरण बदलने और नया वर्शन मिलने पर दिखाई देते हैं।",
             "2. 正念呼吸簡化為靈動島顯示": "2. माइंडफुल ब्रीदिंग को आइलैंड डिस्प्ले में सरल बनाया गया",
@@ -4049,7 +4154,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "अब हर बार AURA Studio खोलने पर एक सरल शीर्षक फेड-इन और हल्की साँस जैसी चमक आपका स्वागत करती है।",
             "5. 新增 Gemini 對話助手": "5. नया Gemini चैट सहायक",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "एक्सटेंशन में एक नया AI चैट टूल \"Gemini चैट सहायक\" जोड़ा गया है, जो Google Gemini AI Studio से जुड़ा है और स्प्लिट व्यू में सीधे सवाल पूछने व विचार व्यवस्थित करने देता है; ऐप इंस्टॉल विंडो में भी \"और जानें\" बटन जोड़ा गया है, जो विस्तृत इंस्टॉलेशन निर्देश दिखाता है।",
-            "探索 v1.2.3 正式版，開始使用": "v1.2.3 आधिकारिक संस्करण देखें, शुरू करें",
+            "探索 v1.3.1 正式版，開始使用": "v1.3.1 आधिकारिक संस्करण देखें, शुरू करें",
         };
         const hiToZhMap = Object.fromEntries(Object.entries(zhToHiMap).map(([k,v]) => [v, k]));
         const zhToPtMap = {
@@ -4298,7 +4403,17 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "十月": "Outubro",
             "十一月": "Novembro",
             "十二月": "Dezembro",
-            "AURA Studio v1.2.3 正式版": "AURA Studio v1.2.3 Oficial",
+            "AURA Studio v1.3.1 正式版": "AURA Studio v1.3.1 Oficial",
+            "1. 全站導入 Liquid Glass 玻璃風格": "1. Estilo Liquid Glass em todo o app",
+            "按鈕、開關、滑桿、輸入框、所有面板全部換成玻璃材質質感；按下去會放大並提升模糊與亮度，滑桿拖曳時把手會變成透明玻璃透鏡，開關切換有變形滑動動畫。": "Botões, interruptores, controles deslizantes, campos de entrada e todos os painéis agora usam material de vidro líquido; ao pressionar, o elemento aumenta e intensifica o desfoque/brilho, o controle deslizante vira uma lente de vidro transparente ao arrastar, e os interruptores se deformam e deslizam ao alternar.",
+            "2. 專注語錄搬到靈動島": "2. Citação de foco movida para a Dynamic Island",
+            "專注語錄改成常駐顯示在靈動島上，跟 YouTube 控制項目一樣會自動避讓其他通知。": "A citação de foco agora é exibida permanentemente na Dynamic Island, cedendo espaço a outros avisos assim como os controles do YouTube.",
+            "3. 靈動島系列問題修復": "3. Correções de bugs da Dynamic Island",
+            "修正分割畫面中靈動島位置偏移的問題；修正切換語言會意外觸發正念呼吸顯示的 bug。": "Corrigido o deslocamento de posição da Dynamic Island na visualização dividida; corrigido um bug em que trocar de idioma acionava acidentalmente a exibição de respiração.",
+            "4. 新增意見反應按鈕": "4. Novo botão de feedback",
+            "設定視窗右上角新增意見反應與功能建議按鈕，可直接連到 GitHub Issues；所有視窗的關閉按鈕也統一成同一種圓形樣式。": "Um botão de feedback e sugestões de recursos foi adicionado no canto superior direito das Configurações, linkando direto para o GitHub Issues; todos os botões de fechar do app agora são unificados no mesmo estilo circular.",
+            "5. 細節修正與清理": "5. Correções menores e limpeza",
+            "修正「視覺與特效」分頁按下去沒有回彈效果的問題；移除分割畫面殘留的呼吸動畫死代碼。": "Corrigida a aba “Visual e efeitos” que não tinha efeito de rebote ao pressionar; removido o código morto restante da antiga animação de respiração da tela dividida.",
             "1. 全新「靈動島」通知樣式": "1. Novo estilo de notificação “Dynamic Island”",
             "所有系統通知改成從頂部置中圓點左右展開的靈動島樣式；退出 Zen 模式、切換性能模式、進入全螢幕、番茄鐘切換階段、發現新版本時都會顯示。": "Todos os avisos do sistema agora se expandem a partir de um ponto centralizado no topo, estilo Dynamic Island; exibidos ao sair do Modo Zen, alternar o modo de desempenho, entrar em tela cheia, mudar de fase no Pomodoro e ao detectar uma nova versão.",
             "2. 正念呼吸簡化為靈動島顯示": "2. Respiração consciente simplificada na ilha",
@@ -4329,7 +4444,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
             "每次開啟 AURA Studio，都會先看到一段簡約文字淡入與呼吸感光暈的開場畫面。": "Agora, toda vez que você abre o AURA Studio, é recebido por um título que surge suavemente com um brilho que pulsa como uma respiração.",
             "5. 新增 Gemini 對話助手": "5. Novo Assistente de chat Gemini",
             "擴充功能新增 AI 對話工具「Gemini 對話助手」，串接 Google Gemini AI Studio，可直接在分割畫面中提問、整理想法；安裝 App 視窗也新增「了解詳情」按鈕，可查看詳細安裝說明。": "Uma nova ferramenta de chat com IA, o «Assistente de chat Gemini», foi adicionada às Extensões, conectando-se ao Google Gemini AI Studio para que você possa tirar dúvidas e organizar suas ideias diretamente na visualização dividida; a janela de instalação do app também ganhou um botão «Saiba mais» com instruções de instalação detalhadas.",
-            "探索 v1.2.3 正式版，開始使用": "Conheça a v1.2.3, comece agora",
+            "探索 v1.3.1 正式版，開始使用": "Conheça a v1.3.1, comece agora",
         };
         const ptToZhMap = Object.fromEntries(Object.entries(zhToPtMap).map(([k,v]) => [v, k]));
 
@@ -4362,7 +4477,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 fsEnteredMsg: '已進入全螢幕', zenExitMsg: '已退出 Zen 模式', newVersionMsg: '發現新版本！點擊設定查看',
                 foldExpand: '展開控制按鈕', foldCollapse: '收合控制按鈕',
 				zenBanner: '已進入 Zen 沉浸模式（點擊螢幕任意處或按 ESC 可退出）',
-				getStarted: '探索 v1.2.3 正式版，開始使用',
+				getStarted: '探索 v1.3.1 正式版，開始使用',
             },
             'en': {
                 appTitle: 'AURA Studio - A Focus Timer.',
@@ -4389,7 +4504,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 fsEnteredMsg: 'Entered fullscreen', zenExitMsg: 'Exited Zen Mode', newVersionMsg: 'New version available — check Settings',
                 foldExpand: 'Expand Controls', foldCollapse: 'Collapse Controls',
 				zenBanner: 'Zen Mode On — tap anywhere or press ESC to exit',
-				getStarted: 'Explore v1.2.3 — Get Started',
+				getStarted: 'Explore v1.3.1 — Get Started',
             },
             'zh-CN': {
                 appTitle: 'AURA Studio - 一个专注时钟。',
@@ -4416,7 +4531,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 fsEnteredMsg: '已进入全萤幕', zenExitMsg: '已退出 Zen 模式', newVersionMsg: '发现新版本！点击设定查看',
                 foldExpand: '展开控制按钮', foldCollapse: '收起控制按钮',
 				zenBanner: '已进入 Zen 沉浸模式（点击屏幕任意处或按 ESC 可退出）',
-				getStarted: '探索 v1.2.3 正式版，开始使用',
+				getStarted: '探索 v1.3.1 正式版，开始使用',
             },
             'ja': {
                 appTitle: 'AURA Studio - フォーカスタイマー。',
@@ -4443,7 +4558,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 fsEnteredMsg: '全画面表示になりました', zenExitMsg: 'Zenモードを終了しました', newVersionMsg: '新しいバージョンがあります。設定を確認してください',
                 foldExpand: 'コントロールを展開', foldCollapse: 'コントロールを折りたたむ',
 				zenBanner: 'Zen没入モードに入りました（画面をタップまたはESCで終了）',
-				getStarted: 'v1.2.3 正式版を見る、使ってみる',
+				getStarted: 'v1.3.1 正式版を見る、使ってみる',
             },
             'ko': {
                 appTitle: 'AURA Studio - 집중을 위한 타이머.',
@@ -4470,7 +4585,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 fsEnteredMsg: '전체 화면으로 전환됨', zenExitMsg: 'Zen 모드를 종료했습니다', newVersionMsg: '새 버전이 있습니다! 설정에서 확인하세요',
                 foldExpand: '컨트롤 펼치기', foldCollapse: '컨트롤 접기',
 				zenBanner: 'Zen 몰입 모드에 진입했습니다 (화면 아무 곳이나 탭하거나 ESC를 누르면 종료)',
-				getStarted: 'v1.2.3 정식 버전 살펴보기, 시작하기',
+				getStarted: 'v1.3.1 정식 버전 살펴보기, 시작하기',
             },
             'fr': {
                 appTitle: "AURA Studio - Une minuterie de concentration.",
@@ -4497,7 +4612,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 fsEnteredMsg: 'Plein écran activé', zenExitMsg: 'Mode Zen désactivé', newVersionMsg: 'Nouvelle version disponible — voir les paramètres',
                 foldExpand: 'Déplier les commandes', foldCollapse: 'Replier les commandes',
 				zenBanner: "Mode Zen immersif activé (appuyez n'importe où à l'écran ou sur ÉCHAP pour quitter)",
-				getStarted: 'Découvrir la version v1.2.3, commencer',
+				getStarted: 'Découvrir la version v1.3.1, commencer',
             },
             'ru': {
                 appTitle: "AURA Studio - Таймер для концентрации.",
@@ -4524,7 +4639,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 fsEnteredMsg: 'Включён полноэкранный режим', zenExitMsg: 'Режим Zen выключен', newVersionMsg: 'Доступна новая версия — см. настройки',
                 foldExpand: 'Развернуть элементы управления', foldCollapse: 'Свернуть элементы управления',
 				zenBanner: 'Включён режим Zen (нажмите в любом месте экрана или ESC, чтобы выйти)',
-				getStarted: 'Узнать о v1.2.3, начать работу',
+				getStarted: 'Узнать о v1.3.1, начать работу',
             },
             'es': {
                 appTitle: "AURA Studio - Un temporizador de concentración.",
@@ -4551,7 +4666,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 fsEnteredMsg: 'Pantalla completa activada', zenExitMsg: 'Modo Zen desactivado', newVersionMsg: 'Nueva versión disponible: revisa los ajustes',
                 foldExpand: 'Expandir controles', foldCollapse: 'Contraer controles',
 				zenBanner: 'Modo Zen activado (toca cualquier parte de la pantalla o pulsa ESC para salir)',
-				getStarted: 'Explora la versión v1.2.3, empieza ahora',
+				getStarted: 'Explora la versión v1.3.1, empieza ahora',
             },
             'hi': {
                 appTitle: "AURA Studio - एक फ़ोकस टाइमर।",
@@ -4578,7 +4693,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 fsEnteredMsg: 'फुलस्क्रीन चालू हुआ', zenExitMsg: 'Zen मोड बंद हुआ', newVersionMsg: 'नया वर्शन उपलब्ध है! सेटिंग्स देखें',
                 foldExpand: 'नियंत्रण विस्तृत करें', foldCollapse: 'नियंत्रण संक्षिप्त करें',
 				zenBanner: 'Zen इमर्सिव मोड चालू हो गया (बाहर निकलने के लिए स्क्रीन पर कहीं भी टैप करें या ESC दबाएँ)',
-				getStarted: 'v1.2.3 आधिकारिक संस्करण देखें, शुरू करें',
+				getStarted: 'v1.3.1 आधिकारिक संस्करण देखें, शुरू करें',
             },
             'pt': {
                 appTitle: "AURA Studio - Um cronômetro de foco.",
@@ -4605,7 +4720,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 fsEnteredMsg: 'Tela cheia ativada', zenExitMsg: 'Modo Zen desativado', newVersionMsg: 'Nova versão disponível — veja as configurações',
                 foldExpand: 'Expandir controles', foldCollapse: 'Recolher controles',
 				zenBanner: 'Modo Zen ativado (toque em qualquer lugar da tela ou pressione ESC para sair)',
-				getStarted: 'Conheça a v1.2.3, comece agora',
+				getStarted: 'Conheça a v1.3.1, comece agora',
             }
         };
 
@@ -4810,7 +4925,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
 
         const STORAGE_KEY = 'aura_focus_studio_settings';
         const MEMO_STORAGE_KEY = 'aura_focus_studio_memo';
-        const WHATS_NEW_KEY = 'aura_whats_new_seen_v1_2_3';
+        const WHATS_NEW_KEY = 'aura_whats_new_seen_v1_3_1';
         const hadPriorVisit = (() => { try { return !!localStorage.getItem(STORAGE_KEY); } catch (e) { return false; } })();
         function hasSeenWhatsNew() { try { return localStorage.getItem(WHATS_NEW_KEY) === 'true'; } catch (e) { return true; } }
 
@@ -5133,7 +5248,7 @@ body.theme-is-light #closeWhatsNewModalBtn:hover {
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: 'AURA Studio 專注音樂',
                     artist: 'AURA Studio',
-                    artwork: [{ src: 'icon-512.png', sizes: '512x512', type: 'image/png' }]
+                    artwork: [{ src: 'web-app-manifest-512x512.png', sizes: '512x512', type: 'image/png' }]
                 });
                 navigator.mediaSession.setActionHandler('play', () => { if (ytPlayerAPI && ytPlayerReady) ytPlayerAPI.playVideo(); });
                 navigator.mediaSession.setActionHandler('pause', () => { if (ytPlayerAPI && ytPlayerReady) ytPlayerAPI.pauseVideo(); });
