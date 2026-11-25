@@ -267,20 +267,6 @@ body.low-performance .drawer-slide, body.low-performance .modal-slide-up, body.l
     box-shadow: 0 0 0 rgba(0, 0, 0, 0);
 }
 
-#appStage.window-resize-press {
-    transform: scale(0.92) !important;
-    border-radius: 28px !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9) !important;
-}
-
-#appStage.window-resize-restore {
-    transform: scale(1.0) !important;
-    border-radius: 0px !important;
-    border: 0px solid rgba(255, 255, 255, 0) !important;
-    box-shadow: 0 0 0 rgba(0, 0, 0, 0) !important;
-}
-
 /* ── Android Multi-window / Edge Split View 過渡動畫 ── */
 
 :root { --split: 50; } /* 左側佔畫面寬度的百分比 (25 ~ 75)，可拖曳中間分割線調整 */
@@ -351,11 +337,7 @@ body.split-dragging #geminiIframe { pointer-events: none; }
 body.split-dragging #appStage,
 body.split-dragging #winClockSplitPane { transition: none !important; }
 
-/* #appStage：分割畫面時寬度平滑縮至左半邊 */
-#appStage {
-    transition: width 0.46s cubic-bezier(0.2, 0, 0, 1);
-    will-change: width;
-}
+
 
 /* 左半展開定格 */
 body.split-view-active #appStage {
@@ -1049,7 +1031,7 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
 
         <div id="ytBgProjection" class="fixed inset-0 z-[1] hidden pointer-events-none">
             <div id="ytBgIframeHost" class="w-full h-full"></div>
-            <div class="absolute inset-0 bg-black/15"></div>
+            <div class="absolute inset-0 bg-black/15 pointer-events-none"></div>
         </div>
 
         <div id="lightningOverlay" class="fixed inset-0 pointer-events-none z-[3] opacity-0 transition-opacity duration-75 mix-blend-screen bg-indigo-100/70"></div>
@@ -1420,6 +1402,7 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
                         <div class="space-y-4">
                             <div class="flex items-center justify-between"><span class="text-white/80">允許選取文字</span><input type="checkbox" id="allowTextSelectToggle" class="sr-only lg-switch-input"><label for="allowTextSelectToggle" class="lg-switch"><span class="lg-switch-thumb"></span></label></div>
                             <div class="flex items-center justify-between"><span class="text-white/80">顯示即時 FPS 影格率</span><input type="checkbox" id="showFpsToggle" class="sr-only lg-switch-input"><label for="showFpsToggle" class="lg-switch"><span class="lg-switch-thumb"></span></label></div>
+                            <div class="flex items-center justify-between"><span class="text-white/80">影片投影時可穿透點擊背景的 YouTube 嵌入網頁</span><input type="checkbox" id="ytBgClickThroughToggle" class="sr-only lg-switch-input"><label for="ytBgClickThroughToggle" class="lg-switch"><span class="lg-switch-thumb"></span></label></div>
                         </div>
                     </div>
                     <div id="tab-clock" class="settings-tab-content space-y-6 text-xs hidden">
@@ -1992,6 +1975,7 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
             "快捷鍵指南": "Keyboard Shortcuts",
             "意見反應與功能建議": "Feedback & Feature Requests",
             "開發者設定": "Developer Settings",
+            "影片投影時可穿透點擊背景的 YouTube 嵌入網頁": "Allow click-through to the background YouTube embed while projecting video",
             "允許選取文字": "Allow Text Selection",
             "媒體控制": "Media Controls",
             "關閉媒體（停用系統媒體控制整合）": "Disable Media (turn off system media integration)",
@@ -2286,6 +2270,7 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
             "快捷鍵指南": "快捷键指南",
             "意見反應與功能建議": "意见反馈与功能建议",
             "開發者設定": "开发者设定",
+            "影片投影時可穿透點擊背景的 YouTube 嵌入網頁": "允许视频投影时穿透点击背景的 YouTube 嵌入网页",
             "允許選取文字": "允许选取文字",
             "媒體控制": "媒体控制",
             "關閉媒體（停用系統媒體控制整合）": "关闭媒体（停用系统媒体控制整合）",
@@ -2580,6 +2565,7 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
             "快捷鍵指南": "キーボードショートカット",
             "意見反應與功能建議": "フィードバックと機能リクエスト",
             "開發者設定": "開発者設定",
+            "影片投影時可穿透點擊背景的 YouTube 嵌入網頁": "動画をプロジェクションしている間、背景のYouTube埋め込みページをクリックで透過できるようにする",
             "允許選取文字": "テキスト選択を許可",
             "媒體控制": "メディアコントロール",
             "關閉媒體（停用系統媒體控制整合）": "メディアを無効化（システムのメディア連携をオフ）",
@@ -2874,6 +2860,7 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
             "快捷鍵指南": "단축키 안내",
             "意見反應與功能建議": "피드백 및 기능 제안",
             "開發者設定": "개발자 설정",
+            "影片投影時可穿透點擊背景的 YouTube 嵌入網頁": "동영상 투사 중 배경의 YouTube 삽입 페이지를 클릭으로 통과할 수 있게 함",
             "允許選取文字": "텍스트 선택 허용",
             "媒體控制": "미디어 제어",
             "關閉媒體（停用系統媒體控制整合）": "미디어 비활성화(시스템 미디어 연동 끄기)",
@@ -3168,6 +3155,7 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
             "快捷鍵指南": "Guide des raccourcis clavier",
             "意見反應與功能建議": "Retour et suggestions de fonctionnalités",
             "開發者設定": "Paramètres développeur",
+            "影片投影時可穿透點擊背景的 YouTube 嵌入網頁": "Autoriser le clic à travers la page YouTube intégrée en arrière-plan pendant la projection vidéo",
             "允許選取文字": "Autoriser la sélection de texte",
             "媒體控制": "Contrôles multimédias",
             "關閉媒體（停用系統媒體控制整合）": "Désactiver les médias (désactive l'intégration média système)",
@@ -3462,6 +3450,7 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
             "快捷鍵指南": "Руководство по горячим клавишам",
             "意見反應與功能建議": "Отзывы и предложения функций",
             "開發者設定": "Настройки разработчика",
+            "影片投影時可穿透點擊背景的 YouTube 嵌入網頁": "Разрешить клики сквозь встроенную страницу YouTube на фоне во время проекции видео",
             "允許選取文字": "Разрешить выделение текста",
             "媒體控制": "Управление медиа",
             "關閉媒體（停用系統媒體控制整合）": "Отключить медиа (выключить системную интеграцию медиа)",
@@ -3756,6 +3745,7 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
             "快捷鍵指南": "Guía de atajos de teclado",
             "意見反應與功能建議": "Comentarios y sugerencias de funciones",
             "開發者設定": "Ajustes de desarrollador",
+            "影片投影時可穿透點擊背景的 YouTube 嵌入網頁": "Permitir hacer clic a través de la página de YouTube incrustada de fondo durante la proyección de video",
             "允許選取文字": "Permitir selección de texto",
             "媒體控制": "Controles de medios",
             "關閉媒體（停用系統媒體控制整合）": "Desactivar medios (desactiva la integración multimedia del sistema)",
@@ -4050,6 +4040,7 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
             "快捷鍵指南": "कीबोर्ड शॉर्टकट गाइड",
             "意見反應與功能建議": "फ़ीडबैक और फ़ीचर सुझाव",
             "開發者設定": "डेवलपर सेटिंग्स",
+            "影片投影時可穿透點擊背景的 YouTube 嵌入網頁": "वीडियो प्रोजेक्शन के दौरान बैकग्राउंड के YouTube एम्बेड पेज पर क्लिक करके पार जाने की अनुमति दें",
             "允許選取文字": "टेक्स्ट चयन की अनुमति दें",
             "媒體控制": "मीडिया नियंत्रण",
             "關閉媒體（停用系統媒體控制整合）": "मीडिया बंद करें (सिस्टम मीडिया एकीकरण बंद करें)",
@@ -4344,6 +4335,7 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
             "快捷鍵指南": "Guia de atalhos de teclado",
             "意見反應與功能建議": "Feedback e sugestões de recursos",
             "開發者設定": "Configurações do desenvolvedor",
+            "影片投影時可穿透點擊背景的 YouTube 嵌入網頁": "Permitir clicar através da página incorporada do YouTube em segundo plano durante a projeção do vídeo",
             "允許選取文字": "Permitir seleção de texto",
             "媒體控制": "Controles de mídia",
             "關閉媒體（停用系統媒體控制整合）": "Desativar mídia (desativa a integração de mídia do sistema)",
@@ -4961,7 +4953,7 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
             lowPerformance: false, thunderEnabled: false, autoHideUI: false, glassInteraction: false, showFps: false,
             speed: 1.0, density: 1.0, windAngle: -2.5, clock24h: true, showSeconds: true, showQuote: false, autoPomo: false, soundChime: true,
             customQuoteText: "", clockFont: 'sans', clockScale: 1.0, ringStyle: 'simple', theme: 'night_library', youtubeVideoId: '', ytProjecting: false,
-            allowTextSelect: false, disableMediaSession: false, ytVolume: 100,
+            allowTextSelect: false, disableMediaSession: false, ytVolume: 100, ytBgClickThrough: false,
             pomoMode: 'work', pomoRunning: false, pomoSecondsLeft: 25 * 60, pomoTotalSeconds: 25 * 60, pomoInterval: null,
             masterAudioOn: false, volumes: { rain: 0.7, alpha: 0.3, fire: 0.2, chime: 0.4 }, tasks: [{ id: 1, text: '範例事項', done: false }],
             pipWindow: null, isPipActive: false
@@ -5108,6 +5100,8 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
                 const autoPomoToggle = document.getElementById('autoPomoToggle'); if (autoPomoToggle) autoPomoToggle.checked = state.autoPomo;
                 const soundChimeToggle = document.getElementById('soundChimeToggle'); if (soundChimeToggle) soundChimeToggle.checked = state.soundChime;
                 const allowTextSelectToggle = document.getElementById('allowTextSelectToggle'); if (allowTextSelectToggle) allowTextSelectToggle.checked = state.allowTextSelect;
+                const ytBgClickThroughToggle = document.getElementById('ytBgClickThroughToggle'); if (ytBgClickThroughToggle) ytBgClickThroughToggle.checked = state.ytBgClickThrough;
+                document.getElementById('ytBgProjection')?.classList.toggle('pointer-events-none', !state.ytBgClickThrough);
                 document.body.classList.toggle('allow-text-select', !!state.allowTextSelect);
                 const ytWidgetVolumeSlider = document.getElementById('ytWidgetVolumeSlider'); if (ytWidgetVolumeSlider) ytWidgetVolumeSlider.value = (typeof state.ytVolume === 'number') ? state.ytVolume : 100;
                 const ytWidgetVolumeVal = document.getElementById('ytWidgetVolumeVal'); if (ytWidgetVolumeVal) ytWidgetVolumeVal.textContent = `${(typeof state.ytVolume === 'number') ? state.ytVolume : 100}%`;
@@ -5159,7 +5153,7 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
 
         function saveSettings() {
             try {
-                const dataToSave = { lowPerformance: state.lowPerformance, thunderEnabled: state.thunderEnabled, autoHideUI: state.autoHideUI, glassInteraction: state.glassInteraction, showFps: state.showFps, speed: state.speed, density: state.density, clock24h: state.clock24h, showSeconds: state.showSeconds, showQuote: state.showQuote, autoPomo: state.autoPomo, soundChime: state.soundChime, customQuoteText: state.customQuoteText, clockFont: state.clockFont, clockScale: state.clockScale, ringStyle: state.ringStyle, theme: state.theme, masterAudioOn: state.masterAudioOn, volumes: state.volumes, tasks: state.tasks, youtubeVideoId: state.youtubeVideoId, lang: currentLang, allowTextSelect: state.allowTextSelect, disableMediaSession: state.disableMediaSession, ytVolume: state.ytVolume };
+                const dataToSave = { lowPerformance: state.lowPerformance, thunderEnabled: state.thunderEnabled, autoHideUI: state.autoHideUI, glassInteraction: state.glassInteraction, showFps: state.showFps, speed: state.speed, density: state.density, clock24h: state.clock24h, showSeconds: state.showSeconds, showQuote: state.showQuote, autoPomo: state.autoPomo, soundChime: state.soundChime, customQuoteText: state.customQuoteText, clockFont: state.clockFont, clockScale: state.clockScale, ringStyle: state.ringStyle, theme: state.theme, masterAudioOn: state.masterAudioOn, volumes: state.volumes, tasks: state.tasks, youtubeVideoId: state.youtubeVideoId, lang: currentLang, allowTextSelect: state.allowTextSelect, disableMediaSession: state.disableMediaSession, ytVolume: state.ytVolume, ytBgClickThrough: state.ytBgClickThrough };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
                 const memoEl = document.getElementById('memoInput');
                 if (memoEl) localStorage.setItem(MEMO_STORAGE_KEY, memoEl.value);
@@ -5481,52 +5475,13 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
         const canvas = document.getElementById('mainCanvas'), ctx = canvas.getContext('2d');
         let width = canvas.width = window.innerWidth, height = canvas.height = window.innerHeight;
         
-        let lastWidth = window.innerWidth, lastHeight = window.innerHeight;
-        let lastAspect = window.innerWidth / window.innerHeight;
-        let resizePulseTimer = null, resizeEndTimer = null, resizeRainTimer = null;
-        let isPageLoaded = false;
 
-        function triggerResizePulse() {
-            if (!isPageLoaded || state.lowPerformance) return;
-            if (typeof isEditModeActive !== 'undefined' && isEditModeActive) return;
-            if (typeof isSplitTransitioning !== 'undefined' && isSplitTransitioning) return;
-            if (document.body.classList.contains('split-view-active') || document.body.classList.contains('split-closing')) return;
-
-            const appStage = document.getElementById('appStage');
-            if (!appStage) return;
-
-            appStage.classList.add('window-resize-press');
-            appStage.classList.remove('window-resize-restore');
-
-            clearTimeout(resizePulseTimer);
-            clearTimeout(resizeEndTimer);
-
-            resizePulseTimer = setTimeout(() => {
-                appStage.classList.remove('window-resize-press');
-                appStage.classList.add('window-resize-restore');
-
-                resizeEndTimer = setTimeout(() => {
-                    appStage.classList.remove('window-resize-restore');
-                }, 1000);
-            }, 1000);
-        }
+        let resizeRainTimer = null;
 
         window.addEventListener('resize', () => {
             width = canvas.width = canvas.parentElement ? canvas.parentElement.clientWidth : window.innerWidth;
             height = canvas.height = canvas.parentElement ? canvas.parentElement.clientHeight : window.innerHeight;
             clearTimeout(resizeRainTimer); resizeRainTimer = setTimeout(initRain, 200);
-
-            const currentAspect = window.innerWidth / window.innerHeight;
-            const widthDiff = Math.abs(window.innerWidth - lastWidth);
-            const heightDiff = Math.abs(window.innerHeight - lastHeight);
-            const aspectDiff = Math.abs(currentAspect - lastAspect);
-
-            if (widthDiff > 6 || heightDiff > 6 || aspectDiff > 0.005) {
-                triggerResizePulse();
-                lastWidth = window.innerWidth;
-                lastHeight = window.innerHeight;
-                lastAspect = currentAspect;
-            }
         });
 
         let audioCtx = null, audioNodes = { rainSource: null, rainGain: null, alphaOscL: null, alphaOscR: null, alphaGain: null, fireSource: null, fireGain: null };
@@ -7153,6 +7108,11 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
         document.getElementById('binauralSelect')?.addEventListener('change', e => { updateBinauralFrequencies(e.target.value); saveSettings(); });
         document.getElementById('showFpsToggle')?.addEventListener('change', e => { state.showFps = e.target.checked; toggleFpsDisplay(state.showFps); saveSettings(); });
         document.getElementById('allowTextSelectToggle')?.addEventListener('change', e => { state.allowTextSelect = e.target.checked; document.body.classList.toggle('allow-text-select', state.allowTextSelect); saveSettings(); });
+        document.getElementById('ytBgClickThroughToggle')?.addEventListener('change', e => {
+            state.ytBgClickThrough = e.target.checked;
+            document.getElementById('ytBgProjection')?.classList.toggle('pointer-events-none', !state.ytBgClickThrough);
+            saveSettings();
+        });
         document.getElementById('autoHideToggle')?.addEventListener('change', e => { state.autoHideUI = e.target.checked; resetAutoHideTimer(); saveSettings(); });
         document.getElementById('glassInteractionToggle')?.addEventListener('change', e => { state.glassInteraction = e.target.checked; saveSettings(); });
         document.getElementById('format24Toggle')?.addEventListener('change', e => { state.clock24h = e.target.checked; updateClock(); saveSettings(); });
@@ -7258,10 +7218,6 @@ body.theme-is-light .lg-pill-btn:not(#pwaInstallBtn):hover {
             if (!hadPriorVisit && !hasSeenWhatsNew()) setTimeout(showWhatsNewModal, 500);
             updateBadgeDisplay();
             hideSplashScreen();
-
-            setTimeout(() => {
-                isPageLoaded = true;
-            }, 800);
         };
 
         if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW register failed:', err)); }); }
